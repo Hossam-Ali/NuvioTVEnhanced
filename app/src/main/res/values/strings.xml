@@ -1458,6 +1458,10 @@
     <string name="animeskip_invalid_client_id">Invalid Client ID</string>
     <string name="action_clear">Clear</string>
 
+    <string name="tmdb_api_key_title">TMDB API key</string>
+    <string name="tmdb_api_key_subtitle">Needed for artwork, ratings, original-title search and actors. Stored encrypted on this TV.</string>
+    <string name="tmdb_api_key_dialog_subtitle">Create a free key at themoviedb.org: Settings, then API, and copy the "API Key" (v3).</string>
+    <string name="tmdb_api_key_placeholder">32-character API key</string>
     <string name="tmdb_title">TMDB Enrichment</string>
     <string name="tmdb_subtitle">Choose which metadata fields should come from TMDB</string>
     <string name="tmdb_enable_title">Enable TMDB Enrichment</string>

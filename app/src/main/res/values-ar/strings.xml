@@ -1074,6 +1074,10 @@
     <string name="action_clear">مسح</string>
 
     <!-- TmdbSettingsScreen -->
+    <string name="tmdb_api_key_title">مفتاح TMDB</string>
+    <string name="tmdb_api_key_subtitle">مطلوب للصور والتقييمات والبحث بالاسم الأصلي والممثلين. يُحفظ مشفرًا على هذا التلفاز.</string>
+    <string name="tmdb_api_key_dialog_subtitle">أنشئ مفتاحًا مجانيًا من themoviedb.org: الإعدادات ثم API، وانسخ "API Key" (v3).</string>
+    <string name="tmdb_api_key_placeholder">مفتاح من 32 حرفًا</string>
     <string name="tmdb_title">اثراء بيانات TMDB</string>
     <string name="tmdb_subtitle">إختر حقول البيانات الوصفية التي ستأتي من TMDB</string>
     <string name="tmdb_enable_title">تفعيل تحسين TMDB</string>

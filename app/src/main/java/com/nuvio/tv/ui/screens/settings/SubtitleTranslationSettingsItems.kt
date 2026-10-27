@@ -221,7 +221,7 @@ internal fun subtitleTranslationSettingsItems(enabled: Boolean, preferredSubtitl
 }
 
 @Composable
-private fun TranslationTextDialog(
+internal fun TranslationTextDialog(
     title: String,
     subtitle: String,
     initialValue: String,

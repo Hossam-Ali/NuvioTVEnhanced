@@ -1,6 +1,6 @@
 package com.nuvio.tv.ui.screens.search
 
-import com.nuvio.tv.BuildConfig
+import com.nuvio.tv.core.tmdb.TmdbApiKey
 import com.nuvio.tv.data.local.TmdbSettingsDataStore
 import com.nuvio.tv.data.remote.api.TmdbApi
 import com.nuvio.tv.data.remote.api.TmdbMultiSearchResult
@@ -20,7 +20,7 @@ data class TmdbSearchResults(val titles: List<MetaPreview>, val people: List<Met
 /**
  * Searches TMDB, which knows titles in many languages and their original names, so a search in
  * Arabic or a show's own language finds it even when the addons only know English titles. Also
- * returns people for the actors row. Needs a TMDB key in the build; without one it finds nothing.
+ * returns people for the actors row. Needs a TMDB key (entered on the TV or built in); without one it finds nothing.
  */
 @Singleton
 class TmdbSearchSource @Inject constructor(
@@ -28,10 +28,11 @@ class TmdbSearchSource @Inject constructor(
     private val tmdbSettingsDataStore: TmdbSettingsDataStore,
 ) {
     suspend fun search(query: String): TmdbSearchResults {
-        if (BuildConfig.TMDB_API_KEY.isBlank()) return TmdbSearchResults.EMPTY
+        val apiKey = TmdbApiKey.current()
+        if (apiKey.isBlank()) return TmdbSearchResults.EMPTY
         val language = runCatching { tmdbSettingsDataStore.settings.first().language }.getOrNull()
         val results = runCatching {
-            tmdbApi.searchMulti(apiKey = BuildConfig.TMDB_API_KEY, query = query, language = language)
+            tmdbApi.searchMulti(apiKey = apiKey, query = query, language = language)
                 .body()?.results
         }.getOrNull().orEmpty()
         return TmdbSearchResults(

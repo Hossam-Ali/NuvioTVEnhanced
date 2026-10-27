@@ -1,7 +1,6 @@
 package com.nuvio.tv.core.tmdb
 
 import android.util.Log
-import com.nuvio.tv.BuildConfig
 import com.nuvio.tv.data.remote.api.TmdbAggregateCreditsResponse
 import com.nuvio.tv.data.remote.api.TmdbApi
 import com.nuvio.tv.data.remote.api.TmdbCastMember
@@ -40,7 +39,7 @@ import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 
 private const val TAG = "TmdbMetadataService"
-private val TMDB_API_KEY = BuildConfig.TMDB_API_KEY
+private val TMDB_API_KEY: String get() = TmdbApiKey.current()
 private const val TMDB_TRAILER_FALLBACK_LANGUAGE = "en-US"
 private const val TMDB_SEASON_REQUEST_CONCURRENCY = 4
 private val YOUTUBE_VIDEO_ID_REGEX = Regex("^[a-zA-Z0-9_-]{11}$")

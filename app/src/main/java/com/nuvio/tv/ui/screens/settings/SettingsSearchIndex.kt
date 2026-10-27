@@ -224,6 +224,7 @@ internal val settingsSearchIndex: List<SettingsSearchEntry> = listOf(
     SettingsSearchEntry(R.string.debrid_stream_release_groups_excluded, null, SettingsCategory.INTEGRATION, null, SettingsSearchIntegration.Debrid),
     SettingsSearchEntry(R.string.tmdb_title, R.string.tmdb_subtitle, SettingsCategory.INTEGRATION, null, SettingsSearchIntegration.Tmdb),
     SettingsSearchEntry(R.string.tmdb_enable_title, R.string.tmdb_enable_subtitle, SettingsCategory.INTEGRATION, null, SettingsSearchIntegration.Tmdb),
+    SettingsSearchEntry(R.string.tmdb_api_key_title, R.string.tmdb_api_key_subtitle, SettingsCategory.INTEGRATION, null, SettingsSearchIntegration.Tmdb),
     SettingsSearchEntry(R.string.tmdb_modern_home_title, R.string.tmdb_modern_home_subtitle, SettingsCategory.INTEGRATION, null, SettingsSearchIntegration.Tmdb),
     SettingsSearchEntry(R.string.tmdb_enrich_continue_watching_title, R.string.tmdb_enrich_continue_watching_subtitle, SettingsCategory.INTEGRATION, null, SettingsSearchIntegration.Tmdb),
     SettingsSearchEntry(R.string.tmdb_language_title, R.string.tmdb_language_subtitle, SettingsCategory.INTEGRATION, null, SettingsSearchIntegration.Tmdb),

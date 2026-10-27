@@ -1,7 +1,6 @@
 package com.nuvio.tv.core.tmdb
 
 import android.util.Log
-import com.nuvio.tv.BuildConfig
 import com.nuvio.tv.data.remote.api.TmdbApi
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -14,7 +13,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 private const val TAG = "TmdbService"
-private val TMDB_API_KEY = BuildConfig.TMDB_API_KEY
+private val TMDB_API_KEY: String get() = TmdbApiKey.current()
 
 /**
  * Service to handle TMDB ID conversions and lookups.

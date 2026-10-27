@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -25,7 +26,9 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.nuvio.tv.core.tmdb.TmdbApiKey
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import com.nuvio.tv.R
 import com.nuvio.tv.core.build.AppFeaturePolicy
@@ -54,6 +57,12 @@ fun TmdbSettingsContent(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showLanguageDialog by remember { mutableStateOf(false) }
+    var showKeyDialog by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val userTmdbKey by TmdbApiKey.userKey.collectAsStateWithLifecycle()
+    // Reading the key once loads the saved one into userKey.
+    LaunchedEffect(Unit) { TmdbApiKey.current() }
+    val savedTmdbKey = userTmdbKey.orEmpty()
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -94,6 +103,18 @@ fun TmdbSettingsContent(
                     )
                 }
 
+                item(key = "tmdb_api_key") {
+                    SettingsActionRow(
+                        title = stringResource(R.string.tmdb_api_key_title),
+                        subtitle = stringResource(R.string.tmdb_api_key_subtitle),
+                        value = when {
+                            savedTmdbKey.isNotBlank() -> "••••••${savedTmdbKey.takeLast(4)}"
+                            TmdbApiKey.hasBuiltInKey -> stringResource(R.string.subtitle_ai_translation_key_built_in)
+                            else -> stringResource(R.string.subtitle_ai_translation_key_missing)
+                        },
+                        onClick = { showKeyDialog = true }
+                    )
+                }
                 item(key = "tmdb_modern_home_enabled") {
                     SettingsToggleRow(
                         title = stringResource(R.string.tmdb_modern_home_title),
@@ -254,6 +275,27 @@ fun TmdbSettingsContent(
             SettingsVerticalScrollIndicators(state = tmdbListState)
             }
         }
+    }
+
+    if (showKeyDialog) {
+        TranslationTextDialog(
+            title = stringResource(R.string.tmdb_api_key_title),
+            subtitle = stringResource(R.string.tmdb_api_key_dialog_subtitle),
+            initialValue = "",
+            placeholder = stringResource(R.string.tmdb_api_key_placeholder),
+            onClear = if (savedTmdbKey.isNotBlank()) {
+                { TmdbApiKey.setUserKey(context, "") }
+            } else {
+                null
+            },
+            onSave = { value ->
+                if (value.isNotBlank() && TmdbApiKey.setUserKey(context, value) && !uiState.enabled) {
+                    // A key is only entered to use TMDB, so switch enrichment on with it.
+                    viewModel.onEvent(TmdbSettingsEvent.ToggleEnabled(true))
+                }
+            },
+            onDismiss = { showKeyDialog = false },
+        )
     }
 
     if (showLanguageDialog) {
