@@ -1,0 +1,30 @@
+app/src/main/java/com/nuvio/tv/core/tmdb/TmdbMetadataService.kt
+  s_c581780fe72464::t_597e896e41d2e1 305-306,309-329,495,1250-1255,1699-1718
+app/src/main/java/com/nuvio/tv/ui/screens/collection/FolderDetailViewModel.kt
+  s_c581780fe72464::t_a13d2dc8855585 1318,1326-1330,1616,1624-1628
+app/src/main/java/com/nuvio/tv/ui/screens/home/HomeViewModelPresentationPipeline.kt
+  s_c581780fe72464::t_ebb2f5c573ca9b 900,908-912
+app/src/main/java/com/nuvio/tv/ui/screens/home/ModernHomeRows.kt
+  s_c581780fe72464::t_038358408172ae 1194-1195,1198
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "936299146983c0c40d808bc6891c118640d49a9f",
+  "prompts": {},
+  "humans": {
+    "h_b46d7b9083e084": {
+      "author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_c581780fe72464": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "s_c581780fe72464",
+        "model": "unknown"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  }
+}
