@@ -1,0 +1,54 @@
+name: Check upstream Nuvio TV
+
+# Once a week (and on demand), looks for new commits in NuvioMedia/NuvioTV. When there are some,
+# it merges them into a branch and opens a pull request here; if they conflict with this fork's
+# changes, it opens an issue instead so the merge can be done by hand.
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+          fetch-depth: 0
+
+      - name: Merge upstream changes into a branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add upstream https://github.com/NuvioMedia/NuvioTV.git
+          git fetch upstream dev
+          count=$(git rev-list --count HEAD..upstream/dev)
+          if [ "$count" -eq 0 ]; then
+            echo "Already up to date with upstream."
+            exit 0
+          fi
+          branch="upstream-sync/$(date -u +%Y-%m-%d)"
+          if git ls-remote --exit-code --heads origin "$branch" >/dev/null; then
+            echo "$branch already exists; nothing to do."
+            exit 0
+          fi
+          git switch -c "$branch"
+          if git merge --no-ff --no-edit upstream/dev; then
+            git push origin "$branch"
+            gh pr create --base dev --head "$branch" \
+              --title "Merge $count upstream commits ($(date -u +%Y-%m-%d))" \
+              --body "New commits from [NuvioMedia/NuvioTV](https://github.com/NuvioMedia/NuvioTV/compare/$(git merge-base dev upstream/dev)...$(git rev-parse upstream/dev)). CI runs the tests on this PR; check AI subtitles, search and settings on a device before merging."
+          else
+            git merge --abort
+            gh issue create \
+              --title "Upstream changes need a manual merge ($(date -u +%Y-%m-%d))" \
+              --body "$count new commits in NuvioMedia/NuvioTV conflict with this fork. Merge upstream/dev into dev by hand and resolve the conflicts."
+          fi

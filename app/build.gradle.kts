@@ -248,7 +248,8 @@ android {
 
     buildTypes {
         debug {
-            signingConfig = signingConfigs.getByName("release")
+            // CI has no release keystore; there the runner's debug key signs debug builds too.
+            signingConfig = signingConfigs.getByName(if (useDebugReleaseSigning) "debug" else "release")
             isDebuggable = parseBooleanProperty(providers.gradleProperty("debuggable").orNull)
             isMinifyEnabled = false
 
