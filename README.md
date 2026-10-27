@@ -57,11 +57,37 @@ text subtitles. No searching, no syncing, no wrong-version files.
   cards show the whole poster instead of cropping it.
 - **Optimized release builds** with the startup profile applied.
 
+### Search that finds what you mean
+
+- **Top results first.** Results from every add-on are merged into one row: each title once, the
+  closest match first, and it opens with the add-on that found it. No more scanning the same
+  movie across five rows.
+- **Any language, original titles too.** Search a show by its Arabic, Turkish, Korean or original
+  name and find it, even when your add-ons only know the English title.
+- **Search by actor.** An "Actors & crew" row takes you straight to a person's movies and series.
+- **Clean, fast results.** Add-ons that fail to answer disappear instead of loading forever, and
+  slow ones join in when ready rather than filling the screen with placeholders.
+
+Searching by original title and by actor uses TMDB, so it needs a build with a TMDB key (see
+[Build from source](#build-from-source)).
+
+### Settings that make sense
+
+- **Seven clear sections** instead of a long list: Account & profiles, Appearance, Playback,
+  Subtitles, Sources & add-ons, Tracking and System. Related pages sit together as tabs, such as
+  Theme and Layout under Appearance.
+- **Subtitles have their own section**, with languages, style, AI translation and sync in one place.
+- **Search your settings.** Type a word, in English or Arabic, and jump straight to the setting,
+  across almost 300 options.
+- **Snappier.** Moving down the list no longer rebuilds every section you pass; a section opens
+  when you stop on it or press OK.
+
 ### Fixes
 
 - Opening a movie or series no longer crashes after the navigation library upgrade (the page's
   focus state collided with its route arguments).
 - The Discover grid can't crash when a movie and a show share an id.
+- Search rows from add-ons that fail no longer stay stuck on a loading placeholder.
 - Playback no longer gets stuck between "starting stream" and "building player" when subtitle
   translation is on.
 
