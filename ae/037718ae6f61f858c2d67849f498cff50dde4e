@@ -1,0 +1,25 @@
+app/src/main/java/com/nuvio/tv/data/repository/TraktAuthService.kt
+  s_e94088c53ec91e::t_8ee21a5a15234d 120-122,125-126
+app/src/main/java/com/nuvio/tv/data/repository/TraktProgressService.kt
+  s_e94088c53ec91e::t_14b5bad1589308 31,1103-1104,1949-1953
+app/src/test/java/com/nuvio/tv/data/repository/TraktAuthServiceTest.kt
+  s_e94088c53ec91e::t_c60709d05a1691 36-37
+app/src/test/java/com/nuvio/tv/ui/screens/home/HomeEnrichmentRetryTest.kt
+  s_e94088c53ec91e::t_4d33681c8854a5 150-151,325-329
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "ae037718ae6f61f858c2d67849f498cff50dde4e",
+  "prompts": {},
+  "sessions": {
+    "s_e94088c53ec91e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "s_e94088c53ec91e",
+        "model": "unknown"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  }
+}
