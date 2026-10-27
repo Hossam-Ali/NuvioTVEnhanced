@@ -97,6 +97,7 @@ internal fun PlayerRuntimeController.stopSidecarAddonSubtitle(clearView: Boolean
     sidecarSubtitleJob?.cancel()
     sidecarSubtitleJob = null
     activeSidecarSubtitleKey = null
+    activeSidecarSubtitleLanguage = null
     activeSidecarGeneration = 0L
     AutoSyncSyncedSubtitle.clear() // AutoSync hook
     sidecarTimedCues = emptyList()
@@ -127,6 +128,7 @@ internal fun PlayerRuntimeController.startSidecarAddonSubtitle(
     activeSidecarGeneration = generation
     AutoSyncSyncedSubtitle.clear() // AutoSync hook
     activeSidecarSubtitleKey = subtitleKey
+    activeSidecarSubtitleLanguage = subtitle.lang
     lastSidecarCueSignature = null
     sidecarTimedCues = emptyList()
     postToSubtitleView { view ->
@@ -167,6 +169,7 @@ internal fun PlayerRuntimeController.startSidecarAddonSubtitle(
             }
 
             sidecarTimedCues = parseResult.cues
+            prefetchSidecarTranslations(parseResult.cues)
             Log.d(
                 PlayerRuntimeController.TAG,
                 "Sidecar subtitle ready id=${subtitle.id} cues=${parseResult.cues.size} " +
@@ -228,6 +231,8 @@ internal fun PlayerRuntimeController.commitPreparedSidecarSubtitle(
     val committedGeneration = activeSidecarGeneration
     sidecarTimedCues = cues
     lastSidecarCueSignature = null
+    // AutoSync retimed or replaced the subtitle; texts it changed need translating too.
+    prefetchSidecarTranslations(cues)
     postToSubtitleView { view ->
         view.setTag(R.id.player_view_sidecar_generation_tag, newUrl)
     }
@@ -266,7 +271,7 @@ internal fun PlayerRuntimeController.renderSidecarCuesAtCurrentPosition() {
     lastSidecarCueSignature = signature
     val sanitized = active.map { SubtitleMojibakeSanitizer.sanitizeCue(it) }
     val filtered = if (stripSdh) SubtitleSdhFilter.filterCues(sanitized) else sanitized
-    val merged = PlayerSubtitleUtils.mergeOverlappingCues(filtered)
+    val merged = translateSidecarCues(PlayerSubtitleUtils.mergeOverlappingCues(filtered))
     val currentKey = activeSidecarSubtitleKey ?: return
     val currentGeneration = activeSidecarGeneration.takeIf { it != 0L } ?: return
     postToSubtitleView { view ->

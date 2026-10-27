@@ -442,6 +442,8 @@ class PlayerRuntimeController(
     internal var sidecarGenerationCounter: Long = 0L // AutoSync hook
     internal var activeSidecarGeneration: Long = 0L // AutoSync hook
     internal var activeSidecarSubtitleKey: String? = null
+    /** Language of the add-on subtitle shown on the sidecar path, for AI translation. */
+    internal var activeSidecarSubtitleLanguage: String? = null
     internal var sidecarTimedCues: List<androidx.media3.extractor.text.CuesWithTiming> = emptyList()
         set(value) {
             field = value

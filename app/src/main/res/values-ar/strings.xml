@@ -3072,6 +3072,7 @@
     <string name="subtitle_ai_translation_error_model">ترجمة الذكاء الاصطناعي: النموذج %1$s غير موجود</string>
     <string name="subtitle_ai_translation_error_rate">ترجمة الذكاء الاصطناعي: تم بلوغ حد الطلبات لدى %1$s، ستتم إعادة المحاولة</string>
     <string name="subtitle_ai_translation_error_generic">ترجمة الذكاء الاصطناعي: فشلت الترجمة، يتم عرض النص الأصلي مؤقتًا</string>
+    <string name="subtitle_ai_translation_addon_source">ترجمة الذكاء الاصطناعي: لا توجد ترجمة مدمجة، تتم ترجمة الترجمة القادمة من %1$s</string>
     <string name="subtitle_ai_translation_no_source">ترجمة الذكاء الاصطناعي: لا توجد ترجمة نصية مدمجة في هذا الفيديو، لذلك تُستخدم ترجمات الإضافات</string>
     <string name="subtitle_ai_translation_option">ترجمة بالذكاء الاصطناعي</string>
     <string name="subtitle_ai_translation_option_source">من %1$s</string>

@@ -3451,6 +3451,7 @@
     <string name="subtitle_ai_translation_error_model">AI subtitles: model %1$s was not found</string>
     <string name="subtitle_ai_translation_error_rate">AI subtitles: %1$s rate limit reached, retrying</string>
     <string name="subtitle_ai_translation_error_generic">AI subtitles: translation failed, showing the original for now</string>
+    <string name="subtitle_ai_translation_addon_source">AI subtitles: no built-in subtitles, translating the subtitle from %1$s</string>
     <string name="subtitle_ai_translation_no_source">AI subtitles: this video has no text subtitles to translate, so add-on subtitles are used</string>
     <string name="subtitle_ai_translation_option">AI translation</string>
     <string name="subtitle_ai_translation_option_source">From %1$s</string>
