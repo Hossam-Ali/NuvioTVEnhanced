@@ -127,6 +127,8 @@ data class PlayerUiState(
     val showMoreDialog: Boolean = false,
     // Subtitle style settings
     val subtitleStyle: SubtitleStyleSettings = SubtitleStyleSettings(),
+    /** The AI-translated subtitle line drawn over the MPV player, which cannot show it itself. */
+    val mpvTranslatedSubtitle: String? = null,
     // Current video is HDR10/HDR10+/HLG/Dolby Vision; selects the HDR subtitle style when enabled
     val isHdrVideo: Boolean = false,
     // Addon subtitles

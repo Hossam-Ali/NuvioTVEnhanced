@@ -558,6 +558,7 @@ class PlayerRuntimeController(
     internal var streamReuseLastLinkEnabled: Boolean = false
     internal var autoSwitchInternalPlayerOnErrorEnabled: Boolean = false
     internal val subtitleTranslationBridge = SubtitleCueTranslationBridge()
+    internal var mpvSubtitleTranslationJob: kotlinx.coroutines.Job? = null
     internal var subtitleTranslationNoSourceNoticeStreamUrl: String? = null
     internal var startupEngineFailoverTriggered: Boolean = false
     internal var runtimeInternalPlayerEngineOverride: InternalPlayerEngine? = null

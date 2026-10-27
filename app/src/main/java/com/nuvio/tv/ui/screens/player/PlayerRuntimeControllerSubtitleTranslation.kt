@@ -20,6 +20,7 @@ import kotlinx.coroutines.withContext
 /** Starts listening for translation results (redraw) and problems (notices) for this player. */
 internal fun PlayerRuntimeController.observeSubtitleTranslation() {
     SubtitleTranslationService.attach(context)
+    startMpvSubtitleTranslation()
     scope.launch {
         SubtitleTranslationService.events.collect { event ->
             withContext(Dispatchers.Main.immediate) {
@@ -131,7 +132,7 @@ internal fun PlayerRuntimeController.currentAudioLanguageForTranslation(): Strin
 
 /** The language "always translate with AI" translates into, or null when it does not apply. */
 internal fun PlayerRuntimeController.preferredEmbeddedTranslationTarget(): String? {
-    if (isUsingMpvEngine() || !SubtitleTranslationService.shouldPreferEmbeddedSubtitles()) return null
+    if (!SubtitleTranslationService.shouldPreferEmbeddedSubtitles()) return null
     return SubtitleTranslationService.translationTargetLanguage() ?: subtitleLanguageTargets().firstOrNull()
 }
 
@@ -169,7 +170,7 @@ internal fun PlayerRuntimeController.tryAutoSelectEmbeddedSubtitleForTranslation
     subtitleTracks: List<TrackInfo>,
     targetLanguage: String?
 ): Boolean {
-    if (targetLanguage == null || isUsingMpvEngine() || !hasScannedTextTracksOnce) return false
+    if (targetLanguage == null || !hasScannedTextTracksOnce) return false
     if (!SubtitleTranslationService.shouldPreferEmbeddedSubtitles()) return false
     val audio = currentAudioLanguageForTranslation()
     val source = embeddedSubtitleForTranslation(subtitleTracks, targetLanguage, audio)
