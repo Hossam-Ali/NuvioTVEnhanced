@@ -1,0 +1,42 @@
+app/build.gradle.kts
+  s_17381381854cd9::t_15475baab80324 130,443
+app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt
+  s_17381381854cd9::t_65d314845e28fe 344-345,347,350,367-368,591-592,930-931,1041-1042,1088-1089
+app/src/main/java/com/nuvio/tv/ui/screens/search/SearchDiscoverSection.kt
+  s_17381381854cd9::t_b6f99f86095e55 660-661
+baselineprofile/build.gradle.kts
+  s_17381381854cd9::t_440f24143a33f9 9
+ffmpeg-decoder-downmix/build.gradle.kts
+  s_17381381854cd9::t_8243a4042ce8aa 24
+gradle.properties
+  s_17381381854cd9::t_d0795e875e5e49 24-28
+gradle/libs.versions.toml
+  s_17381381854cd9::t_ce36cfa6de5513 2,4-9,11-12,15-16,20-25,38,40-41,46
+gradle/wrapper/gradle-wrapper.properties
+  s_17381381854cd9::t_1f7d634d87f1b9 3
+gradlew
+  s_17381381854cd9::t_bfd853d11b726c 4,117,216
+gradlew.bat
+  s_17381381854cd9::t_ee77e99f0d10f5 73,77
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "4fd8414f36254f48d4a3090794509d618854a77d",
+  "prompts": {},
+  "humans": {
+    "h_b46d7b9083e084": {
+      "author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_17381381854cd9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "s_17381381854cd9",
+        "model": "unknown"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  }
+}
