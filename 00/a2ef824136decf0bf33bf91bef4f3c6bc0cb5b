@@ -1,0 +1,23 @@
+app/build.gradle.kts
+  s_52922d173a444b::t_0020a753207540 635,637
+app/src/test/java/com/nuvio/tv/ui/screens/player/PlaybackNetworkingSslVerificationTest.kt
+  s_52922d173a444b::t_a74fb5851cbc7c 69-73,77-79
+gradle/libs.versions.toml
+  s_52922d173a444b::t_5b744793206d95 17-18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "00a2ef824136decf0bf33bf91bef4f3c6bc0cb5b",
+  "prompts": {},
+  "sessions": {
+    "s_52922d173a444b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "s_52922d173a444b",
+        "model": "unknown"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  }
+}
