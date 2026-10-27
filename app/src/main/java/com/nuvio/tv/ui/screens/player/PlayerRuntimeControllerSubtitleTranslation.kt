@@ -146,8 +146,11 @@ internal fun PlayerRuntimeController.shouldReplaceRememberedSubtitleWithTranslat
     subtitleTracks: List<TrackInfo>,
 ): Boolean {
     val target = preferredEmbeddedTranslationTarget() ?: return false
+    // Only a subtitle already in the target language is swapped for the AI one: anything else
+    // the user picked (an English add-on, say) is translated as it is.
     val replaceable = when (remembered) {
-        is PlayerRuntimeController.RememberedSubtitleSelection.Addon -> true
+        is PlayerRuntimeController.RememberedSubtitleSelection.Addon ->
+            PlayerSubtitleUtils.matchesLanguageCode(remembered.language, target)
         is PlayerRuntimeController.RememberedSubtitleSelection.Internal ->
             PlayerSubtitleUtils.matchesLanguageCode(remembered.track.language, target)
         PlayerRuntimeController.RememberedSubtitleSelection.Disabled -> false

@@ -9,6 +9,8 @@ import com.nuvio.tv.core.subtitles.SubtitleTranslator
 
 /** Lines sent per translation request while an add-on subtitle is translated ahead. */
 private const val SIDECAR_PREFETCH_GROUP = 40
+/** The first request is small, so the lines on screen come back quickly after a switch. */
+private const val SIDECAR_FIRST_GROUP = 8
 
 /** The translator for the add-on subtitle being shown, or null when it is shown as it is. */
 private fun PlayerRuntimeController.sidecarTranslator(): SubtitleTranslator? {
@@ -34,10 +36,13 @@ internal fun PlayerRuntimeController.prefetchSidecarTranslations(cues: List<Cues
     val positionUs = (_exoPlayer?.currentPosition ?: 0L).coerceAtLeast(0L) * 1_000L
     val ordered = cues.sortedBy { it.startTimeUs }
     val upcoming = ordered.indexOfFirst { it.endTimeUs >= positionUs }.let { if (it < 0) ordered.size else it }
-    (ordered.drop(upcoming) + ordered.take(upcoming))
+    val texts = (ordered.drop(upcoming) + ordered.take(upcoming))
         .flatMap { displayedTexts(it.cues) }
         .distinct()
         .filter { translator.cached(it) == null }
+    if (texts.isEmpty()) return
+    SubtitleTranslationService.translate(translator, texts.take(SIDECAR_FIRST_GROUP))
+    texts.drop(SIDECAR_FIRST_GROUP)
         .chunked(SIDECAR_PREFETCH_GROUP)
         .forEach { group -> SubtitleTranslationService.translate(translator, group) }
 }
