@@ -70,6 +70,14 @@ internal fun PlaybackSubtitlesSection(
         onClick = { onOpenDialog(PlaybackDialog.SECONDARY_SUBTITLE_LANGUAGE) }
     )
     autoSyncSettingsItems(enabled = enabled) // AutoSync hook
+    subtitleTranslationSettingsItems(
+        enabled = enabled,
+        preferredSubtitleLanguage = if (style.isPreferredLanguageSystemDefault) {
+            java.util.Locale.getDefault().language
+        } else {
+            style.preferredLanguage
+        }
+    )
 
     SettingsToggleRow(
         title = stringResource(R.string.sub_use_forced_subtitles),

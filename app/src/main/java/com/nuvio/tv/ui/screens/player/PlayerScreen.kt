@@ -2054,6 +2054,10 @@ fun PlayerScreen(
             isLoadingAddons = uiState.isLoadingAddonSubtitles,
             useLibass = uiState.useLibass,
             isUsingMpv = uiState.internalPlayerEngine == InternalPlayerEngine.MVP_PLAYER,
+            aiTranslationTarget = if (uiState.internalPlayerEngine == InternalPlayerEngine.MVP_PLAYER) null else {
+                com.nuvio.tv.core.subtitles.SubtitleTranslationService.translationTargetLanguage()
+            },
+            aiTranslationAudioLanguage = uiState.audioTracks.getOrNull(uiState.selectedAudioTrackIndex)?.language,
             onInternalTrackSelected = { viewModel.onEvent(PlayerEvent.OnSelectSubtitleTrack(it)) },
             onAddonSubtitleSelected = { viewModel.onEvent(PlayerEvent.OnSelectAddonSubtitle(it)) },
             onDisableSubtitles = { viewModel.onEvent(PlayerEvent.OnDisableSubtitles) },
