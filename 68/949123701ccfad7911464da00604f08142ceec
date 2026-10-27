@@ -1,0 +1,25 @@
+README.md
+  s_2a2adcb797b46e::t_a775d380c5a28b 39-43,53-54,76-77,81-82,96-97,114,116-122,135-138
+app/src/main/java/com/nuvio/tv/ui/screens/settings/SettingsScreen.kt
+  s_2a2adcb797b46e::t_a1189b1fb9cd58 991
+app/src/main/res/values-ar/strings.xml
+  s_2a2adcb797b46e::t_cd759ae604254c 391-393
+app/src/main/res/values/strings.xml
+  s_2a2adcb797b46e::t_c075f0c4bc9dc0 474-476
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "68949123701ccfad7911464da00604f08142ceec",
+  "prompts": {},
+  "sessions": {
+    "s_2a2adcb797b46e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "s_2a2adcb797b46e",
+        "model": "unknown"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  }
+}
