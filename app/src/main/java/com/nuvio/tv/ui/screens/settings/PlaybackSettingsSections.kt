@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -34,11 +35,25 @@ internal fun PlaybackSettingsSections(
     onOpenDialog: (PlaybackDialog) -> Unit,
     onMemorySettingChanged: () -> Unit,
     onClearTorrentCache: () -> Unit,
-    initialFocusRequester: FocusRequester? = null
+    initialFocusRequester: FocusRequester? = null,
+    sectionFilter: (PlaybackSection) -> Boolean = { true },
+    expandSections: Boolean = false,
+    revealSection: PlaybackSection? = null
 ) {
-    val sections = visiblePlaybackSections(playerSettings)
-    var expandedSections by rememberSaveable { mutableStateOf(emptyList<String>()) }
+    val sections = visiblePlaybackSections(playerSettings).filter(sectionFilter)
+    var expandedSections by rememberSaveable {
+        mutableStateOf(if (expandSections) sections.map { it.name } else emptyList())
+    }
     val listState = rememberLazyListState()
+
+    // A search result opens its section and brings it into view.
+    LaunchedEffect(revealSection) {
+        val target = revealSection ?: return@LaunchedEffect
+        val index = sections.indexOf(target)
+        if (index < 0) return@LaunchedEffect
+        if (target.name !in expandedSections) expandedSections = expandedSections + target.name
+        runCatching { listState.scrollToItem(index) }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(

@@ -14,8 +14,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -50,13 +48,16 @@ import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Subtitles
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -135,9 +136,12 @@ private const val SETTINGS_RAIL_FOCUS_RETRY_WINDOW_MS = 200L
  * first time the rail takes focus the mark reads as set and the restoration is skipped.
  */
 private const val NO_RAIL_FALLBACK = -1L
-private const val SETTINGS_TAB_FOCUS_SELECT_DELAY_MS = 140L
-private const val SETTINGS_DETAIL_ANIM_IN_DURATION_MS = 200
-private const val SETTINGS_DETAIL_ANIM_OUT_DURATION_MS = 180
+// Moving along the rail opens the focused section only once focus rests on it, so passing
+// through sections does not build each one's options on the way. OK opens it at once.
+private const val SETTINGS_TAB_FOCUS_SELECT_DELAY_MS = 220L
+// A short fade rather than a slide: both panes are drawn while it runs, which is costly on TVs.
+private const val SETTINGS_DETAIL_ANIM_IN_DURATION_MS = 120
+private const val SETTINGS_DETAIL_ANIM_OUT_DURATION_MS = 90
 
 // The focus window has two parts: SETTINGS_DETAIL_FOCUS_DELAY_MS before the first request, then
 // this long retrying once per frame, so a category has both added together before focus falls
@@ -145,7 +149,7 @@ private const val SETTINGS_DETAIL_ANIM_OUT_DURATION_MS = 180
 // drift apart, and is timed rather than counted in frames since a frame count assumes a
 // refresh rate. The worst case wait before the fallback is SETTINGS_DETAIL_FOCUS_DELAY_MS plus
 // this window, not this window alone.
-private const val SETTINGS_DETAIL_FOCUS_RETRY_WINDOW_MS = SETTINGS_DETAIL_ANIM_IN_DURATION_MS
+private const val SETTINGS_DETAIL_FOCUS_RETRY_WINDOW_MS = 200L
 
 private sealed interface ExperienceModeLoadState {
     data object Loading : ExperienceModeLoadState
@@ -167,6 +171,29 @@ private fun settingsSectionSpec(category: SettingsCategory): SettingsSectionSpec
     SettingsCategory.ABOUT -> SettingsSectionSpec(category, stringResource(R.string.about_title), Icons.Default.Info, destination = SettingsSectionDestination.Inline)
     SettingsCategory.DEBUG -> SettingsSectionSpec(category, stringResource(R.string.settings_debug), Icons.Default.BugReport, destination = SettingsSectionDestination.Inline)
     SettingsCategory.EXPERIENCE -> SettingsSectionSpec(category, stringResource(R.string.settings_experience), Icons.Default.Tune, destination = SettingsSectionDestination.Inline)
+    SettingsCategory.SUBTITLES -> SettingsSectionSpec(category, stringResource(R.string.playback_section_subtitles), Icons.Default.Subtitles, destination = SettingsSectionDestination.Inline)
+    SettingsCategory.SEARCH -> SettingsSectionSpec(category, stringResource(R.string.settings_search_title), Icons.Default.Search, destination = SettingsSectionDestination.Inline)
+}
+
+/** The rail entry for the section [anchor] stands for, named after the page when it is the only one. */
+@Composable
+private fun railSectionSpec(anchor: SettingsCategory, pageCount: Int): SettingsSectionSpec {
+    if (pageCount < 2) return settingsSectionSpec(anchor)
+    val (title, icon) = when (anchor.section) {
+        SettingsSection.ACCOUNT -> stringResource(R.string.settings_section_account) to Icons.Default.Person
+        SettingsSection.APPEARANCE -> stringResource(R.string.appearance_title) to Icons.Default.Palette
+        SettingsSection.SOURCES -> stringResource(R.string.settings_section_sources) to Icons.Default.Explore
+        SettingsSection.SYSTEM -> stringResource(R.string.settings_section_system) to Icons.Default.Build
+        else -> return settingsSectionSpec(anchor)
+    }
+    return SettingsSectionSpec(anchor, title, icon, destination = SettingsSectionDestination.Inline)
+}
+
+/** The tab label of a page inside its section. */
+@Composable
+private fun settingsPageTitle(page: SettingsCategory): String = when (page) {
+    SettingsCategory.APPEARANCE -> stringResource(R.string.settings_page_theme)
+    else -> settingsSectionSpec(page).title
 }
 
 @Composable
@@ -212,17 +239,31 @@ fun SettingsScreen(
             isWatchPartyAvailable = isWatchPartyAvailable
         )
     }
-    val visibleSections = visibleCategories.map { category -> settingsSectionSpec(category) }
+    // The rail shows one entry per section; the pages of a section are tabs inside it.
+    val railCategories = remember(visibleCategories) { visibleCategories.railAnchors() }
+    val visibleSections = railCategories.map { anchor ->
+        railSectionSpec(anchor, visibleCategories.pagesOf(anchor.section).size)
+    }
 
     val isRtl = androidx.compose.ui.platform.LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl
     val isHorizonStyle = NuvioTheme.settingsUiStyle == SettingsUiStyle.HORIZON
+    // Settings opens on the first real section, not on search.
     var selectedCategory by rememberSaveable {
         mutableStateOf(
-            visibleSections.firstOrNull()?.category ?: SettingsCategory.APPEARANCE
+            visibleCategories.firstOrNull { it != SettingsCategory.SEARCH } ?: SettingsCategory.APPEARANCE
         )
     }
-    val railFocusRequesters = remember(visibleSections) {
-        visibleSections.associate { it.category to FocusRequester() }
+    val railFocusRequesters = remember(railCategories) {
+        railCategories.associateWith { FocusRequester() }
+    }
+    // The page last open in each section, so returning to a section reopens that tab.
+    val lastPageBySection = remember { mutableStateMapOf<SettingsSection, SettingsCategory>() }
+    LaunchedEffect(selectedCategory) { lastPageBySection[selectedCategory.section] = selectedCategory }
+    val pageFor: (SettingsCategory) -> SettingsCategory = { anchor ->
+        lastPageBySection[anchor.section]?.takeIf { it in visibleCategories } ?: anchor
+    }
+    val anchorOf: (SettingsCategory) -> SettingsCategory = { page ->
+        railCategories.firstOrNull { it.section == page.section } ?: page
     }
     val contentFocusRequesters = remember {
         mapOf(
@@ -235,6 +276,8 @@ fun SettingsScreen(
             SettingsCategory.INTEGRATION to FocusRequester(),
             SettingsCategory.TRACKING to FocusRequester(),
             SettingsCategory.PLAYBACK to FocusRequester(),
+            SettingsCategory.SUBTITLES to FocusRequester(),
+            SettingsCategory.SEARCH to FocusRequester(),
             SettingsCategory.ADVANCED to FocusRequester(),
             SettingsCategory.ABOUT to FocusRequester(),
             SettingsCategory.ACCOUNT to FocusRequester()
@@ -248,6 +291,8 @@ fun SettingsScreen(
     val integrationAnimeSkipFocusRequester = remember { FocusRequester() }
     var integrationSection by remember { mutableStateOf(IntegrationSettingsSection.Hub) }
     var integrationHubReturnSection by remember { mutableStateOf(IntegrationSettingsSection.Hub) }
+    // The playback section a search result points at, opened and scrolled to when its page shows.
+    var playbackRevealSection by remember { mutableStateOf<PlaybackSection?>(null) }
     var pendingContentFocusCategory by remember { mutableStateOf<SettingsCategory?>(null) }
     var pendingContentFocusRequestId by remember { mutableLongStateOf(0L) }
     // Saveable so it survives a trip out to one of the screens a category opens. The pane bounces
@@ -266,7 +311,7 @@ fun SettingsScreen(
         // and on essential mode, so the one that was left can be gone by the time it is returned
         // to. Restoring to it would spend the whole retry window on an item that is not there.
         ?.takeIf { category -> visibleSections.any { it.category == category } }
-        ?: selectedCategory
+        ?: anchorOf(selectedCategory)
     val railListState = rememberLazyListState()
     val railScope = rememberCoroutineScope()
 
@@ -366,9 +411,9 @@ fun SettingsScreen(
 
     val focusManager = LocalFocusManager.current
 
-    LaunchedEffect(visibleSections) {
-        if (visibleSections.none { it.category == selectedCategory }) {
-            selectedCategory = visibleSections.firstOrNull()?.category ?: SettingsCategory.APPEARANCE
+    LaunchedEffect(visibleCategories) {
+        if (selectedCategory !in visibleCategories) {
+            selectedCategory = visibleCategories.firstOrNull { it != SettingsCategory.SEARCH } ?: SettingsCategory.APPEARANCE
         }
     }
 
@@ -434,41 +479,56 @@ fun SettingsScreen(
                         else -> Unit
                     }
                 } else {
-                    if (section.category == SettingsCategory.INTEGRATION) {
+                    val page = pageFor(section.category)
+                    playbackRevealSection = null
+                    if (page == SettingsCategory.INTEGRATION) {
                         integrationSection = IntegrationSettingsSection.Hub
                         integrationHubReturnSection = IntegrationSettingsSection.Hub
                     }
                     allowDetailAutofocus = true
-                    selectedCategory = section.category
-                    pendingContentFocusCategory = section.category
+                    selectedCategory = page
+                    pendingContentFocusCategory = page
                     pendingContentFocusRequestId += 1L
                 }
             }
 
+            val onOpenSearchResult: (SettingsSearchEntry) -> Unit = { entry ->
+                entry.integration?.let { target ->
+                    val section = when (target) {
+                        SettingsSearchIntegration.Debrid -> IntegrationSettingsSection.Debrid
+                        SettingsSearchIntegration.Tmdb -> IntegrationSettingsSection.Tmdb
+                        SettingsSearchIntegration.MdbList -> IntegrationSettingsSection.MdbList
+                        SettingsSearchIntegration.AnimeSkip -> IntegrationSettingsSection.AnimeSkip
+                    }
+                    integrationSection = section
+                    integrationHubReturnSection = section
+                }
+                playbackRevealSection = entry.playbackSection
+                allowDetailAutofocus = true
+                selectedCategory = entry.page
+                pendingContentFocusCategory = entry.page
+                pendingContentFocusRequestId += 1L
+            }
+
             var focusedTabCategory by remember { mutableStateOf<SettingsCategory?>(null) }
-            var lastRailFocusChangeMs by remember { mutableLongStateOf(0L) }
             val selectFocusedTab: (SettingsCategory) -> Unit = { category ->
-                if (selectedCategory != category) {
-                    if (category == SettingsCategory.INTEGRATION) {
+                if (selectedCategory.section != category.section) {
+                    val page = pageFor(category)
+                    playbackRevealSection = null
+                    if (page == SettingsCategory.INTEGRATION) {
                         integrationSection = IntegrationSettingsSection.Hub
                         integrationHubReturnSection = IntegrationSettingsSection.Hub
                     }
                     allowDetailAutofocus = false
-                    selectedCategory = category
+                    selectedCategory = page
                 }
             }
 
             LaunchedEffect(focusedTabCategory) {
                 val category = focusedTabCategory ?: return@LaunchedEffect
-                val now = android.os.SystemClock.uptimeMillis()
-                val msSinceLast = now - lastRailFocusChangeMs
-                lastRailFocusChangeMs = now
-                if (msSinceLast > SETTINGS_TAB_FOCUS_SELECT_DELAY_MS) {
-                    selectFocusedTab(category)
-                } else {
-                    delay(SETTINGS_TAB_FOCUS_SELECT_DELAY_MS)
-                    selectFocusedTab(category)
-                }
+                // Restarted by every move, so only the section focus rests on gets built.
+                delay(SETTINGS_TAB_FOCUS_SELECT_DELAY_MS)
+                selectFocusedTab(category)
             }
 
             if (isHorizonStyle) {
@@ -560,14 +620,14 @@ fun SettingsScreen(
                                 key = { _, section -> section.category }
                             ) { index, section ->
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    if (visibleCategories.startsNewGroup(index)) {
+                                    if (railCategories.startsNewGroup(index)) {
                                         SettingsTopBarDivider()
                                     }
                                     SettingsTopBarTab(
                                         title = section.title,
                                         icon = section.icon,
                                         rawIconRes = section.rawIconRes,
-                                        isSelected = selectedCategory == section.category,
+                                        isSelected = selectedCategory.section == section.category.section,
                                         focusRequester = railFocusRequesters[section.category],
                                         onClick = { onSectionClick(section) },
                                         onFocused = {
@@ -620,22 +680,16 @@ fun SettingsScreen(
                                 .widthIn(max = 880.dp)
                                 .fillMaxWidth(),
                             transitionSpec = {
-                                val order = visibleSections.map { it.category }
-                                val forward = order.indexOf(targetState) >= order.indexOf(initialState)
-                                val toStart = forward != isRtl
-                                (slideInHorizontally(
-                                    animationSpec = tween(SETTINGS_DETAIL_ANIM_IN_DURATION_MS, easing = FastOutSlowInEasing)
-                                ) { fullWidth -> if (toStart) fullWidth / 4 else -fullWidth / 4 } +
-                                    fadeIn(tween(SETTINGS_DETAIL_ANIM_IN_DURATION_MS)))
-                                    .togetherWith(
-                                        slideOutHorizontally(
-                                            animationSpec = tween(SETTINGS_DETAIL_ANIM_OUT_DURATION_MS, easing = FastOutSlowInEasing)
-                                        ) { fullWidth -> if (toStart) -fullWidth / 4 else fullWidth / 4 } +
-                                            fadeOut(tween(SETTINGS_DETAIL_ANIM_OUT_DURATION_MS))
-                                    )
+                                fadeIn(tween(SETTINGS_DETAIL_ANIM_IN_DURATION_MS))
+                                    .togetherWith(fadeOut(tween(SETTINGS_DETAIL_ANIM_OUT_DURATION_MS)))
                             },
                             label = "settingsDetailTransition"
                         ) { animatedCategory ->
+                            SettingsSectionPages(
+                                pages = visibleCategories.pagesOf(animatedCategory.section),
+                                selectedPage = animatedCategory,
+                                onSelectPage = { selectedCategory = it }
+                            ) {
                             SettingsDetailPane(
                                 selectedCategory = animatedCategory,
                                 isEssentialMode = isEssentialMode,
@@ -661,8 +715,12 @@ fun SettingsScreen(
                                 onNavigateToAuthQrSignIn = onNavigateToAuthQrSignIn,
                                 onNavigateToSupportersContributors = onNavigateToSupportersContributors,
                                 onNavigateToLicensesAttributions = onNavigateToLicensesAttributions,
-                                onNavigateToWatchParty = onNavigateToWatchParty
+                                onNavigateToWatchParty = onNavigateToWatchParty,
+                                visiblePages = visibleCategories.toSet(),
+                                onOpenSearchResult = onOpenSearchResult,
+                                playbackRevealSection = playbackRevealSection
                             )
+                            }
                         }
                     }
                 }
@@ -716,7 +774,7 @@ fun SettingsScreen(
                                 val toDetailKey = if (isRtl) Key.DirectionLeft else Key.DirectionRight
                                 if (event.type == KeyEventType.KeyDown && event.key == toDetailKey) {
                                     val pendingSection = focusedTabCategory
-                                        ?.takeIf { it != selectedCategory || !allowDetailAutofocus }
+                                        ?.takeIf { it.section != selectedCategory.section || !allowDetailAutofocus }
                                         ?.let { category -> visibleSections.firstOrNull { it.category == category } }
                                     if (pendingSection != null) {
                                         onSectionClick(pendingSection)
@@ -736,7 +794,7 @@ fun SettingsScreen(
                             key = { _, section -> section.category }
                         ) { index, section ->
                             Column {
-                                if (visibleCategories.startsNewGroup(index)) {
+                                if (railCategories.startsNewGroup(index)) {
                                     SettingsRailDivider()
                                 }
                                 SettingsRailButton(
@@ -759,7 +817,7 @@ fun SettingsScreen(
                                     title = section.title,
                                     icon = section.icon,
                                     rawIconRes = section.rawIconRes,
-                                    isSelected = selectedCategory == section.category,
+                                    isSelected = selectedCategory.section == section.category.section,
                                     focusRequester = railFocusRequesters[section.category],
                                     onClick = { onSectionClick(section) },
                                     suppressSelectedVisual = railHadFocus
@@ -796,6 +854,11 @@ fun SettingsScreen(
                             }
                         }
                 ) {
+                    SettingsSectionPages(
+                        pages = visibleCategories.pagesOf(selectedCategory.section),
+                        selectedPage = selectedCategory,
+                        onSelectPage = { selectedCategory = it }
+                    ) {
                     SettingsDetailPane(
                         selectedCategory = selectedCategory,
                         isEssentialMode = isEssentialMode,
@@ -821,8 +884,12 @@ fun SettingsScreen(
                         onNavigateToAuthQrSignIn = onNavigateToAuthQrSignIn,
                         onNavigateToSupportersContributors = onNavigateToSupportersContributors,
                         onNavigateToLicensesAttributions = onNavigateToLicensesAttributions,
-                        onNavigateToWatchParty = onNavigateToWatchParty
+                        onNavigateToWatchParty = onNavigateToWatchParty,
+                        visiblePages = visibleCategories.toSet(),
+                        onOpenSearchResult = onOpenSearchResult,
+                        playbackRevealSection = playbackRevealSection
                     )
+                    }
                 }
             }
             }
@@ -851,9 +918,21 @@ private fun SettingsDetailPane(
     onNavigateToAuthQrSignIn: () -> Unit,
     onNavigateToSupportersContributors: () -> Unit,
     onNavigateToLicensesAttributions: () -> Unit,
-    onNavigateToWatchParty: () -> Unit
+    onNavigateToWatchParty: () -> Unit,
+    visiblePages: Set<SettingsCategory>,
+    onOpenSearchResult: (SettingsSearchEntry) -> Unit,
+    playbackRevealSection: PlaybackSection?
 ) {
     when (selectedCategory) {
+        SettingsCategory.SEARCH -> SettingsSearchContent(
+            visiblePages = visiblePages,
+            onOpen = onOpenSearchResult,
+            initialFocusRequester = if (allowDetailAutofocus) {
+                contentFocusRequesters[SettingsCategory.SEARCH]
+            } else {
+                null
+            }
+        )
         SettingsCategory.EXPERIENCE -> EssentialAdvancedSettingsContent(
             experienceModeViewModel = experienceModeViewModel,
             initialFocusRequester = if (allowDetailAutofocus) {
@@ -907,7 +986,10 @@ private fun SettingsDetailPane(
                     contentFocusRequesters[SettingsCategory.PLAYBACK]
                 } else {
                     null
-                }
+                },
+                // Subtitles have a section of their own.
+                sectionFilter = { it != PlaybackSection.SUBTITLES },
+                revealSection = playbackRevealSection
             )
         }
         SettingsCategory.ADVANCED -> if (isEssentialMode) {
@@ -979,7 +1061,56 @@ private fun SettingsDetailPane(
                 null
             }
         )
+        SettingsCategory.SUBTITLES -> PlaybackSettingsContent(
+            initialFocusRequester = if (allowDetailAutofocus) {
+                contentFocusRequesters[SettingsCategory.SUBTITLES]
+            } else {
+                null
+            },
+            title = stringResource(R.string.playback_section_subtitles),
+            subtitle = stringResource(R.string.settings_subtitles_page_subtitle),
+            sectionFilter = { it == PlaybackSection.SUBTITLES },
+            expandSections = true
+        )
         SettingsCategory.DEBUG -> DebugSettingsContent()
+    }
+}
+
+/** Tabs for the pages of the open section, above the open page's options. */
+@Composable
+private fun SettingsSectionPages(
+    pages: List<SettingsCategory>,
+    selectedPage: SettingsCategory,
+    onSelectPage: (SettingsCategory) -> Unit,
+    content: @Composable () -> Unit
+) {
+    if (pages.size < 2) {
+        content()
+        return
+    }
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.md)
+    ) {
+        Row(
+            modifier = Modifier.focusRestorer(),
+            horizontalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.sm)
+        ) {
+            pages.forEach { page ->
+                SettingsChoiceChip(
+                    label = settingsPageTitle(page),
+                    selected = page == selectedPage,
+                    onClick = { onSelectPage(page) }
+                )
+            }
+        }
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+        ) {
+            content()
+        }
     }
 }
 

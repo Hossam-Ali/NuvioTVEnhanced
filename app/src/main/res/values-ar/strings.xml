@@ -383,6 +383,16 @@
 
     <!-- SettingsScreen categories -->
     <string name="settings_experience">مستوى الاعدادات</string>
+    <string name="settings_search_title">بحث في الإعدادات</string>
+    <string name="settings_search_subtitle">ابحث عن أي إعداد باسمه.</string>
+    <string name="settings_search_placeholder">اكتب اسم إعداد، مثلًا الترجمة أو الصوت</string>
+    <string name="settings_search_hint">اضغط OK على الحقل أعلاه واكتب ما تبحث عنه.</string>
+    <string name="settings_search_no_results">لا توجد إعدادات تطابق \"%1$s\".</string>
+    <string name="settings_section_account">الحساب والبروفايلات</string>
+    <string name="settings_section_sources">المصادر والإضافات</string>
+    <string name="settings_section_system">النظام</string>
+    <string name="settings_page_theme">الثيم</string>
+    <string name="settings_subtitles_page_subtitle">اللغات والشكل وترجمة الذكاء الاصطناعي والمزامنة.</string>
     <string name="settings_account">الحساب</string>
     <string name="settings_profiles">المستخدمين</string>
     <string name="settings_layout">واجهة العرض</string>

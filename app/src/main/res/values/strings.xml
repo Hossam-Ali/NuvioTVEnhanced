@@ -466,6 +466,16 @@
 
     <!-- SettingsScreen categories -->
     <string name="settings_experience">Experience</string>
+    <string name="settings_search_title">Search settings</string>
+    <string name="settings_search_subtitle">Find any setting by name.</string>
+    <string name="settings_search_placeholder">Type a setting, e.g. subtitles or audio</string>
+    <string name="settings_search_hint">Press OK on the field above and type what you\'re looking for.</string>
+    <string name="settings_search_no_results">No settings match \"%1$s\".</string>
+    <string name="settings_section_account">Account &amp; profiles</string>
+    <string name="settings_section_sources">Sources &amp; add-ons</string>
+    <string name="settings_section_system">System</string>
+    <string name="settings_page_theme">Theme</string>
+    <string name="settings_subtitles_page_subtitle">Languages, style, AI translation and sync.</string>
     <string name="settings_account">Account</string>
     <string name="settings_profiles">Profiles</string>
     <string name="settings_layout">Layout</string>

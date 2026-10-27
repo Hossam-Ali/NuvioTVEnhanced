@@ -46,9 +46,14 @@ fun PlaybackSettingsScreen(
 }
 
 @Composable
-fun PlaybackSettingsContent(
+internal fun PlaybackSettingsContent(
     viewModel: PlaybackSettingsViewModel = hiltViewModel(),
-    initialFocusRequester: FocusRequester? = null
+    initialFocusRequester: FocusRequester? = null,
+    title: String = stringResource(R.string.playback_title),
+    subtitle: String = stringResource(R.string.playback_subtitle),
+    sectionFilter: (PlaybackSection) -> Boolean = { true },
+    expandSections: Boolean = false,
+    revealSection: PlaybackSection? = null
 ) {
     val playerSettings by viewModel.playerSettings.collectAsStateWithLifecycle(initialValue = PlayerSettings())
     val transparentLetterbox by viewModel.transparentLetterbox.collectAsStateWithLifecycle(initialValue = false)
@@ -95,8 +100,8 @@ fun PlaybackSettingsContent(
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         SettingsDetailHeader(
-            title = stringResource(R.string.playback_title),
-            subtitle = stringResource(R.string.playback_subtitle)
+            title = title,
+            subtitle = subtitle
         )
 
         SettingsGroupCard(
@@ -120,7 +125,10 @@ fun PlaybackSettingsContent(
                             .onFailure { torrentCacheClearFailed = true }
                     }
                 },
-                initialFocusRequester = initialFocusRequester
+                initialFocusRequester = initialFocusRequester,
+                sectionFilter = sectionFilter,
+                expandSections = expandSections,
+                revealSection = revealSection
             )
         }
 

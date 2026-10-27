@@ -17,12 +17,14 @@ class SettingsCatalogTest {
 
         assertEquals(
             listOf(
+                SettingsCategory.SEARCH,
                 SettingsCategory.ACCOUNT,
                 SettingsCategory.PROFILES,
                 SettingsCategory.APPEARANCE,
                 SettingsCategory.LAYOUT,
-                SettingsCategory.CONTENT_DISCOVERY,
                 SettingsCategory.PLAYBACK,
+                SettingsCategory.SUBTITLES,
+                SettingsCategory.CONTENT_DISCOVERY,
                 SettingsCategory.INTEGRATION,
                 SettingsCategory.TRACKING,
                 SettingsCategory.ADVANCED,
@@ -43,7 +45,7 @@ class SettingsCatalogTest {
 
         assertFalse(SettingsCategory.ACCOUNT in categories)
         assertFalse(SettingsCategory.PROFILES in categories)
-        assertEquals(SettingsCategory.APPEARANCE, categories.first())
+        assertEquals(listOf(SettingsCategory.SEARCH, SettingsCategory.APPEARANCE), categories.take(2))
     }
 
     @Test
@@ -79,24 +81,71 @@ class SettingsCatalogTest {
     }
 
     @Test
-    fun `dividers are placed only where the group changes`() {
-        val categories = visibleSettingsCategories(
+    fun `the rail has search and one entry per section, seven in a full configuration`() {
+        val rail = visibleSettingsCategories(
             isPrimaryProfile = true,
             isEssentialMode = false,
             isDebugBuild = true
-        )
-        val dividerBefore = categories.indices.filter { categories.startsNewGroup(it) }.map { categories[it] }
+        ).railAnchors()
 
         assertEquals(
             listOf(
+                SettingsCategory.SEARCH,
+                SettingsCategory.ACCOUNT,
                 SettingsCategory.APPEARANCE,
+                SettingsCategory.PLAYBACK,
+                SettingsCategory.SUBTITLES,
                 SettingsCategory.CONTENT_DISCOVERY,
-                SettingsCategory.INTEGRATION,
+                SettingsCategory.TRACKING,
+                SettingsCategory.ADVANCED
+            ),
+            rail
+        )
+        assertEquals(SettingsSection.entries, rail.map { it.section })
+    }
+
+    @Test
+    fun `a section lists its visible pages as tabs`() {
+        val categories = visibleSettingsCategories(true, isEssentialMode = false, isDebugBuild = false)
+        assertEquals(listOf(SettingsCategory.APPEARANCE, SettingsCategory.LAYOUT), categories.pagesOf(SettingsSection.APPEARANCE))
+        assertEquals(listOf(SettingsCategory.CONTENT_DISCOVERY, SettingsCategory.INTEGRATION), categories.pagesOf(SettingsSection.SOURCES))
+        assertEquals(listOf(SettingsCategory.ADVANCED, SettingsCategory.ABOUT), categories.pagesOf(SettingsSection.SYSTEM))
+        assertEquals(listOf(SettingsCategory.SUBTITLES), categories.pagesOf(SettingsSection.SUBTITLES))
+    }
+
+    @Test
+    fun `a secondary profile without watch party has no account section`() {
+        val rail = visibleSettingsCategories(false, isEssentialMode = false, isDebugBuild = false).railAnchors()
+        assertFalse(rail.any { it.section == SettingsSection.ACCOUNT })
+        assertEquals(SettingsCategory.APPEARANCE, rail[1])
+    }
+
+    @Test
+    fun `subtitles get their own section only outside essential mode`() {
+        assertTrue(SettingsCategory.SUBTITLES in visibleSettingsCategories(true, isEssentialMode = false, isDebugBuild = false))
+        assertFalse(SettingsCategory.SUBTITLES in visibleSettingsCategories(true, isEssentialMode = true, isDebugBuild = false))
+    }
+
+    @Test
+    fun `dividers are placed only where the group changes`() {
+        val rail = visibleSettingsCategories(
+            isPrimaryProfile = true,
+            isEssentialMode = false,
+            isDebugBuild = true
+        ).railAnchors()
+        val dividerBefore = rail.indices.filter { rail.startsNewGroup(it) }.map { rail[it] }
+
+        assertEquals(
+            listOf(
+                SettingsCategory.ACCOUNT,
+                SettingsCategory.APPEARANCE,
+                SettingsCategory.PLAYBACK,
+                SettingsCategory.TRACKING,
                 SettingsCategory.ADVANCED
             ),
             dividerBefore
         )
-        assertFalse(categories.startsNewGroup(0))
+        assertFalse(rail.startsNewGroup(0))
     }
 
     @Test
@@ -107,7 +156,7 @@ class SettingsCatalogTest {
             isDebugBuild = false
         )
         assertFalse(categories.startsNewGroup(0))
-        assertTrue(categories.startsNewGroup(categories.indexOf(SettingsCategory.CONTENT_DISCOVERY)))
+        assertTrue(categories.startsNewGroup(categories.indexOf(SettingsCategory.PLAYBACK)))
     }
 
     @Test
@@ -120,7 +169,7 @@ class SettingsCatalogTest {
         }
         assertEquals(
             listOf(SettingsCategory.ACCOUNT, SettingsCategory.PROFILES, SettingsCategory.WATCH_PARTY),
-            visibleSettingsCategories(true, isEssentialMode = false, isDebugBuild = false, isWatchPartyAvailable = true).take(3)
+            visibleSettingsCategories(true, isEssentialMode = false, isDebugBuild = false, isWatchPartyAvailable = true).drop(1).take(3)
         )
     }
 
