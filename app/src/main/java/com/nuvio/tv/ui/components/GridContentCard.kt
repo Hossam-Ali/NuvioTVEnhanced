@@ -245,48 +245,10 @@ fun GridContentCard(
                     )
                 }
 
-                // Landscape clearlogo overlay on backdrop cards
+                // Backdrop cards name the title in text; the title logo belongs to the hero.
                 val isLandscapeBackdropCard = globalLandscape &&
                     effectiveLandscapePoster.isNullOrBlank()
-                val showLandscapeClearlogo = isLandscapeBackdropCard &&
-                    !item.logo.isNullOrBlank()
-                if (showLandscapeClearlogo) {
-                    var landscapeLogoFailed by remember(item.logo) { mutableStateOf(false) }
-                    if (!landscapeLogoFailed) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .drawWithCache {
-                                    val gradient = Brush.verticalGradient(
-                                        colorStops = arrayOf(
-                                            0.0f to Color.Transparent,
-                                            0.58f to Color.Transparent,
-                                            1.0f to Color.Black.copy(alpha = 0.75f)
-                                        )
-                                    )
-                                    onDrawBehind { drawRect(gradient) }
-                                }
-                        )
-                        val logoRequest = remember(item.logo) {
-                            ImageRequest.Builder(context)
-                                .data(item.logo)
-                                .crossfade(true)
-                                .build()
-                        }
-                        AsyncImage(
-                            model = logoRequest,
-                            contentDescription = item.name,
-                            modifier = Modifier
-                                .align(Alignment.BottomStart)
-                                .fillMaxWidth(0.62f)
-                                .then(if (globalLandscape) Modifier.fillMaxHeight(0.34f) else Modifier.height(cardHeight * 0.34f))
-                                .padding(start = 10.dp, end = 10.dp, bottom = NuvioTheme.spacing.sm),
-                            contentScale = ContentScale.Fit,
-                            alignment = Alignment.CenterStart,
-                            onError = { landscapeLogoFailed = true }
-                        )
-                    }
-                } else if (isLandscapeBackdropCard && !showLandscapeClearlogo && !showLabel) {
+                if (isLandscapeBackdropCard && !showLabel) {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()

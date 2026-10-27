@@ -284,21 +284,7 @@ fun ContentCard(
             }
             builder.build()
         }
-        val logoRequestHeightPx = remember(density) {
-            with(density) { NuvioTheme.spacing.xxxl.roundToPx() }
-        }
-        val logoModel = remember(item.logo, requestWidthPx, logoRequestHeightPx) {
-            item.logo?.let { logoUrl ->
-                ImageRequest.Builder(context)
-                    .data(logoUrl)
-                    .crossfade(false)
-                    .memoryCacheKey("${logoUrl}_${requestWidthPx}x${logoRequestHeightPx}")
-                    .size(width = requestWidthPx, height = logoRequestHeightPx)
-                    .build()
-            }
-        }
-        var logoLoadFailed by remember(item.logo) { mutableStateOf(false) }
-        val showExpandedLogo = !item.logo.isNullOrBlank() && !logoLoadFailed
+        // Cards show the title as text; the title logo belongs to the hero.
 
         val bgCardColor = NuvioTheme.colors.BackgroundCard
         val backgroundPainter = remember(bgCardColor) { androidx.compose.ui.graphics.painter.ColorPainter(bgCardColor) }
@@ -524,66 +510,21 @@ fun ContentCard(
                             .padding(start = NuvioTheme.spacing.md, end = NuvioTheme.spacing.md, bottom = NuvioTheme.spacing.md)
                             .fillMaxWidth(0.75f)
                     ) {
-                        if (showExpandedLogo) {
-                            AsyncImage(
-                                model = logoModel,
-                                contentDescription = item.name,
-                                onError = { logoLoadFailed = true },
-                                modifier = Modifier
-                                    .height(NuvioTheme.spacing.xxxl)
-                                    .fillMaxWidth(),
-                                contentScale = ContentScale.Fit,
-                                alignment = Alignment.CenterStart
-                            )
-                        } else {
-                            FocusMarqueeText(
-                                text = item.name,
-                                focused = isFocused,
-                                style = MaterialTheme.typography.titleMedium,
-                                color = Color.White,
-                            )
-                        }
+                        FocusMarqueeText(
+                            text = item.name,
+                            focused = isFocused,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = Color.White,
+                        )
                     }
                 }
 
                 // Landscape overlay — rendered AFTER trailer so it stays on top.
                 // Show on backdrop cards always; also show on any landscape card when expanded
-                // (trailer playing) so the logo stays visible over the video.
+                // (trailer playing) so the title stays visible over the video.
                 val showLandscapeOverlay = globalLandscape && (isLandscapeBackdropCard || isBackdropExpanded) &&
                     !(useLandscapeAsExpanded && !trailerFirstFrameRendered)
-                val showLandscapeLogoOverlay = showLandscapeOverlay &&
-                    !item.logo.isNullOrBlank() && !logoLoadFailed
-                if (showLandscapeLogoOverlay && logoModel != null) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .zIndex(1.5f)
-                            .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
-                            .drawWithCache {
-                                val gradient = Brush.verticalGradient(
-                                    colorStops = arrayOf(
-                                        0.0f to Color.Transparent,
-                                        0.58f to Color.Transparent,
-                                        1.0f to Color.Black.copy(alpha = 0.75f)
-                                    )
-                                )
-                                onDrawBehind { drawRect(gradient) }
-                            }
-                    )
-                    AsyncImage(
-                        model = logoModel,
-                        contentDescription = item.name,
-                        onError = { logoLoadFailed = true },
-                        modifier = Modifier
-                            .align(Alignment.BottomStart)
-                            .fillMaxWidth(0.62f)
-                            .height(baseCardHeight * 0.34f)
-                            .padding(start = 10.dp, end = 10.dp, bottom = NuvioTheme.spacing.sm)
-                            .zIndex(1.6f),
-                        contentScale = ContentScale.Fit,
-                        alignment = Alignment.CenterStart
-                    )
-                } else if (showLandscapeOverlay && !showLandscapeLogoOverlay) {
+                if (showLandscapeOverlay) {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
