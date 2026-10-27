@@ -1,0 +1,24 @@
+app/src/main/java/com/nuvio/tv/ui/screens/detail/MetaDetailsViewModel.kt
+  s_808afaf54f2b7e::t_269486da909b0d 79,1016-1030,1075-1087
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "298158fb54b2363cacc4b2c5009aeb12c07c8f02",
+  "prompts": {},
+  "humans": {
+    "h_b46d7b9083e084": {
+      "author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_808afaf54f2b7e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "s_808afaf54f2b7e",
+        "model": "unknown"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  }
+}
