@@ -1,0 +1,19 @@
+README.md
+  s_0d01eb3fa2ae56::t_a312f2c2911d1e 22-49,56-57,103
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "8b2764316d8692d717763bb251d3e3d7b0d019fd",
+  "prompts": {},
+  "sessions": {
+    "s_0d01eb3fa2ae56": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "s_0d01eb3fa2ae56",
+        "model": "unknown"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  }
+}
