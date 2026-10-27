@@ -2057,6 +2057,7 @@ internal suspend fun PlayerRuntimeController.prepareStreamStartSubtitles(
     playerSettings: PlayerSettings
 ): StartupSubtitlePreparation {
     requestedUseLibassByUser = playerSettings.useLibass && !isSubtitleTranslationConfigured()
+    com.nuvio.tv.core.subtitles.SubtitleTranslationUsageStore.startVideo()
     if (libassPipelineDecisionStreamUrl != currentStreamUrl) {
         libassPipelineDecisionStreamUrl = currentStreamUrl
         libassPipelineOverrideForCurrentStream = null

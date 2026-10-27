@@ -255,6 +255,25 @@ class SubtitleTranslatorTest {
     }
 
     @Test
+    fun eachRequestReportsItsLinesAndTheCostOpenRouterSent() = runTest {
+        val usages = mutableListOf<SubtitleTranslationUsage>()
+        val http = SubtitleTranslationHttp { _, _, body ->
+            val user = Json.parseToJsonElement(body).jsonObject["messages"]!!.jsonArray[1].jsonObject["content"]!!.jsonPrimitive.content
+            val reply = buildJsonObject {
+                put("choices", buildJsonArray {
+                    add(buildJsonObject { put("message", buildJsonObject { put("content", echoReply(user)) }) })
+                })
+                put("usage", buildJsonObject { put("total_tokens", 120); put("cost", 0.00042) })
+            }
+            SubtitleTranslationHttpResponse(200, reply.toString())
+        }
+        SubtitleTranslator(SubtitleTranslationProvider.OpenRouter, "k", "m", "ar", http, onUsage = { usages += it })
+            .translateTexts(listOf("One", "Two"))
+        assertEquals(listOf(SubtitleTranslationUsage(lines = 2, tokens = 120, costUsd = 0.00042)), usages)
+        assertNull(parseSubtitleTranslationUsage("{\"choices\":[]}", 1))
+    }
+
+    @Test
     fun providerFailuresAreClassified() {
         assertEquals(SubtitleTranslationException.Code.Auth, classifySubtitleTranslationFailure(401, "").code)
         assertEquals(SubtitleTranslationException.Code.Model, classifySubtitleTranslationFailure(404, "").code)

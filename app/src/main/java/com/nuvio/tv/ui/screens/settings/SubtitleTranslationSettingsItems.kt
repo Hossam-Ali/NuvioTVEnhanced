@@ -48,6 +48,7 @@ import com.nuvio.tv.core.subtitles.SUBTITLE_TRANSLATION_TARGET_PREFERRED
 import com.nuvio.tv.core.subtitles.SubtitleTranslationPreferences
 import com.nuvio.tv.core.subtitles.SubtitleTranslationProvider
 import com.nuvio.tv.core.subtitles.SubtitleTranslationService
+import com.nuvio.tv.core.subtitles.SubtitleTranslationUsageStore
 import com.nuvio.tv.data.local.AVAILABLE_SUBTITLE_LANGUAGES
 import com.nuvio.tv.ui.components.NuvioDialog
 import com.nuvio.tv.ui.theme.NuvioTheme
@@ -166,6 +167,20 @@ internal fun subtitleTranslationSettingsItems(enabled: Boolean, preferredSubtitl
                 )
             }
         },
+    )
+
+    val spending by SubtitleTranslationUsageStore.spending.collectAsStateWithLifecycle()
+    SettingsActionRow(
+        title = stringResource(R.string.subtitle_ai_translation_spending),
+        subtitle = stringResource(
+            if (spending.monthCostComplete) R.string.subtitle_ai_translation_spending_subtitle
+            else R.string.subtitle_ai_translation_spending_subtitle_partial,
+            formatUsd(spending.videoCostUsd),
+            spending.videoLines,
+        ),
+        value = stringResource(R.string.subtitle_ai_translation_spending_month, formatUsd(spending.monthCostUsd), spending.monthLines),
+        enabled = enabled,
+        onClick = {},
     )
 
     when (editingField) {
@@ -304,6 +319,10 @@ internal fun TranslationTextDialog(
         }
     }
 }
+
+/** Dollars with enough precision for cent fractions, e.g. $0.004 or $1.27. */
+private fun formatUsd(amount: Double): String =
+    if (amount < 1.0) String.format(java.util.Locale.US, "$%.3f", amount) else String.format(java.util.Locale.US, "$%.2f", amount)
 
 private fun maskSecret(key: String, notSetLabel: String): String {
     val trimmed = key.trim()

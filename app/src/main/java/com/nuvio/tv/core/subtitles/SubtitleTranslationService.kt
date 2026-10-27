@@ -114,6 +114,7 @@ internal object SubtitleTranslationService {
     fun attach(context: Context) {
         if (appContext == null) appContext = context.applicationContext
         SubtitleTranslationPreferences.ensureLoaded(context)
+        SubtitleTranslationUsageStore.attach(context)
     }
 
     private fun currentSettings(): SubtitleTranslationSettings? {
@@ -157,7 +158,10 @@ internal object SubtitleTranslationService {
         val signature = listOf(settings.provider.name, settings.apiKey, settings.model, target)
         val current = synchronized(lock) {
             translator?.takeIf { translatorSignature == signature }
-                ?: SubtitleTranslator(settings.provider, settings.apiKey, settings.model, target, http).also {
+                ?: SubtitleTranslator(
+                    settings.provider, settings.apiKey, settings.model, target, http,
+                    onUsage = SubtitleTranslationUsageStore::record,
+                ).also {
                     translator = it
                     translatorSignature = signature
                     reportedFailure = null

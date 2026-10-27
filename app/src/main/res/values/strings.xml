@@ -3440,6 +3440,10 @@
     <string name="subtitle_ai_translation_target_preferred">Preferred language (%1$s)</string>
     <string name="subtitle_ai_translation_prefer_embedded">Always translate with AI</string>
     <string name="subtitle_ai_translation_prefer_embedded_subtitle">Translate the video\'s own subtitles (English first) with AI, even when a track or add-on subtitle in your language is available.</string>
+    <string name="subtitle_ai_translation_spending">Translation spending</string>
+    <string name="subtitle_ai_translation_spending_month">%1$s this month · %2$d lines</string>
+    <string name="subtitle_ai_translation_spending_subtitle">Reported by OpenRouter. This video: %1$s for %2$d lines.</string>
+    <string name="subtitle_ai_translation_spending_subtitle_partial">OpenAI does not report costs, so totals only count OpenRouter. This video: %1$s for %2$d lines.</string>
     <string name="subtitle_ai_translation_test">Test translation</string>
     <string name="subtitle_ai_translation_test_subtitle">Checks the key and model with a short sample line.</string>
     <string name="subtitle_ai_translation_testing">Testing…</string>

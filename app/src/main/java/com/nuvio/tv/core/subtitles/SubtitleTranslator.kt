@@ -189,6 +189,19 @@ private fun openAiSupportsTemperature(model: String): Boolean =
  * A translator with a text-keyed cache, so repeated lines and overlapping buffers are only sent
  * once per session. Safe to call from any thread.
  */
+/** What one translation request used, as the provider reported it. */
+internal data class SubtitleTranslationUsage(val lines: Int, val tokens: Int, val costUsd: Double?)
+
+/** Reads the usage block of a chat completion; OpenRouter includes the request's cost in it. */
+internal fun parseSubtitleTranslationUsage(response: String, lines: Int): SubtitleTranslationUsage? = runCatching {
+    val usage = json.parseToJsonElement(response).jsonObject["usage"]?.jsonObject ?: return null
+    SubtitleTranslationUsage(
+        lines = lines,
+        tokens = usage["total_tokens"]?.jsonPrimitive?.content?.toIntOrNull() ?: 0,
+        costUsd = usage["cost"]?.jsonPrimitive?.content?.toDoubleOrNull(),
+    )
+}.getOrNull()
+
 internal class SubtitleTranslator(
     val provider: SubtitleTranslationProvider,
     private val apiKey: String,
@@ -196,6 +209,7 @@ internal class SubtitleTranslator(
     val targetLanguage: String,
     private val http: SubtitleTranslationHttp,
     private val nowMs: () -> Long = { System.nanoTime() / 1_000_000L },
+    private val onUsage: (SubtitleTranslationUsage) -> Unit = {},
 ) {
     private val lock = Any()
     private val cache = LinkedHashMap<String, String>()
@@ -307,8 +321,13 @@ internal class SubtitleTranslator(
 
     private suspend fun translateBatch(sources: List<String>) {
         val prompt = buildSubtitleTranslationPrompt(sources, targetLanguage)
-        val reply = requestSlots.withPermit { request(prompt) }
+        val response = requestSlots.withPermit { request(prompt) }
+        val reply = runCatching {
+            json.parseToJsonElement(response).jsonObject["choices"]!!.jsonArray[0].jsonObject["message"]!!
+                .jsonObject["content"]!!.jsonPrimitive.content
+        }.getOrDefault("")
         val translations = parseSubtitleTranslationResponse(reply)
+        parseSubtitleTranslationUsage(response, translations.size)?.let(onUsage)
         if (translations.isEmpty()) {
             throw SubtitleTranslationException(SubtitleTranslationException.Code.Format, "The model reply could not be read")
         }
@@ -358,10 +377,7 @@ internal class SubtitleTranslator(
             }
         }
         val response = post(if (isOpenRouter) OPENROUTER_ENDPOINT else OPENAI_ENDPOINT, headers, body.toString())
-        return runCatching {
-            json.parseToJsonElement(response).jsonObject["choices"]!!.jsonArray[0].jsonObject["message"]!!
-                .jsonObject["content"]!!.jsonPrimitive.content
-        }.getOrDefault("")
+        return response
     }
 
     private suspend fun post(url: String, headers: Map<String, String>, body: String): String {

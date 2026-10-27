@@ -3061,6 +3061,10 @@
     <string name="subtitle_ai_translation_target_preferred">اللغة المفضلة (%1$s)</string>
     <string name="subtitle_ai_translation_prefer_embedded">الترجمة بالذكاء الاصطناعي دائمًا</string>
     <string name="subtitle_ai_translation_prefer_embedded_subtitle">ترجم ترجمة الفيديو المدمجة (الإنجليزية أولًا) بالذكاء الاصطناعي، حتى عند توفر ترجمة أو ترجمة إضافة بلغتك.</string>
+    <string name="subtitle_ai_translation_spending">تكلفة الترجمة</string>
+    <string name="subtitle_ai_translation_spending_month">%1$s هذا الشهر · %2$d سطر</string>
+    <string name="subtitle_ai_translation_spending_subtitle">حسب OpenRouter. هذا الفيديو: %1$s مقابل %2$d سطر.</string>
+    <string name="subtitle_ai_translation_spending_subtitle_partial">لا يُبلغ OpenAI بالتكلفة، لذا تُحسب تكلفة OpenRouter فقط. هذا الفيديو: %1$s مقابل %2$d سطر.</string>
     <string name="subtitle_ai_translation_test">اختبار الترجمة</string>
     <string name="subtitle_ai_translation_test_subtitle">يتحقق من المفتاح والنموذج بجملة قصيرة.</string>
     <string name="subtitle_ai_translation_testing">جارٍ الاختبار…</string>
