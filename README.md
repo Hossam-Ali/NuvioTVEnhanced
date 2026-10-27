@@ -33,12 +33,12 @@ text subtitles. No searching, no syncing, no wrong-version files.
   timing, so the translation is exactly as in sync as the source.
 - **Natural translations.** Lines are translated together with the dialogue around them by a modern
   language model, not word by word, so they read the way people actually speak.
-- **The best source, picked for you.** It translates the subtitle in the film's spoken language
-  (a Korean film uses its Korean subtitle), falling back to English, then any text subtitle.
+- **The best source, picked for you.** It translates from English whenever the video has English
+  subtitles, since that's what AI translates best, and otherwise from any other language.
 - **Zero setup per video.** A single **AI translation** entry sits under your language in the
   subtitle menu and is selected by default.
-- **Add-on subtitles too.** When a video has no subtitles of its own, an add-on subtitle in the
-  film's language (or English) is translated instead, ahead of time, so lines are ready before
+- **Add-on subtitles too.** When a video has no subtitles of its own, an add-on subtitle (English
+  first, otherwise any language) is translated instead, ahead of time, so lines are ready before
   they appear. Pick any add-on subtitle in another language and it's translated as well.
 - **Works in both players**, the default one and MPV.
 - **Any language.** Translate into whichever language you watch in.
@@ -143,7 +143,6 @@ updater checks this repository's releases.
 2. On the TV: **Settings → Playback → Subtitles → AI subtitle translation**, turn it on, and enter the key.
 3. Choose **Translate to** (any language) and the model.
 4. Use **Test translation** to check the key, then play something with built-in subtitles.
-
 
 ## Build from source
 

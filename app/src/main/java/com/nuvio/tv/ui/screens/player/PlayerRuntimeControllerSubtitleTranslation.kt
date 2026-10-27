@@ -90,41 +90,46 @@ internal fun TrackInfo.isTranslatableTextSubtitle(): Boolean {
 }
 
 /**
- * The one embedded track that "always translate with AI" shows in [targetLanguage]: the subtitle
- * in the film's own spoken language ([audioLanguage], so a Turkish film uses its Turkish
- * subtitle), then English, then the first other full (non-forced) text track.
+ * Picks the subtitle to translate from [candidates]: English first, since that is what models
+ * translate best, then the film's spoken language ([audioLanguage]), then the first other one.
+ */
+private fun <T> pickTranslationSource(candidates: List<T>, audioLanguage: String?, language: (T) -> String?): T? {
+    val spoken = audioLanguage?.takeIf { it.isNotBlank() && !it.equals("und", ignoreCase = true) }
+    return candidates.firstOrNull { PlayerSubtitleUtils.matchesLanguageCode(language(it), "en") }
+        ?: spoken?.let { wanted -> candidates.firstOrNull { PlayerSubtitleUtils.matchesLanguageCode(language(it), wanted) } }
+        ?: candidates.firstOrNull()
+}
+
+/**
+ * The one embedded track that "always translate with AI" shows in [targetLanguage]: a full
+ * (non-forced) text track in another language, English first (see [pickTranslationSource]).
  */
 internal fun embeddedSubtitleForTranslation(
     subtitleTracks: List<TrackInfo>,
     targetLanguage: String,
     audioLanguage: String? = null,
-): TrackInfo? {
-    val sourceTracks = subtitleTracks.filter { track ->
+): TrackInfo? = pickTranslationSource(
+    subtitleTracks.filter { track ->
         track.isTranslatableTextSubtitle() && !track.isForced &&
             !PlayerSubtitleUtils.matchesLanguageCode(track.language, targetLanguage)
-    }
-    val spoken = audioLanguage?.takeIf { it.isNotBlank() && !it.equals("und", ignoreCase = true) }
-    return spoken?.let { language -> sourceTracks.firstOrNull { PlayerSubtitleUtils.matchesLanguageCode(it.language, language) } }
-        ?: sourceTracks.firstOrNull { PlayerSubtitleUtils.matchesLanguageCode(it.language, "en") }
-        ?: sourceTracks.firstOrNull()
-}
+    },
+    audioLanguage,
+) { it.language }
 
 /**
- * The add-on subtitle to translate when a video has no embedded text subtitle: one in the film's
- * spoken language, then English. Add-on subtitles in other languages are not picked on their own.
+ * The add-on subtitle to translate when a video has no embedded text subtitle: English first,
+ * then any other language that is not already the target (see [pickTranslationSource]).
  */
 internal fun addonSubtitleForTranslation(
     subtitles: List<com.nuvio.tv.domain.model.Subtitle>,
     targetLanguage: String,
     audioLanguage: String? = null,
-): com.nuvio.tv.domain.model.Subtitle? {
-    val candidates = subtitles.filter { subtitle ->
+): com.nuvio.tv.domain.model.Subtitle? = pickTranslationSource(
+    subtitles.filter { subtitle ->
         !addonSubtitleIsForced(subtitle) && !PlayerSubtitleUtils.matchesLanguageCode(subtitle.lang, targetLanguage)
-    }
-    val spoken = audioLanguage?.takeIf { it.isNotBlank() && !it.equals("und", ignoreCase = true) }
-    return spoken?.let { language -> candidates.firstOrNull { PlayerSubtitleUtils.matchesLanguageCode(it.lang, language) } }
-        ?: candidates.firstOrNull { PlayerSubtitleUtils.matchesLanguageCode(it.lang, "en") }
-}
+    },
+    audioLanguage,
+) { it.lang }
 
 /** Spoken language of the audio track being played, for choosing the subtitle to translate. */
 internal fun PlayerRuntimeController.currentAudioLanguageForTranslation(): String? =
