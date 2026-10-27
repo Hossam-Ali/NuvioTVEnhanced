@@ -1,0 +1,19 @@
+app/src/test/java/com/nuvio/tv/data/repository/TraktProgressServiceFailureTest.kt
+  s_20c80cea613a0d::t_cb6a9fd5a826fb 49,69,76-85,147
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "b87fb6956340e1bfec027e623e89e89b8d500f3e",
+  "prompts": {},
+  "sessions": {
+    "s_20c80cea613a0d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "s_20c80cea613a0d",
+        "model": "unknown"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  }
+}
