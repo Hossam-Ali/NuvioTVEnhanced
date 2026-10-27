@@ -1,0 +1,29 @@
+README.md
+  s_ee48f0af2e8862::t_d35f0dcc243c42 119-128
+app/build.gradle.kts
+  s_ee48f0af2e8862::t_c4db6de72bfc1b 1,129-148,175-178,257-260,328-331
+app/src/main/java/com/nuvio/tv/core/subtitles/SubtitleTranslationPreferences.kt
+  s_ee48f0af2e8862::t_2a3d8335b0ed3f 4,81-101,110,125-127,155-156
+app/src/main/java/com/nuvio/tv/ui/screens/settings/SubtitleTranslationSettingsItems.kt
+  s_ee48f0af2e8862::t_829c9eea12ef6c 71,99-103
+app/src/main/res/values-ar/strings.xml
+  s_ee48f0af2e8862::t_fc938640f98866 3038
+app/src/main/res/values/strings.xml
+  s_ee48f0af2e8862::t_4ff736f71c366d 3417
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "95bb5bfa97cd27a104db935a7a5761ad462b266e",
+  "prompts": {},
+  "sessions": {
+    "s_ee48f0af2e8862": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "s_ee48f0af2e8862",
+        "model": "unknown"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  }
+}
