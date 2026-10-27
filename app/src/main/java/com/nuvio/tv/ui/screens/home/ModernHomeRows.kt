@@ -1114,29 +1114,6 @@ private fun ModernCarouselCard(
     } else {
         rememberUpdatedState(cardWidth)
     }
-    // Freeze the logo URL for row cards - enrichment updates must not cause flickering.
-    // The first non-blank value wins and is never replaced.
-    // Primary source of truth is the data-layer frozen value (survives navigation);
-    // the remember-state acts as a secondary guard within the same composition.
-    val dataFrozenLogo = item.heroPreview.frozenLogoUrl?.takeIf { !it.isPlaceholder() }
-    val frozenLogoUrl = remember(item.key) { mutableStateOf(dataFrozenLogo ?: item.heroPreview.logo?.takeIf { !it.isPlaceholder() }) }
-    if ((frozenLogoUrl.value.isNullOrBlank() || frozenLogoUrl.value.isPlaceholder()) &&
-        !item.heroPreview.logo.isNullOrBlank() && !item.heroPreview.logo.isPlaceholder()) {
-        frozenLogoUrl.value = item.heroPreview.logo
-    }
-    if (!enrichedLogoUrl.isNullOrBlank() && frozenLogoUrl.value != enrichedLogoUrl) {
-        // Outside landscape we always pick up the enriched URL so manual artwork
-        // updates land instantly. Inside landscape we still adopt the enriched
-        // URL when there was no logo to begin with — otherwise the card would
-        // permanently fall back to the title text whenever the addon manifest
-        // ships items without a logo even
-        // though TMDB has one. Once we have any non-blank value we keep it
-        // frozen to avoid mid-scroll flicker on enrichment refresh.
-        if (!useLandscapeOverlayTreatment || frozenLogoUrl.value.isNullOrBlank()) {
-            frozenLogoUrl.value = enrichedLogoUrl
-        }
-    }
-    val effectiveLogoUrl = frozenLogoUrl.value?.takeIf { !it.isPlaceholder() }
     // Freeze the backdrop URL for landscape cards - prevents image reload when enrichment updates backdrop.
     val dataFrozenBackdrop = item.heroPreview.frozenBackdropUrl?.takeIf { !it.isPlaceholder() }
     val frozenBackdropUrl = remember(item.key) { mutableStateOf(dataFrozenBackdrop ?: item.heroPreview.backdrop?.takeIf { !it.isPlaceholder() }) }
@@ -1238,36 +1215,16 @@ private fun ModernCarouselCard(
             builder.build()
         }
     }
-    val logoHeight = cardHeight * 0.34f
-    val logoHeightPx = remember(logoHeight, density) {
-        with(density) { logoHeight.roundToPx() }.coerceAtLeast(1)
-    }
-    val maxLogoWidthPx = remember(maxRequestCardWidth, density) {
-        with(density) { (maxRequestCardWidth * 0.62f).roundToPx() }.coerceAtLeast(1)
-    }
-
-    val logoModel = remember(context, effectiveLogoUrl, maxLogoWidthPx, logoHeightPx) {
-        effectiveLogoUrl?.let {
-            ImageRequest.Builder(context)
-                .data(it)
-                .crossfade(true)
-                .memoryCacheKey("${it}_${maxLogoWidthPx}x${logoHeightPx}")
-                .size(width = maxLogoWidthPx, height = logoHeightPx)
-                .build()
-        }
-    }
-    var landscapeLogoLoadFailed by remember(effectiveLogoUrl) { mutableStateOf(false) }
     val shouldPlayTrailerInCard = playTrailerInExpandedCard && !trailerPreviewUrl.isNullOrBlank()
     var trailerFirstFrameRendered by remember(trailerPreviewUrl) { mutableStateOf(false) }
 
     // Use the image model directly — Coil's memory cache handles repeated
     // requests efficiently without needing scroll-aware request swapping.
     val hasImage = !imageUrl.isNullOrBlank()
-    val hasLandscapeLogo =
+    // Backdrop cards name the title in text over a fade; the title logo belongs to the hero.
+    val hasLandscapeTitle =
         (useLandscapeOverlayTreatment || isBackdropExpanded) &&
             !isCollectionFolder &&
-            !effectiveLogoUrl.isNullOrBlank() &&
-            !landscapeLogoLoadFailed &&
             !(useLandscapeAsExpanded && !trailerFirstFrameRendered) &&
             (effectiveIgnoreLandscapePoster || isBackdropExpanded || item.metaPreview?.landscapePoster.isNullOrBlank() || customPosterLoadFailed)
     var longPressTriggered by remember { mutableStateOf(false) }
@@ -1381,8 +1338,8 @@ private fun ModernCarouselCard(
                         style = cardDepthStyle
                     )
             ) {
-                val mediaLayerModifier = remember(hasLandscapeLogo) {
-                    if (hasLandscapeLogo) {
+                val mediaLayerModifier = remember(hasLandscapeTitle) {
+                    if (hasLandscapeTitle) {
                         Modifier
                             .fillMaxSize()
                             .drawWithCache {
@@ -1481,20 +1438,7 @@ private fun ModernCarouselCard(
                     }
                 }
 
-                if (hasLandscapeLogo) {
-                    AsyncImage(
-                        model = logoModel,
-                        contentDescription = item.title,
-                        onError = { landscapeLogoLoadFailed = true },
-                        modifier = Modifier
-                            .align(Alignment.BottomStart)
-                            .fillMaxWidth(0.62f)
-                            .height(cardHeight * 0.34f)
-                            .padding(start = 10.dp, end = 10.dp, bottom = NuvioTheme.spacing.sm),
-                        contentScale = ContentScale.Fit,
-                        alignment = Alignment.CenterStart
-                    )
-                } else if ((useLandscapeOverlayTreatment || isBackdropExpanded) && !isCollectionFolder && !(useLandscapeAsExpanded && !trailerFirstFrameRendered) && (effectiveIgnoreLandscapePoster || item.metaPreview?.landscapePoster.isNullOrBlank() || customPosterLoadFailed)) {
+                if (hasLandscapeTitle) {
                     Text(
                         text = item.title,
                         style = titleStyle.copy(
