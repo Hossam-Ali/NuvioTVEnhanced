@@ -1,0 +1,19 @@
+app/src/main/java/com/nuvio/tv/ui/components/ContentCard.kt
+  s_3ba1cff6ccb974::t_6e8417113caf01 523-524,526
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "102479c220e9273869174a4246b90dae62283f65",
+  "prompts": {},
+  "sessions": {
+    "s_3ba1cff6ccb974": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "s_3ba1cff6ccb974",
+        "model": "unknown"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  }
+}
