@@ -2,6 +2,7 @@
 
 package com.nuvio.tv.ui.screens.home
 
+import androidx.compose.ui.text.style.TextAlign
 import com.nuvio.tv.ui.theme.NuvioTheme
 
 import android.view.KeyEvent as AndroidKeyEvent
@@ -1439,10 +1440,14 @@ private fun ModernCarouselCard(
                 }
 
                 if (hasLandscapeTitle) {
+                    // Aligned to the card's edge whatever the title's script, so an Arabic title
+                    // sits in the empty corner instead of over the middle of the poster.
+                    val edgeAlign = if (LocalLayoutDirection.current == LayoutDirection.Rtl) TextAlign.Right else TextAlign.Left
                     Text(
                         text = item.title,
                         style = titleStyle.copy(
-                            textDirection = item.title.contentTextDirection()
+                            textDirection = item.title.contentTextDirection(),
+                            textAlign = edgeAlign
                         ),
                         color = Color.White,
                         maxLines = 2,
