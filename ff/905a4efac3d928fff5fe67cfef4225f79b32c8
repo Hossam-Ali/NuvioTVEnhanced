@@ -1,0 +1,39 @@
+app/src/main/java/com/nuvio/tv/NuvioApplication.kt
+  s_9ce0e7d386cecb::t_0ac03138d442b1 84
+app/src/main/java/com/nuvio/tv/core/tmdb/TmdbApiKey.kt
+  s_9ce0e7d386cecb::t_6995d18efc5bf7 1-57
+app/src/main/java/com/nuvio/tv/core/tmdb/TmdbCollectionSourceResolver.kt
+  s_9ce0e7d386cecb::t_4c812e611b35cf 70,76,81,90,99,108,118,128,139-140,162,178,211,239,268
+app/src/main/java/com/nuvio/tv/core/tmdb/TmdbMetadataService.kt
+  s_9ce0e7d386cecb::t_4ff88557ea495a 42
+app/src/main/java/com/nuvio/tv/core/tmdb/TmdbService.kt
+  s_9ce0e7d386cecb::t_81226a6f8183bc 16
+app/src/main/java/com/nuvio/tv/ui/screens/search/TmdbSearchSource.kt
+  s_9ce0e7d386cecb::t_4db429587e47ba 3,23,31-32,35
+app/src/main/java/com/nuvio/tv/ui/screens/settings/SettingsSearchIndex.kt
+  s_9ce0e7d386cecb::t_b993895d008f07 227
+app/src/main/java/com/nuvio/tv/ui/screens/settings/SubtitleTranslationSettingsItems.kt
+  s_9ce0e7d386cecb::t_6cd3a4ed28caa5 224
+app/src/main/java/com/nuvio/tv/ui/screens/settings/TmdbSettingsScreen.kt
+  s_9ce0e7d386cecb::t_240a5a959124be 18,29,31,60-65,106-117,280-300
+app/src/main/res/values-ar/strings.xml
+  s_9ce0e7d386cecb::t_72a6b1fac33ff5 1077-1080
+app/src/main/res/values/strings.xml
+  s_9ce0e7d386cecb::t_3fb29fa6db5171 1461-1464
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "ff905a4efac3d928fff5fe67cfef4225f79b32c8",
+  "prompts": {},
+  "sessions": {
+    "s_9ce0e7d386cecb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "s_9ce0e7d386cecb",
+        "model": "unknown"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  }
+}
