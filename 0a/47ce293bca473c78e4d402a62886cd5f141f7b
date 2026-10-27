@@ -1,0 +1,19 @@
+.github/workflows/ci.yml
+  s_9023e86ca5bce8::t_04e6a49bcba99c 32-33,35-36
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "0a47ce293bca473c78e4d402a62886cd5f141f7b",
+  "prompts": {},
+  "sessions": {
+    "s_9023e86ca5bce8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "s_9023e86ca5bce8",
+        "model": "unknown"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  }
+}
