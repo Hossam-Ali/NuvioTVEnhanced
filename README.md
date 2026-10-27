@@ -116,6 +116,16 @@ cd NuvioTVEnhanced
 Requires JDK 17+ and the Android SDK (platform 37). Optional service keys go in `local.properties`;
 see [`local.example.properties`](./local.example.properties). Never commit `local.properties`.
 
+For your own device, you can build your OpenRouter key into the app so you don't type it on the TV.
+Add it to `local.properties` and build the debug or benchmark variant:
+
+```properties
+OPENROUTER_API_KEY=sk-or-v1-...
+SUBTITLE_TRANSLATION_TARGET=en   # default "Translate to" language
+```
+
+Release builds never include the key. Personal builds do (masked, but extractable), so don't share them.
+
 ## License
 
 [GNU General Public License v3.0](./LICENSE), the same as upstream Nuvio TV.

@@ -1,6 +1,7 @@
 package com.nuvio.tv.core.subtitles
 
 import android.content.Context
+import com.nuvio.tv.BuildConfig
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -77,6 +78,27 @@ object SubtitleTranslationPreferences {
     private val _settings = MutableStateFlow(SubtitleTranslationSettings())
     val settings: StateFlow<SubtitleTranslationSettings> = _settings.asStateFlow()
 
+    /** OpenRouter key built into personal builds (OPENROUTER_API_KEY), or "" in release builds. */
+    val builtInOpenRouterKey: String by lazy {
+        val masked = BuildConfig.OPENROUTER_API_KEY_MASKED.hexToBytes()
+        val mask = BuildConfig.OPENROUTER_API_KEY_MASK.hexToBytes()
+        if (masked.isEmpty() || masked.size != mask.size) "" else {
+            String(ByteArray(masked.size) { (masked[it].toInt() xor mask[it].toInt()).toByte() }, Charsets.UTF_8)
+        }
+    }
+
+    private fun String.hexToBytes(): ByteArray =
+        if (length % 2 != 0) ByteArray(0) else ByteArray(length / 2) { substring(it * 2, it * 2 + 2).toInt(16).toByte() }
+
+    /** A personal build with a built-in key starts with translation on, in its configured language. */
+    private fun defaultSettings(): SubtitleTranslationSettings {
+        if (builtInOpenRouterKey.isEmpty()) return SubtitleTranslationSettings()
+        return SubtitleTranslationSettings(
+            enabled = true,
+            targetLanguage = BuildConfig.SUBTITLE_TRANSLATION_TARGET.ifBlank { SUBTITLE_TRANSLATION_TARGET_PREFERRED },
+        )
+    }
+
     fun ensureLoaded(context: Context) {
         if (loaded) return
         synchronized(lock) {
@@ -85,7 +107,7 @@ object SubtitleTranslationPreferences {
             val stored = prefs.getString(KEY_SETTINGS, null)
             val base = stored
                 ?.let { runCatching { json.decodeFromString<SubtitleTranslationSettings>(it) }.getOrNull() }
-                ?: SubtitleTranslationSettings()
+                ?: defaultSettings()
             var openAiKey = SubtitleTranslationSecretStore.decrypt(prefs.getString(KEY_OPENAI_SECRET, null))
             // Earlier test builds kept keys in plain JSON: move the OpenAI key into encrypted
             // storage and drop every plaintext key from disk.
@@ -100,7 +122,9 @@ object SubtitleTranslationPreferences {
                 }
             }
             _settings.value = base.copy(
-                openRouterApiKey = SubtitleTranslationSecretStore.decrypt(prefs.getString(KEY_OPENROUTER_SECRET, null)),
+                // A key saved on the device wins; otherwise a personal build's key is used.
+                openRouterApiKey = SubtitleTranslationSecretStore.decrypt(prefs.getString(KEY_OPENROUTER_SECRET, null))
+                    .ifEmpty { builtInOpenRouterKey },
                 openAiApiKey = openAiKey,
             )
             loaded = true
@@ -128,7 +152,8 @@ object SubtitleTranslationPreferences {
         var stored = next
         keysToStore.forEach { (prefKey, before, after) ->
             if (before == after) return@forEach
-            if (after.isEmpty()) {
+            // The built-in key is never written to disk.
+            if (after.isEmpty() || (prefKey == KEY_OPENROUTER_SECRET && after == builtInOpenRouterKey)) {
                 editor.remove(prefKey)
             } else {
                 val encrypted = SubtitleTranslationSecretStore.encrypt(after)

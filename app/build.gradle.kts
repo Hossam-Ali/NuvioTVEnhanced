@@ -1,3 +1,4 @@
+import java.security.SecureRandom
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -125,6 +126,26 @@ val releaseKeyPasswordValue = env("NUVIO_RELEASE_KEY_PASSWORD")
 val releaseStorePasswordValue = env("NUVIO_RELEASE_STORE_PASSWORD")
     ?: localProperties.getProperty("NUVIO_RELEASE_STORE_PASSWORD", "815787")
 
+// Personal builds: OPENROUTER_API_KEY in local.properties (or the environment) is built into debug
+// and benchmark builds, so the key doesn't have to be typed on the TV, and SUBTITLE_TRANSLATION_TARGET
+// sets their default language. Release builds never contain a key; their users enter their own.
+// The key is XOR-masked so it isn't a plain string in the APK, but it can still be extracted:
+// don't share personal builds.
+val personalOpenRouterKey = resolveProperty(
+    devProperties, localProperties, "OPENROUTER_API_KEY", System.getenv("OPENROUTER_API_KEY").orEmpty()
+).trim()
+val personalTranslationTarget = resolveProperty(
+    devProperties, localProperties, "SUBTITLE_TRANSLATION_TARGET", System.getenv("SUBTITLE_TRANSLATION_TARGET").orEmpty()
+).trim()
+
+/** Returns the key XOR-masked with a fresh random mask, both as hex: (masked, mask). */
+fun maskOpenRouterKey(key: String): Pair<String, String> {
+    val bytes = key.toByteArray(Charsets.UTF_8)
+    val mask = ByteArray(bytes.size).also { SecureRandom().nextBytes(it) }
+    fun hex(values: ByteArray) = values.joinToString("") { "%02x".format(it) }
+    return hex(ByteArray(bytes.size) { (bytes[it].toInt() xor mask[it].toInt()).toByte() }) to hex(mask)
+}
+
 android {
     namespace = "com.nuvio.tv"
     compileSdk = 37
@@ -151,6 +172,10 @@ android {
         buildConfigField("String", "SIMKL_APP_NAME", buildConfigString(resolveProperty(devProperties, localProperties, "SIMKL_APP_NAME", "nuvio")))
         buildConfigField("String", "MDBLIST_CLIENT_ID", buildConfigString(resolveProperty(devProperties, localProperties, "MDBLIST_CLIENT_ID")))
         buildConfigField("String", "TMDB_API_KEY", "\"${localProperties.getProperty("TMDB_API_KEY", "")}\"")
+        // Empty here and in release; only personal (debug and benchmark) builds set them below.
+        buildConfigField("String", "OPENROUTER_API_KEY_MASKED", "\"\"")
+        buildConfigField("String", "OPENROUTER_API_KEY_MASK", "\"\"")
+        buildConfigField("String", "SUBTITLE_TRANSLATION_TARGET", "\"\"")
         buildConfigField("String", "TV_LOGIN_WEB_BASE_URL", "\"${localProperties.getProperty("TV_LOGIN_WEB_BASE_URL", "https://nuvio.tv/tv-login")}\"")
         buildConfigField("String", "DEVICE_LOGIN_WEB_BASE_URL", "\"${localProperties.getProperty("DEVICE_LOGIN_WEB_BASE_URL", "https://nuvio.tv/link")}\"")
         buildConfigField("boolean", "DOVI_NATIVE_ENABLED", enableDoviNative.toString())
@@ -229,6 +254,10 @@ android {
 
             buildConfigField("boolean", "IS_DEBUG_BUILD", "true")
             buildConfigField("String", "SENTRY_ENVIRONMENT", buildConfigString("debug"))
+            val (maskedKey, keyMask) = maskOpenRouterKey(personalOpenRouterKey)
+            buildConfigField("String", "OPENROUTER_API_KEY_MASKED", buildConfigString(maskedKey))
+            buildConfigField("String", "OPENROUTER_API_KEY_MASK", buildConfigString(keyMask))
+            buildConfigField("String", "SUBTITLE_TRANSLATION_TARGET", buildConfigString(personalTranslationTarget))
 
             // Dev environment (from local.dev.properties)
             buildConfigField("String", "SUPABASE_URL", buildConfigString(resolveProperty(devProperties, localProperties, "NUVIO_SUPABASE_URL")))
@@ -296,6 +325,10 @@ android {
             )
             buildConfigField("boolean", "IS_DEBUG_BUILD", "true")
             buildConfigField("String", "SENTRY_ENVIRONMENT", buildConfigString("benchmark"))
+            val (maskedKey, keyMask) = maskOpenRouterKey(personalOpenRouterKey)
+            buildConfigField("String", "OPENROUTER_API_KEY_MASKED", buildConfigString(maskedKey))
+            buildConfigField("String", "OPENROUTER_API_KEY_MASK", buildConfigString(keyMask))
+            buildConfigField("String", "SUBTITLE_TRANSLATION_TARGET", buildConfigString(personalTranslationTarget))
             applicationIdSuffix = ".benchmark"
             matchingFallbacks += "release"
         }

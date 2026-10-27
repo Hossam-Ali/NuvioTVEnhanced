@@ -3035,6 +3035,7 @@
     <string name="subtitle_ai_translation_key">مفتاح API</string>
     <string name="subtitle_ai_translation_key_subtitle">يُحفظ على هذا التلفزيون فقط ولا تتم مزامنته. نصيحة: يمكنك لصقه عبر تطبيق Google TV على هاتفك.</string>
     <string name="subtitle_ai_translation_key_missing">غير مضبوط</string>
+    <string name="subtitle_ai_translation_key_built_in">مضمّن في هذا التطبيق</string>
     <string name="subtitle_ai_translation_key_dialog_title">مفتاح API لـ %1$s</string>
     <string name="subtitle_ai_translation_model">النموذج</string>
     <string name="subtitle_ai_translation_model_subtitle">اتركه فارغًا لاستخدام النموذج الموصى به.</string>

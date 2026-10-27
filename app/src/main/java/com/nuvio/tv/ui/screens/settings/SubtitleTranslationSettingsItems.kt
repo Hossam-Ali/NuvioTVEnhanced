@@ -68,6 +68,7 @@ internal fun subtitleTranslationSettingsItems(enabled: Boolean, preferredSubtitl
     var testStatus by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
     val notSet = stringResource(R.string.subtitle_ai_translation_key_missing)
+    val builtIn = stringResource(R.string.subtitle_ai_translation_key_built_in)
     val preferredLabel = AVAILABLE_SUBTITLE_LANGUAGES.firstOrNull { it.code == preferredSubtitleLanguage }?.name
         ?: preferredSubtitleLanguage.orEmpty()
 
@@ -95,7 +96,11 @@ internal fun subtitleTranslationSettingsItems(enabled: Boolean, preferredSubtitl
     SettingsActionRow(
         title = stringResource(R.string.subtitle_ai_translation_key),
         subtitle = stringResource(R.string.subtitle_ai_translation_key_subtitle),
-        value = maskSecret(settings.apiKey, notSet),
+        value = if (settings.apiKey.isNotEmpty() && settings.apiKey == SubtitleTranslationPreferences.builtInOpenRouterKey) {
+            builtIn
+        } else {
+            maskSecret(settings.apiKey, notSet)
+        },
         enabled = enabled,
         onClick = { editingField = TranslationTextField.ApiKey },
     )

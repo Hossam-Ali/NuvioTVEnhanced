@@ -3414,6 +3414,7 @@
     <string name="subtitle_ai_translation_key">API key</string>
     <string name="subtitle_ai_translation_key_subtitle">Stored only on this TV and never synced. Tip: the Google TV app on your phone can paste it.</string>
     <string name="subtitle_ai_translation_key_missing">Not set</string>
+    <string name="subtitle_ai_translation_key_built_in">Built into this app</string>
     <string name="subtitle_ai_translation_key_dialog_title">%1$s API key</string>
     <string name="subtitle_ai_translation_model">Model</string>
     <string name="subtitle_ai_translation_model_subtitle">Leave empty to use the recommended model.</string>
