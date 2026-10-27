@@ -76,6 +76,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
 private const val TAG = "MetaDetailsViewModel"
+private const val DETAIL_ENRICHMENT_WAIT_MS = 700L
 
 @HiltViewModel
 class MetaDetailsViewModel @Inject constructor(
@@ -1012,7 +1013,21 @@ class MetaDetailsViewModel @Inject constructor(
 
     private suspend fun applyMetaWithEnrichment(meta: Meta) {
         if (!isServerItem) loadMoreLikeThisAsync(meta)
-        val enriched = if (isServerItem) meta else enrichMeta(meta)
+        // TMDB details (artwork, localized text, every season's episodes) can take seconds on a
+        // long series or a slow connection. The page shows the addon's details once they are not
+        // ready within a moment, and the TMDB details fill in when they arrive.
+        val enriched = if (isServerItem) {
+            meta
+        } else {
+            val enrichment = viewModelScope.async { enrichMeta(meta) }
+            withTimeoutOrNull(DETAIL_ENRICHMENT_WAIT_MS) { enrichment.await() } ?: run {
+                viewModelScope.launch {
+                    val late = runCatching { enrichment.await() }.getOrNull() ?: return@launch
+                    applyLateEnrichment(late)
+                }
+                meta
+            }
+        }
 
         syncEffectiveContentId(enriched)
         val cachedNextToWatch = metaDetailsSessionState.getNextToWatch(
@@ -1055,6 +1070,19 @@ class MetaDetailsViewModel @Inject constructor(
         val watchedEpisodes = watchedDeferred.await()
         val precomputedNextToWatch = computeNextToWatch(enriched, progressMap, watchedEpisodes)
         updateNextToWatch(precomputedNextToWatch)
+    }
+
+    /** Swaps in TMDB details that arrived after the page was shown, keeping the chosen season. */
+    private fun applyLateEnrichment(enriched: Meta) {
+        if (_uiState.value.meta?.id != enriched.id) return
+        syncEffectiveContentId(enriched)
+        _uiState.update { state ->
+            if (state.meta?.id != enriched.id) return@update state
+            state.copy(
+                meta = enriched,
+                episodesForSeason = getEpisodesForSeason(enriched, state.selectedSeason)
+            )
+        }
     }
 
     private fun NextToWatch.resolveForMeta(meta: Meta): NextToWatch? {
