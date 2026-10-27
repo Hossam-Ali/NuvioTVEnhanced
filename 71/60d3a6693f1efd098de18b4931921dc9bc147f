@@ -1,0 +1,58 @@
+app/src/main/java/com/nuvio/tv/core/subtitles/SubtitleTranslationDiskCache.kt
+  s_a9d3cd02d4456a::t_ab1a7d44a4486d 1-47
+app/src/main/java/com/nuvio/tv/core/subtitles/SubtitleTranslationPreferences.kt
+  s_a9d3cd02d4456a::t_400ffb110a24b6 1-147
+app/src/main/java/com/nuvio/tv/core/subtitles/SubtitleTranslationSecretStore.kt
+  s_a9d3cd02d4456a::t_aa3cc3584911a0 1-62
+app/src/main/java/com/nuvio/tv/core/subtitles/SubtitleTranslationService.kt
+  s_a9d3cd02d4456a::t_fe9abab5548bd9 1-284
+app/src/main/java/com/nuvio/tv/core/subtitles/SubtitleTranslator.kt
+  s_a9d3cd02d4456a::t_eb47bbf104d7f8 1-380
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeController.kt
+  s_a9d3cd02d4456a::t_4a590860ca9189 558-559,758
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerInitialization.kt
+  s_a9d3cd02d4456a::t_8bb386dd095cac 650-652,922,985,1420,2059,2151,2296-2307
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerSubtitleTranslation.kt
+  s_a9d3cd02d4456a::t_70ff9579f5acd6 1-167
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerTracks.kt
+  s_a9d3cd02d4456a::t_d73b36e03ecaf7 1005-1018,1669-1674,1680-1688
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt
+  s_a9d3cd02d4456a::t_6661d97a4bedae 2057-2060
+app/src/main/java/com/nuvio/tv/ui/screens/player/SubtitleSelectionOverlay.kt
+  s_a9d3cd02d4456a::t_cb4adb8c17efa2 53,105-108,120-124,135-138,143-145,156-157,175-177,189-193,531-533,1862-1884,1903-1904,1913-1915,1987-1991,2033-2049,2065,2071-2073,2078-2083,2092-2094,2100-2101,2103-2104
+app/src/main/java/com/nuvio/tv/ui/screens/player/SubtitleTranslationPipeline.kt
+  s_a9d3cd02d4456a::t_516374c0d503ae 1-281
+app/src/main/java/com/nuvio/tv/ui/screens/settings/PlaybackSubtitleSettings.kt
+  s_a9d3cd02d4456a::t_28c0e1c8810c57 73-80
+app/src/main/java/com/nuvio/tv/ui/screens/settings/SubtitleTranslationSettingsItems.kt
+  s_a9d3cd02d4456a::t_bfc02e098d2d1d 1-307
+app/src/main/res/values-ar/strings.xml
+  s_a9d3cd02d4456a::t_f0a2123d8e9ea4 3031-3060
+app/src/main/res/values/strings.xml
+  s_a9d3cd02d4456a::t_b9c05a1d1be4e3 3410-3439
+app/src/test/java/com/nuvio/tv/core/subtitles/SubtitleTranslationSettingsTest.kt
+  s_a9d3cd02d4456a::t_f5eb9457de3b27 1-35
+app/src/test/java/com/nuvio/tv/core/subtitles/SubtitleTranslatorTest.kt
+  s_a9d3cd02d4456a::t_0738dd5841bbab 1-265
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "7160d3a6693f1efd098de18b4931921dc9bc147f",
+  "prompts": {},
+  "humans": {
+    "h_b46d7b9083e084": {
+      "author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_a9d3cd02d4456a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "s_a9d3cd02d4456a",
+        "model": "unknown"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  }
+}
