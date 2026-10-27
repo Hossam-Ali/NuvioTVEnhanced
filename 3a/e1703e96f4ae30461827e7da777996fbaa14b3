@@ -1,0 +1,21 @@
+app/src/main/java/com/nuvio/tv/ui/components/ContentCard.kt
+  s_15370f955bdb71::t_e48bfb87cb48b3 287,513-518,524,527
+app/src/main/java/com/nuvio/tv/ui/components/GridContentCard.kt
+  s_15370f955bdb71::t_a0b8ca73c6d85e 248,251
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "3ae1703e96f4ae30461827e7da777996fbaa14b3",
+  "prompts": {},
+  "sessions": {
+    "s_15370f955bdb71": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "s_15370f955bdb71",
+        "model": "unknown"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  }
+}
