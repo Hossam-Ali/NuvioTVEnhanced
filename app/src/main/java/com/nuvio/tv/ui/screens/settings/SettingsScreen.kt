@@ -988,6 +988,7 @@ private fun SettingsDetailPane(
                     null
                 },
                 // Subtitles have a section of their own.
+                subtitle = stringResource(R.string.settings_playback_page_subtitle),
                 sectionFilter = { it != PlaybackSection.SUBTITLES },
                 revealSection = playbackRevealSection
             )

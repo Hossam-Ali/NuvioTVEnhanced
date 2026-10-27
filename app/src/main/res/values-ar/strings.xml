@@ -388,8 +388,9 @@
     <string name="settings_search_placeholder">اكتب اسم إعداد، مثلًا الترجمة أو الصوت</string>
     <string name="settings_search_hint">اضغط OK على الحقل أعلاه واكتب ما تبحث عنه.</string>
     <string name="settings_search_no_results">لا توجد إعدادات تطابق \"%1$s\".</string>
-    <string name="settings_section_account">الحساب والبروفايلات</string>
-    <string name="settings_section_sources">المصادر والإضافات</string>
+    <string name="settings_section_account">الحساب</string>
+    <string name="settings_section_sources">المصادر</string>
+    <string name="settings_playback_page_subtitle">المشغل والبث والصوت والصورة والتخزين المؤقت.</string>
     <string name="settings_section_system">النظام</string>
     <string name="settings_page_theme">الثيم</string>
     <string name="settings_subtitles_page_subtitle">اللغات والشكل وترجمة الذكاء الاصطناعي والمزامنة.</string>

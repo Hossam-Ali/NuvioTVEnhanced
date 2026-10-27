@@ -471,8 +471,9 @@
     <string name="settings_search_placeholder">Type a setting, e.g. subtitles or audio</string>
     <string name="settings_search_hint">Press OK on the field above and type what you\'re looking for.</string>
     <string name="settings_search_no_results">No settings match \"%1$s\".</string>
-    <string name="settings_section_account">Account &amp; profiles</string>
-    <string name="settings_section_sources">Sources &amp; add-ons</string>
+    <string name="settings_section_account">Account</string>
+    <string name="settings_section_sources">Sources</string>
+    <string name="settings_playback_page_subtitle">Player, streams, audio, video and buffering.</string>
     <string name="settings_section_system">System</string>
     <string name="settings_page_theme">Theme</string>
     <string name="settings_subtitles_page_subtitle">Languages, style, AI translation and sync.</string>

@@ -36,8 +36,11 @@ text subtitles. No searching, no syncing, no wrong-version files.
 - **The best source, picked for you.** It translates the subtitle in the film's spoken language
   (a Korean film uses its Korean subtitle), falling back to English, then any text subtitle.
 - **Zero setup per video.** A single **AI translation** entry sits under your language in the
-  subtitle menu and is selected by default. When a video has no text subtitles, your add-on
-  subtitles take over and the app tells you why.
+  subtitle menu and is selected by default.
+- **Add-on subtitles too.** When a video has no subtitles of its own, an add-on subtitle in the
+  film's language (or English) is translated instead, ahead of time, so lines are ready before
+  they appear. Pick any add-on subtitle in another language and it's translated as well.
+- **Works in both players**, the default one and MPV.
 - **Any language.** Translate into whichever language you watch in.
 - **Smooth on screen.** Lines are translated ahead while the video buffers, so they're ready before
   they appear. Busy providers are retried automatically, a late line is held for a moment instead
@@ -47,6 +50,8 @@ text subtitles. No searching, no syncing, no wrong-version files.
   entered on the TV, encrypted with the Android Keystore, never synced, and never shipped in the app.
 - **Fast or frugal.** Pick Ling 3.0 Flash (cheapest) or GPT-6 Luna (fastest and most accurate). Each
   steps in automatically when the other is busy. A full movie usually costs a few cents.
+- **Know what you spend.** Settings shows what translation cost this month and for the video
+  you're watching.
 
 ### Faster and smoother
 
@@ -68,13 +73,13 @@ text subtitles. No searching, no syncing, no wrong-version files.
 - **Clean, fast results.** Add-ons that fail to answer disappear instead of loading forever, and
   slow ones join in when ready rather than filling the screen with placeholders.
 
-Searching by original title and by actor uses TMDB, so it needs a build with a TMDB key (see
-[Build from source](#build-from-source)).
+Searching by original title and by actor uses TMDB: add your free TMDB key in
+**Settings → Sources → Integrations → TMDB**.
 
 ### Settings that make sense
 
-- **Seven clear sections** instead of a long list: Account & profiles, Appearance, Playback,
-  Subtitles, Sources & add-ons, Tracking and System. Related pages sit together as tabs, such as
+- **Seven clear sections** instead of a long list: Account, Appearance, Playback, Subtitles,
+  Sources, Tracking and System. Related pages sit together as tabs, such as
   Theme and Layout under Appearance.
 - **Subtitles have their own section**, with languages, style, AI translation and sync in one place.
 - **Search your settings.** Type a word, in English or Arabic, and jump straight to the setting,
@@ -88,6 +93,8 @@ Searching by original title and by actor uses TMDB, so it needs a build with a T
   focus state collided with its route arguments).
 - The Discover grid can't crash when a movie and a show share an id.
 - Search rows from add-ons that fail no longer stay stuck on a loading placeholder.
+- A cancelled Trakt refresh no longer makes the next one fail, which could leave Continue
+  Watching out of date.
 - Playback no longer gets stuck between "starting stream" and "building player" when subtitle
   translation is on.
 
@@ -104,8 +111,15 @@ Searching by original title and by actor uses TMDB, so it needs a build with a T
 | Coil                                | 3.3.0                   | 3.6.3              |
 | Coroutines / Lifecycle / Navigation | 1.8 / 2.8 / 2.8         | 1.11 / 2.11 / 2.10 |
 | TV Material / TV Foundation         | 1.1.0-rc01 / 1.0.0-rc01 | 1.1.0 / 1.0.0      |
+| OkHttp / Retrofit                   | 4.12 / 2.9              | 5.5 / 3.0          |
 
-The video player core (Nuvio's custom Media3 build in `app/libs`) is unchanged.
+The build uses the Gradle plugin's built-in Kotlin support. The video player core (Nuvio's custom
+Media3 build in `app/libs`) is unchanged.
+
+### Kept up to date
+
+Every push is built and tested on GitHub, and once a week the fork checks for new upstream Nuvio
+TV changes and opens a pull request with them.
 
 ## Install
 
@@ -118,9 +132,10 @@ The video player core (Nuvio's custom Media3 build in `app/libs`) is unchanged.
 It installs as **Nuvio Enhanced** (`com.nuvio.tv.enhanced`), next to the official Nuvio app, and its
 updater checks this repository's releases.
 
-> Release APKs are built without third-party service keys (TMDB, Trakt, Simkl, MDBList, Nuvio account
-> sync). Add-ons, catalogs, playback and AI subtitles work without them. To use those services,
-> build the app yourself with your own keys (see below).
+> Release APKs are built without third-party service keys. Add-ons, catalogs, playback and AI
+> subtitles work without them. Add your own free TMDB key in Settings for artwork, ratings,
+> original-title search and actors. Trakt, Simkl, MDBList and Nuvio account sync need a build with
+> your own keys (see below).
 
 ## Set up AI subtitles
 
