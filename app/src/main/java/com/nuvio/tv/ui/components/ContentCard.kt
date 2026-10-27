@@ -520,9 +520,10 @@ fun ContentCard(
                 }
 
                 // Landscape overlay — rendered AFTER trailer so it stays on top.
-                // Show on backdrop cards always; also show on any landscape card when expanded
-                // (trailer playing) so the title stays visible over the video.
+                // Show on backdrop cards and on any landscape card when expanded (trailer playing)
+                // so the title stays visible over the video, unless the label below names it.
                 val showLandscapeOverlay = globalLandscape && (isLandscapeBackdropCard || isBackdropExpanded) &&
+                    (!showLabels || isBackdropExpanded) &&
                     !(useLandscapeAsExpanded && !trailerFirstFrameRendered)
                 if (showLandscapeOverlay) {
                     Box(
