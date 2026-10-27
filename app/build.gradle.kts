@@ -127,7 +127,7 @@ val releaseStorePasswordValue = env("NUVIO_RELEASE_STORE_PASSWORD")
 
 android {
     namespace = "com.nuvio.tv"
-    compileSdk = 36
+    compileSdk = 37
     ndkVersion = "29.0.14206865"
 
     defaultConfig {
@@ -440,7 +440,7 @@ sentry {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
-    val composeBom = platform("androidx.compose:compose-bom:2026.05.01")
+    val composeBom = platform(libs.androidx.compose.bom)
 
     // Source-retention nullness annotations (MonotonicNonNull / RequiresNonNull /
     // EnsuresNonNull) used by the vendored Matroska extractor in

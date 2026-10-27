@@ -21,7 +21,7 @@ val ffmpegBuildDir = localPath("FFMPEG_BUILD_DIR")
 
 android {
     namespace = "androidx.media3.decoder.ffmpeg"
-    compileSdk = 36
+    compileSdk = 37
     ndkVersion = "29.0.14206865"
 
     defaultConfig {

@@ -657,7 +657,8 @@ internal fun DiscoverGrid(
     ) {
         itemsIndexed(
             items = items,
-            key = { index, item -> item.id.ifEmpty { "discover_$index" } },
+            // A movie and a show can share an id, so the type is part of the key (a repeated key crashes the grid).
+            key = { index, item -> if (item.id.isEmpty()) "discover_$index" else "${item.apiType}:${item.id}" },
             contentType = { _, _ -> "content_card" }
         ) { index, item ->
             val itemFocusReq = remember(index) { itemFocusRequesters.getOrPut(index) { FocusRequester() } }

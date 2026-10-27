@@ -341,11 +341,13 @@ private fun PlaybackNavHost(
             val returnToHomeOnBack = detailArgs
                 ?.getString("returnToHomeOnBack")
                 ?.toBooleanStrictOrNull() == true
+            // The route's own arguments live in this handle as strings under the argument names,
+            // so the focus state the other screens set uses separate keys.
             val returnFocusSeason by savedState.getStateFlow(
-                "returnFocusSeason", detailArgs?.getString("returnFocusSeason")?.toIntOrNull()
+                "returnFocusSeasonState", detailArgs?.getString("returnFocusSeason")?.toIntOrNull()
             ).collectAsState()
             val returnFocusEpisode by savedState.getStateFlow(
-                "returnFocusEpisode", detailArgs?.getString("returnFocusEpisode")?.toIntOrNull()
+                "returnFocusEpisodeState", detailArgs?.getString("returnFocusEpisode")?.toIntOrNull()
             ).collectAsState()
             val heroRestoreToken by savedState.getStateFlow(
                 "heroRestoreToken", 0
@@ -362,8 +364,8 @@ private fun PlaybackNavHost(
                 playOnLoad = playOnLoad,
                 playOnLoadManually = manualSelection,
                 onReturnFocusConsumed = {
-                    savedState["returnFocusSeason"] = null
-                    savedState["returnFocusEpisode"] = null
+                    savedState["returnFocusSeasonState"] = null
+                    savedState["returnFocusEpisodeState"] = null
                 },
                 onBackPress = {
                     if (returnToHomeOnBack) {
@@ -586,8 +588,8 @@ private fun PlaybackNavHost(
                     if (streamContentType.equals("series", ignoreCase = true) && streamContentId.isNotBlank()) {
                         val detailEntry = runCatching { navController.getBackStackEntry(Screen.Detail.route) }.getOrNull()
                         if (detailEntry != null) {
-                            detailEntry.savedStateHandle["returnFocusSeason"] = season
-                            detailEntry.savedStateHandle["returnFocusEpisode"] = episode
+                            detailEntry.savedStateHandle["returnFocusSeasonState"] = season
+                            detailEntry.savedStateHandle["returnFocusEpisodeState"] = episode
                             navController.popBackStack(Screen.Detail.route, inclusive = false)
                         } else {
                             navController.navigate(
@@ -925,8 +927,8 @@ private fun PlaybackNavHost(
                                     (itemType.isBlank() || contentType.isBlank() || itemType.equals(contentType, ignoreCase = true))
                             }
                         if (detailEntry != null) {
-                            detailEntry.savedStateHandle["returnFocusSeason"] = focusSeason
-                            detailEntry.savedStateHandle["returnFocusEpisode"] = focusEpisode
+                            detailEntry.savedStateHandle["returnFocusSeasonState"] = focusSeason
+                            detailEntry.savedStateHandle["returnFocusEpisodeState"] = focusEpisode
                             navController.popBackStack(Screen.Detail.route, inclusive = false)
                         } else {
                             navController.navigate(
@@ -1036,8 +1038,8 @@ private fun PlaybackNavHost(
                             val detailEntry = navController.currentBackStack.value
                                 .lastOrNull { it.destination.route?.startsWith("detail/") == true }
                             if (detailEntry != null) {
-                                detailEntry.savedStateHandle["returnFocusSeason"] = null
-                                detailEntry.savedStateHandle["returnFocusEpisode"] = null
+                                detailEntry.savedStateHandle["returnFocusSeasonState"] = null
+                                detailEntry.savedStateHandle["returnFocusEpisodeState"] = null
                                 val token = (detailEntry.savedStateHandle.get<Int>("heroRestoreToken") ?: 0) + 1
                                 detailEntry.savedStateHandle["heroRestoreToken"] = token
                                 navController.popBackStack(Screen.Detail.route, inclusive = false)
@@ -1083,8 +1085,8 @@ private fun PlaybackNavHost(
                                             (itemType.isBlank() || contentType.isBlank() || itemType.equals(contentType, ignoreCase = true))
                                     }
                                 if (detailEntry != null) {
-                                    detailEntry.savedStateHandle["returnFocusSeason"] = focusSeason
-                                    detailEntry.savedStateHandle["returnFocusEpisode"] = focusEpisode
+                                    detailEntry.savedStateHandle["returnFocusSeasonState"] = focusSeason
+                                    detailEntry.savedStateHandle["returnFocusEpisodeState"] = focusEpisode
                                     navController.popBackStack(Screen.Detail.route, inclusive = false)
                                 } else {
                                     navController.navigate(
