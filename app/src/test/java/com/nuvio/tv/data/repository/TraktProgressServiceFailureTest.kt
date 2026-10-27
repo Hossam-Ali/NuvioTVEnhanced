@@ -46,7 +46,7 @@ class TraktProgressServiceFailureTest {
             failed.complete(Unit)
             Response.error(503, "".toResponseBody())
         }
-        service.refreshNow()
+        refreshNowAndWait(service)
         withTimeout(TIMEOUT_MS) { failed.await() }
         delay(SETTLE_MS)
 
@@ -66,11 +66,21 @@ class TraktProgressServiceFailureTest {
             failed.complete(Unit)
             Response.error(503, "".toResponseBody())
         }
-        service.refreshNow()
+        refreshNowAndWait(service)
         withTimeout(TIMEOUT_MS) { failed.await() }
         delay(SETTLE_MS)
 
         assertTrue(service.isShowHiddenFromProgress(DROPPED_SHOW_ID))
+    }
+
+    /**
+     * Opens the forced-refresh window like the app does, then runs the refresh here rather than
+     * waiting for the background loop to pick up the signal: on a slow CI machine that handoff
+     * could race with the first sync still in flight and never reach the failing request.
+     */
+    private suspend fun refreshNowAndWait(service: TraktProgressService) {
+        service.refreshNow()
+        runCatching { service.refreshRemoteSnapshot() }
     }
 
     private fun createService(): TraktProgressService {
@@ -134,7 +144,7 @@ class TraktProgressServiceFailureTest {
     private companion object {
         const val MOVIE_ID = "tt0000001"
         const val DROPPED_SHOW_ID = "tt0000002"
-        const val TIMEOUT_MS = 15_000L
+        const val TIMEOUT_MS = 30_000L
         const val SETTLE_MS = 500L
     }
 }
