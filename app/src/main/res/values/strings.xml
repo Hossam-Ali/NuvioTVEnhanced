@@ -2041,6 +2041,8 @@
     <string name="display_mode_resolution">Resolution</string>
 
 
+    <string name="search_top_results">Top results</string>
+    <string name="search_people">Actors &amp; crew</string>
     <string name="search_keyboard_hint">Press Done on the keyboard to search</string>
     <string name="search_placeholder">Search movies &amp; series</string>
     <string name="search_start_title">Start Searching</string>

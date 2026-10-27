@@ -1573,6 +1573,8 @@
 
 
     <!-- SearchScreen -->
+    <string name="search_top_results">أفضل النتائج</string>
+    <string name="search_people">الممثلون وفريق العمل</string>
     <string name="search_keyboard_hint">اضغط على "تم" في لوحة المفاتيح للبحث</string>
     <string name="search_placeholder">أبحث عن أفلام &amp; مسلسلات</string>
     <string name="search_start_title">ابدأ البحث</string>

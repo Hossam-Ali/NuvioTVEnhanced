@@ -138,7 +138,8 @@ fun SearchScreen(
     viewModel: SearchViewModel = hiltViewModel(),
     onNavigateToDetail: (String, String, String) -> Unit,
     onNavigateToSeeAll: (catalogId: String, addonId: String, type: String) -> Unit = { _, _, _ -> },
-    onOpenDiscover: () -> Unit = {}
+    onOpenDiscover: () -> Unit = {},
+    onNavigateToCastDetail: (personId: Int, personName: String) -> Unit = { _, _ -> }
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val watchedMovieIds by viewModel.watchedMovieIds.collectAsState()
@@ -801,7 +802,10 @@ fun SearchScreen(
                             val catalogKey = catalogRow.stableKey()
                             val isPlaceholder = catalogRow.isLoading &&
                                 catalogRow.items.firstOrNull()?.id?.startsWith("__placeholder_") == true
-                            val hasEnoughForSeeAll = !isPlaceholder && catalogRow.items.size >= 15
+                            // Top results and people are built here, not by an addon: no addon
+                            // name, type suffix or See all.
+                            val isScreenRow = catalogRow.addonId in SEARCH_SCREEN_ROW_IDS
+                            val hasEnoughForSeeAll = !isPlaceholder && !isScreenRow && catalogRow.items.size >= 15
 
                             val listState = searchRowStates.getOrPut(catalogKey) {
                                 val saved = viewModel.savedRowScrollPositions[catalogKey]
@@ -818,8 +822,8 @@ fun SearchScreen(
                                 posterCardStyle = posterCardStyle,
                                 showSeeAll = hasEnoughForSeeAll,
                                 showPosterLabels = uiState.posterLabelsEnabled,
-                                showAddonName = uiState.catalogAddonNameEnabled,
-                                showCatalogTypeSuffix = uiState.catalogTypeSuffixEnabled,
+                                showAddonName = uiState.catalogAddonNameEnabled && !isScreenRow,
+                                showCatalogTypeSuffix = uiState.catalogTypeSuffixEnabled && !isScreenRow,
                                 enableRowFocusRestorer = true,
                                 rowFocusRequester = rowFocusRequester,
                                 entryFocusRequester = entryFocusRequester,
@@ -864,23 +868,42 @@ fun SearchScreen(
                                     searchRowFocusedItemIndex[catalogKey] = itemIndex
                                     focusedResultItemIndex.intValue = itemIndex
                                     // Prefetch meta for the focused item to warm cache for detail screen.
-                                    catalogRow.items.getOrNull(itemIndex)?.let { item ->
-                                        viewModel.prefetchMetaOnFocus(item.id, item.rawType)
-                                    }
+                                    catalogRow.items.getOrNull(itemIndex)
+                                        ?.takeUnless { catalogRow.addonId == PEOPLE_ROW_ID }
+                                        ?.let { item -> viewModel.prefetchMetaOnFocus(item.id, item.rawType) }
                                     lastFocusedRowKey = catalogKey
                                 },
                                 onItemClick = { id, type, addonBaseUrl ->
                                     lastFocusedRowKey = catalogKey
                                     saveSearchFocusForDetail(catalogKey)
                                     val clickedItem = catalogRow.items.firstOrNull { it.id == id }
+                                    if (catalogRow.addonId == PEOPLE_ROW_ID) {
+                                        id.removePrefix(SEARCH_PERSON_ID_PREFIX).toIntOrNull()?.let { personId ->
+                                            onNavigateToCastDetail(personId, clickedItem?.name.orEmpty())
+                                        }
+                                        return@CatalogRowSection
+                                    }
+                                    // A top result opens with the addon that returned it.
+                                    val sourceBaseUrl = if (catalogRow.addonId == TOP_RESULTS_ROW_ID) {
+                                        clickedItem?.let { uiState.topResultSources[topResultKey(it.id, it.rawType)] }.orEmpty()
+                                    } else {
+                                        addonBaseUrl
+                                    }
                                     val backdrop = viewModel.getCachedBackdrop(id, type)
                                         ?: clickedItem?.backdropUrl
                                     HeroBackdropState.update(backdrop)
-                                    onNavigateToDetail(id, type, addonBaseUrl)
+                                    onNavigateToDetail(id, type, sourceBaseUrl)
                                 },
                                 onItemLongPress = { item, addonBaseUrl ->
-                                    posterOptionsRowKey = catalogKey
-                                    viewModel.posterOptions.show(item, addonBaseUrl)
+                                    if (catalogRow.addonId != PEOPLE_ROW_ID) {
+                                        posterOptionsRowKey = catalogKey
+                                        val sourceBaseUrl = if (catalogRow.addonId == TOP_RESULTS_ROW_ID) {
+                                            uiState.topResultSources[topResultKey(item.id, item.rawType)].orEmpty()
+                                        } else {
+                                            addonBaseUrl
+                                        }
+                                        viewModel.posterOptions.show(item, sourceBaseUrl)
+                                    }
                                 },
                                 onSeeAll = {
                                     onNavigateToSeeAll(

@@ -228,6 +228,7 @@ class SearchViewModelPaginationTest {
             watchedSeriesStateHolder = watchedSeries,
             posterOptions = mockk<PosterOptionsController>(relaxed = true),
             serverCatalog = mockk { every { searchAddons } returns flowOf(emptyList()) },
+            tmdbSearchSource = mockk(relaxed = true),
             context = mockk<Context>(relaxed = true)
         )
     }

@@ -250,6 +250,15 @@ interface TmdbApi {
         @Query("language") language: String? = null
     ): Response<TmdbGenresResponse>
 
+    @GET("search/multi")
+    suspend fun searchMulti(
+        @Query("api_key") apiKey: String,
+        @Query("query") query: String,
+        @Query("language") language: String? = null,
+        @Query("page") page: Int = 1,
+        @Query("include_adult") includeAdult: Boolean = false
+    ): Response<TmdbMultiSearchResponse>
+
     @GET("search/keyword")
     suspend fun searchKeywords(
         @Query("api_key") apiKey: String,
@@ -583,6 +592,30 @@ data class TmdbCollectionSearchResult(
 @JsonClass(generateAdapter = true)
 data class TmdbGenresResponse(
     @Json(name = "genres") val genres: List<TmdbGenre>? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class TmdbMultiSearchResponse(
+    @Json(name = "results") val results: List<TmdbMultiSearchResult>? = null
+)
+
+/** A movie, show or person from /search/multi; which fields are set depends on [mediaType]. */
+@JsonClass(generateAdapter = true)
+data class TmdbMultiSearchResult(
+    @Json(name = "id") val id: Int,
+    @Json(name = "media_type") val mediaType: String? = null,
+    @Json(name = "title") val title: String? = null,
+    @Json(name = "name") val name: String? = null,
+    @Json(name = "original_title") val originalTitle: String? = null,
+    @Json(name = "original_name") val originalName: String? = null,
+    @Json(name = "overview") val overview: String? = null,
+    @Json(name = "poster_path") val posterPath: String? = null,
+    @Json(name = "backdrop_path") val backdropPath: String? = null,
+    @Json(name = "profile_path") val profilePath: String? = null,
+    @Json(name = "release_date") val releaseDate: String? = null,
+    @Json(name = "first_air_date") val firstAirDate: String? = null,
+    @Json(name = "vote_average") val voteAverage: Double? = null,
+    @Json(name = "known_for_department") val knownForDepartment: String? = null
 )
 
 @JsonClass(generateAdapter = true)

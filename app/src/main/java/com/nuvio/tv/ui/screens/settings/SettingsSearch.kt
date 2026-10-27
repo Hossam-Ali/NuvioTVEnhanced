@@ -41,7 +41,7 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.nuvio.tv.R
 import com.nuvio.tv.ui.theme.NuvioTheme
-import java.text.Normalizer
+import com.nuvio.tv.core.search.normalizeSearchText
 
 /** The integrations sub-page a setting lives on. */
 internal enum class SettingsSearchIntegration { Debrid, Tmdb, MdbList, AnimeSkip }
@@ -57,17 +57,8 @@ internal data class SettingsSearchEntry(
 
 internal data class SettingsSearchResult(val entry: SettingsSearchEntry, val title: String, val subtitle: String?)
 
-private val combiningMarks = Regex("\\p{Mn}+")
-private val arabicMarks = Regex("[\\u064B-\\u0652\\u0670\\u0640]")
-
-/** Lower case, without accents or Arabic diacritics, with Arabic letter variants unified. */
-internal fun normalizeForSettingsSearch(text: String): String =
-    Normalizer.normalize(text.lowercase(), Normalizer.Form.NFD)
-        .replace(combiningMarks, "")
-        .replace(arabicMarks, "")
-        .replace('أ', 'ا').replace('إ', 'ا').replace('آ', 'ا')
-        .replace('ى', 'ي').replace('ة', 'ه')
-        .trim()
+/** Matching text for settings search; see [normalizeSearchText]. */
+internal fun normalizeForSettingsSearch(text: String): String = normalizeSearchText(text)
 
 /**
  * Settings whose title or description contains every word of [query]. Title matches come first,

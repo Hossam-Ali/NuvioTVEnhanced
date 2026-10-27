@@ -59,6 +59,7 @@ class SearchViewModel @Inject constructor(
     private val watchedSeriesStateHolder: com.nuvio.tv.data.local.WatchedSeriesStateHolder,
     val posterOptions: com.nuvio.tv.ui.components.posteroptions.PosterOptionsController,
     private val serverCatalog: ServerCatalog,
+    private val tmdbSearchSource: TmdbSearchSource,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -115,6 +116,7 @@ class SearchViewModel @Inject constructor(
         /** Splits titles and queries into words. */
         private val WORD_SEPARATOR = Regex("[^\\p{L}\\p{N}]+")
         const val MAX_RECENT_SEARCHES = 8
+        const val MAX_LOADING_ROWS = 2
     }
 
     init {
@@ -479,9 +481,15 @@ class SearchViewModel @Inject constructor(
         }
     }
 
+    // Catalogs that failed for the current search, so their placeholder rows are dropped.
+    private val failedCatalogKeys = mutableSetOf<String>()
+    private var tmdbResults = TmdbSearchResults.EMPTY
+
     private fun resetCatalogAccumulator() {
         catalogsMap.clear()
         catalogOrder.clear()
+        failedCatalogKeys.clear()
+        tmdbResults = TmdbSearchResults.EMPTY
         hasRenderedFirstCatalog = false
         pendingCatalogResponses = 0
     }
@@ -693,7 +701,14 @@ class SearchViewModel @Inject constructor(
                 }
             }
             pendingCatalogResponses = jobs.size
-            activeSearchJobs = jobs
+            // TMDB runs beside the addons: titles in other languages for the top row, and people.
+            val tmdbJob = launch {
+                val found = tmdbSearchSource.search(query)
+                if (!isCurrentSearch(generation, query)) return@launch
+                tmdbResults = found
+                scheduleCatalogRowsUpdate()
+            }
+            activeSearchJobs = jobs + tmdbJob
 
             // Wait for all jobs to complete so we can stop showing the global loading state.
             try {
@@ -757,6 +772,13 @@ class SearchViewModel @Inject constructor(
                 }
                 is NetworkResult.Error -> {
                     if (!isCurrentSearch(generation, query)) return@collect
+                    // Without this the row kept its loading placeholder for as long as the screen lived.
+                    failedCatalogKeys += catalogKey(
+                        addonId = addon.id,
+                        addonBaseUrl = addon.baseUrl,
+                        type = catalog.apiType,
+                        catalogId = catalog.id
+                    )
                     pendingCatalogResponses = (pendingCatalogResponses - 1).coerceAtLeast(0)
                     // Ignore per-catalog errors unless we have nothing to show.
                     if (catalogsMap.isEmpty()) {
@@ -890,11 +912,52 @@ class SearchViewModel @Inject constructor(
             } else {
                 orderedRows
             }
+            val isPlaceholder = { row: CatalogRow ->
+                row.isLoading && row.items.firstOrNull()?.id?.startsWith("__placeholder_") == true
+            }
+            val activeRows = filteredRows.filter { it.stableKey() !in failedCatalogKeys }
+            val resultRows = activeRows.filterNot(isPlaceholder)
+            val tmdb = tmdbResults
+            val top = if (tmdb.titles.isNotEmpty() || resultRows.size >= 2) {
+                buildTopResults(state.submittedQuery.trim(), resultRows, tmdb.titles)
+            } else {
+                null
+            }
+            val rows = buildList {
+                top?.takeIf { it.items.isNotEmpty() }?.let {
+                    add(searchScreenRow(TOP_RESULTS_ROW_ID, context.getString(R.string.search_top_results), it.items))
+                }
+                if (tmdb.people.isNotEmpty()) {
+                    add(searchScreenRow(PEOPLE_ROW_ID, context.getString(R.string.search_people), tmdb.people))
+                }
+                addAll(resultRows)
+                // Skeleton rows only until the first results land. After that a slow addon's row
+                // appears when it answers, instead of every pending catalog shimmering on screen.
+                if (isEmpty()) addAll(activeRows.filter(isPlaceholder).take(MAX_LOADING_ROWS))
+            }
             state.copy(
-                catalogRows = filteredRows
+                catalogRows = rows,
+                topResultSources = top?.sources.orEmpty()
             )
         }
     }
+
+    private fun searchScreenRow(id: String, title: String, items: List<MetaPreview>) = CatalogRow(
+        addonId = id,
+        addonName = "",
+        addonBaseUrl = "",
+        catalogId = id,
+        catalogName = title,
+        type = ContentType.MOVIE,
+        rawType = "",
+        items = items,
+        isLoading = false,
+        hasMore = false,
+        currentPage = 0,
+        supportsSkip = false,
+        skipStep = 0,
+        extraArgs = emptyMap()
+    )
 
     private suspend fun searchAddons(): List<Addon> =
         addonRepository.getInstalledAddons().first().enabledAddons() + serverCatalog.searchAddons.first()

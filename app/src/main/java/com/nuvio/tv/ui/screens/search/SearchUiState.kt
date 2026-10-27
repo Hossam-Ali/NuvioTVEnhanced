@@ -47,7 +47,9 @@ data class SearchUiState(
     val posterCardHeightDp: Int = 189,
     val posterCardCornerRadiusDp: Int = 12,
     val recentSearches: List<String> = emptyList(),
-    val suggestions: List<String> = emptyList()
+    val suggestions: List<String> = emptyList(),
+    /** Addon base URL to open each "Top results" item with, by [topResultKey]. */
+    val topResultSources: Map<String, String> = emptyMap()
 )
 
 @Immutable
