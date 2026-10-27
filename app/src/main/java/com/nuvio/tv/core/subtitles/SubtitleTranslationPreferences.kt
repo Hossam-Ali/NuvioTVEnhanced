@@ -105,9 +105,11 @@ object SubtitleTranslationPreferences {
             if (loaded) return
             val prefs = context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             val stored = prefs.getString(KEY_SETTINGS, null)
-            val base = stored
+            val base = (stored
                 ?.let { runCatching { json.decodeFromString<SubtitleTranslationSettings>(it) }.getOrNull() }
-                ?: defaultSettings()
+                ?: defaultSettings())
+                // A model this app no longer offers (Ling, which was too slow) goes back to the default.
+                .let { if (it.openRouterModel in RETIRED_OPENROUTER_MODELS) it.copy(openRouterModel = "") else it }
             var openAiKey = SubtitleTranslationSecretStore.decrypt(prefs.getString(KEY_OPENAI_SECRET, null))
             // Earlier test builds kept keys in plain JSON: move the OpenAI key into encrypted
             // storage and drop every plaintext key from disk.

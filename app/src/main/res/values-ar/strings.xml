@@ -3056,7 +3056,7 @@
     <string name="subtitle_ai_translation_key_dialog_title">مفتاح API لـ %1$s</string>
     <string name="subtitle_ai_translation_model">النموذج</string>
     <string name="subtitle_ai_translation_model_subtitle">اتركه فارغًا لاستخدام النموذج الموصى به.</string>
-    <string name="subtitle_ai_translation_model_choice_subtitle">Ling 3.0 Flash الأرخص، وGPT-6 Luna أسرع وأدق. كل منهما يحل محل الآخر عندما يكون مشغولاً.</string>
+    <string name="subtitle_ai_translation_model_openrouter_subtitle">يُستخدم GPT-6 Luna افتراضيًا. لتجربة غيره، أدخل معرّف أي نموذج من OpenRouter، مثل google/gemini-3.6-flash.</string>
     <string name="subtitle_ai_translation_target">الترجمة إلى</string>
     <string name="subtitle_ai_translation_target_subtitle">الترجمات المكتوبة أصلًا بهذه اللغة تُعرض كما هي.</string>
     <string name="subtitle_ai_translation_target_preferred">اللغة المفضلة (%1$s)</string>

@@ -23,17 +23,14 @@ import kotlinx.serialization.json.put
 // Translates subtitle cue text with the user's own OpenRouter or OpenAI key. Only text is sent;
 // cue timing never leaves the player, so translated cues keep the sync of the source track.
 
-/** An OpenRouter model offered in settings. */
-data class SubtitleTranslationModelChoice(val id: String, val label: String)
+/** The OpenRouter model used unless the user enters another one in settings. */
+const val OPENROUTER_DEFAULT_MODEL = "openai/gpt-6-luna"
 
-/** The OpenRouter models to pick from in settings; the first is the default. */
-val OPENROUTER_MODEL_CHOICES = listOf(
-    SubtitleTranslationModelChoice("inclusionai/ling-3.0-flash", "Ling 3.0 Flash"),
-    SubtitleTranslationModelChoice("openai/gpt-6-luna", "GPT-6 Luna"),
-)
+/** Models offered by earlier builds that were dropped; a saved one falls back to the default. */
+internal val RETIRED_OPENROUTER_MODELS = setOf("inclusionai/ling-3.0-flash")
 
 enum class SubtitleTranslationProvider(val label: String, val defaultModel: String) {
-    OpenRouter("OpenRouter", OPENROUTER_MODEL_CHOICES.first().id),
+    OpenRouter("OpenRouter", OPENROUTER_DEFAULT_MODEL),
     OpenAi("OpenAI (ChatGPT)", "gpt-4.1-mini"),
 }
 
@@ -70,9 +67,6 @@ private const val CACHE_LIMIT = 6_000
 private const val RETRY_AFTER_FAILURE_MS = 5_000L
 private const val MAX_RETRY_AFTER_FAILURE_MS = 60_000L
 
-/** OpenRouter switches to the other offered model while the chosen one is rate-limited or down. */
-private fun openRouterFallbackModel(model: String): String =
-    OPENROUTER_MODEL_CHOICES.firstOrNull { it.id != model }?.id ?: OPENROUTER_MODEL_CHOICES.first().id
 private const val RETRY_SKIPPED_LINE_MS = 30_000L
 private const val MAX_PROVIDER_MESSAGE_LENGTH = 160
 
@@ -350,10 +344,12 @@ internal class SubtitleTranslator(
         val isOpenRouter = provider == SubtitleTranslationProvider.OpenRouter
         val body = buildJsonObject {
             put("model", model)
-            if (isOpenRouter) {
+            // With a model of the user's choosing, OpenRouter falls back to the default one while
+            // it is rate-limited or down.
+            if (isOpenRouter && model != OPENROUTER_DEFAULT_MODEL) {
                 put("models", buildJsonArray {
                     add(JsonPrimitive(model))
-                    add(JsonPrimitive(openRouterFallbackModel(model)))
+                    add(JsonPrimitive(OPENROUTER_DEFAULT_MODEL))
                 })
             }
             put("messages", buildJsonArray {

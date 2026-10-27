@@ -43,7 +43,7 @@ import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.nuvio.tv.R
-import com.nuvio.tv.core.subtitles.OPENROUTER_MODEL_CHOICES
+import com.nuvio.tv.core.subtitles.OPENROUTER_DEFAULT_MODEL
 import com.nuvio.tv.core.subtitles.SUBTITLE_TRANSLATION_TARGET_PREFERRED
 import com.nuvio.tv.core.subtitles.SubtitleTranslationPreferences
 import com.nuvio.tv.core.subtitles.SubtitleTranslationProvider
@@ -105,29 +105,16 @@ internal fun subtitleTranslationSettingsItems(enabled: Boolean, preferredSubtitl
         enabled = enabled,
         onClick = { editingField = TranslationTextField.ApiKey },
     )
-    if (settings.provider == SubtitleTranslationProvider.OpenRouter) {
-        // OpenRouter offers two models; pressing the row switches between them.
-        val modelIndex = OPENROUTER_MODEL_CHOICES.indexOfFirst { it.id == settings.model }
-        SettingsActionRow(
-            title = stringResource(R.string.subtitle_ai_translation_model),
-            subtitle = stringResource(R.string.subtitle_ai_translation_model_choice_subtitle),
-            value = OPENROUTER_MODEL_CHOICES.getOrNull(modelIndex)?.label ?: settings.model,
-            enabled = enabled,
-            onClick = {
-                val next = OPENROUTER_MODEL_CHOICES[(modelIndex + 1).mod(OPENROUTER_MODEL_CHOICES.size)]
-                testStatus = null
-                SubtitleTranslationPreferences.update(context) { it.withModel(next.id) }
-            },
-        )
-    } else {
-        SettingsActionRow(
-            title = stringResource(R.string.subtitle_ai_translation_model),
-            subtitle = stringResource(R.string.subtitle_ai_translation_model_subtitle),
-            value = settings.model,
-            enabled = enabled,
-            onClick = { editingField = TranslationTextField.Model },
-        )
-    }
+    SettingsActionRow(
+        title = stringResource(R.string.subtitle_ai_translation_model),
+        subtitle = stringResource(
+            if (settings.provider == SubtitleTranslationProvider.OpenRouter) R.string.subtitle_ai_translation_model_openrouter_subtitle
+            else R.string.subtitle_ai_translation_model_subtitle
+        ),
+        value = if (settings.model == OPENROUTER_DEFAULT_MODEL) "GPT-6 Luna" else settings.model,
+        enabled = enabled,
+        onClick = { editingField = TranslationTextField.Model },
+    )
     SettingsActionRow(
         title = stringResource(R.string.subtitle_ai_translation_target),
         subtitle = stringResource(R.string.subtitle_ai_translation_target_subtitle),
@@ -205,7 +192,12 @@ internal fun subtitleTranslationSettingsItems(enabled: Boolean, preferredSubtitl
             subtitle = stringResource(R.string.subtitle_ai_translation_model_subtitle),
             initialValue = settings.configuredModel,
             placeholder = settings.provider.defaultModel,
-            onClear = null,
+            // Clear goes back to the recommended model.
+            onClear = if (settings.configuredModel.isNotBlank()) {
+                { SubtitleTranslationPreferences.update(context) { it.withModel("") } }
+            } else {
+                null
+            },
             onSave = { value ->
                 testStatus = null
                 SubtitleTranslationPreferences.update(context) { it.withModel(value) }

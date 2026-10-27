@@ -120,17 +120,25 @@ class SubtitleTranslatorTest {
         assertEquals("openai/gpt-6-luna", request["model"]!!.jsonPrimitive.contentOrNull)
         assertEquals("true", request["reasoning"]!!.jsonObject["enabled"]!!.jsonPrimitive.content)
         assertEquals("json_object", request["response_format"]!!.jsonObject["type"]!!.jsonPrimitive.content)
-        assertEquals(
-            "the other offered model takes over when this one is rate-limited",
-            listOf("openai/gpt-6-luna", "inclusionai/ling-3.0-flash"),
-            request["models"]!!.jsonArray.map { it.jsonPrimitive.content },
-        )
+        assertNull("the default model needs no fallback", request["models"])
         assertNull(request["temperature"])
         assertEquals("AR:Hello", subject.cached("Hello"))
         assertEquals("AR:Bye", subject.cached("Bye"))
 
         subject.translateTexts(listOf("Hello", "Bye"))
         assertEquals("cached lines are not sent again", 1, calls.size)
+    }
+
+    @Test
+    fun aModelOfTheUsersChoosingFallsBackToTheDefault() = runTest {
+        val calls = mutableListOf<Call>()
+        SubtitleTranslator(SubtitleTranslationProvider.OpenRouter, "k", "google/gemini-3.6-flash", "ar", openRouterHttp(calls))
+            .translateTexts(listOf("Hello"))
+        val request = Json.parseToJsonElement(calls.single().body).jsonObject
+        assertEquals(
+            listOf("google/gemini-3.6-flash", "openai/gpt-6-luna"),
+            request["models"]!!.jsonArray.map { it.jsonPrimitive.content },
+        )
     }
 
     @Test

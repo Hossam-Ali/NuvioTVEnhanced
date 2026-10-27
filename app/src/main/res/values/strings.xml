@@ -3435,7 +3435,7 @@
     <string name="subtitle_ai_translation_key_dialog_title">%1$s API key</string>
     <string name="subtitle_ai_translation_model">Model</string>
     <string name="subtitle_ai_translation_model_subtitle">Leave empty to use the recommended model.</string>
-    <string name="subtitle_ai_translation_model_choice_subtitle">Ling 3.0 Flash is the cheapest. GPT-6 Luna is faster and more accurate. Each one takes over when the other is busy.</string>
+    <string name="subtitle_ai_translation_model_openrouter_subtitle">GPT-6 Luna is used by default. To try another, enter any OpenRouter model ID, e.g. google/gemini-3.6-flash.</string>
     <string name="subtitle_ai_translation_target">Translate to</string>
     <string name="subtitle_ai_translation_target_subtitle">Tracks already in this language are shown as they are.</string>
     <string name="subtitle_ai_translation_target_preferred">Preferred language (%1$s)</string>

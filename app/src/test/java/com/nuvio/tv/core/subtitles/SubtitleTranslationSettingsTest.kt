@@ -29,7 +29,7 @@ class SubtitleTranslationSettingsTest {
             """{"enabled":true,"provider":"Gemini","geminiApiKey":"old","geminiModel":"gemini-flash-latest"}""",
         )
         assertEquals(SubtitleTranslationProvider.OpenRouter, decoded.provider)
-        assertEquals("inclusionai/ling-3.0-flash", decoded.model)
+        assertEquals("openai/gpt-6-luna", decoded.model)
         assertEquals("", decoded.apiKey)
     }
 }

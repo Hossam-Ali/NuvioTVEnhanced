@@ -48,8 +48,8 @@ text subtitles. No searching, no syncing, no wrong-version files.
   instant.
 - **Your key, your control.** Works with [OpenRouter](https://openrouter.ai) or OpenAI. Your key is
   entered on the TV, encrypted with the Android Keystore, never synced, and never shipped in the app.
-- **Fast or frugal.** Pick Ling 3.0 Flash (cheapest) or GPT-6 Luna (fastest and most accurate). Each
-  steps in automatically when the other is busy. A full movie usually costs a few cents.
+- **Fast and accurate by default.** GPT-6 Luna translates out of the box; enter any other OpenRouter
+  model if you prefer, and Luna steps in when it's busy. A full movie usually costs a few cents.
 - **Know what you spend.** Settings shows what translation cost this month and for the video
   you're watching.
 
