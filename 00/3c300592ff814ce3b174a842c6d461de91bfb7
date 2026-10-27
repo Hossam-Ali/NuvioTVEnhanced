@@ -1,0 +1,104 @@
+README.md
+  h_b46d7b9083e084 5-6,8-9,12,16-99,101,106-109,112-113,117
+app/build.gradle.kts
+  s_6cbe08de9829f1::t_e9aea347c9a9e9 134,138-139,180-181,299,368
+app/src/debug/res/values/strings.xml
+  s_6cbe08de9829f1::t_627dbf14a31931 2
+app/src/main/res/values-ar/strings.xml
+  s_6cbe08de9829f1::t_46c4f4e89fb0d9 2
+app/src/main/res/values-b+es+419/strings.xml
+  s_6cbe08de9829f1::t_bac2d9afdfd64a 2
+app/src/main/res/values-b+sr+Latn/strings.xml
+  s_6cbe08de9829f1::t_743accd539bc53 2
+app/src/main/res/values-bg/strings.xml
+  s_6cbe08de9829f1::t_7b99f04a3339c8 1-3409
+app/src/main/res/values-bn/strings.xml
+  s_6cbe08de9829f1::t_ba631e42ed09e5 3
+app/src/main/res/values-bs/strings.xml
+  s_6cbe08de9829f1::t_21140bb7b0c0a9 2
+app/src/main/res/values-cs/strings.xml
+  s_6cbe08de9829f1::t_70377fcfca1ddd 2
+app/src/main/res/values-da/strings.xml
+  s_6cbe08de9829f1::t_c78ec4020d6f0c 2
+app/src/main/res/values-de/strings.xml
+  s_6cbe08de9829f1::t_28c63bf50db7cc 2
+app/src/main/res/values-el/strings.xml
+  s_6cbe08de9829f1::t_b72031c22f3f0b 2
+app/src/main/res/values-es/strings.xml
+  s_6cbe08de9829f1::t_596c4577634231 3
+app/src/main/res/values-fr/strings.xml
+  s_6cbe08de9829f1::t_420b4d1fbbf104 2
+app/src/main/res/values-hi/strings.xml
+  s_6cbe08de9829f1::t_c37a3ebda6706c 2
+app/src/main/res/values-hr/strings.xml
+  s_6cbe08de9829f1::t_952895f299d35b 3
+app/src/main/res/values-hu/strings.xml
+  s_6cbe08de9829f1::t_282506be6d0afb 2
+app/src/main/res/values-in/strings.xml
+  s_6cbe08de9829f1::t_8c8e382ef6ca64 2
+app/src/main/res/values-it/strings.xml
+  s_6cbe08de9829f1::t_934f34e8764b4f 2
+app/src/main/res/values-iw/strings.xml
+  s_6cbe08de9829f1::t_224b14f220b987 2
+app/src/main/res/values-ja/strings.xml
+  s_6cbe08de9829f1::t_a953916199f247 2
+app/src/main/res/values-lt/strings.xml
+  s_6cbe08de9829f1::t_92eece3d6e6136 2
+app/src/main/res/values-nl/strings.xml
+  s_6cbe08de9829f1::t_00e275bdd2bb20 2
+app/src/main/res/values-no/strings.xml
+  s_6cbe08de9829f1::t_0d0de9438097d8 2
+app/src/main/res/values-pl/strings.xml
+  s_6cbe08de9829f1::t_a8470ec0172cf5 1406
+app/src/main/res/values-pt-rBR/strings.xml
+  s_6cbe08de9829f1::t_461843ebc5f558 2
+app/src/main/res/values-pt-rPT/strings.xml
+  s_6cbe08de9829f1::t_e6383f87b085dc 2
+app/src/main/res/values-ro/strings.xml
+  s_6cbe08de9829f1::t_a1a011def73bae 2
+app/src/main/res/values-ru/strings.xml
+  s_6cbe08de9829f1::t_a67b77cc2f4e8e 2
+app/src/main/res/values-sk/strings.xml
+  s_6cbe08de9829f1::t_377e69defca57a 2
+app/src/main/res/values-sl/strings.xml
+  s_6cbe08de9829f1::t_f54a7148191d0e 2
+app/src/main/res/values-sq/strings.xml
+  s_6cbe08de9829f1::t_251c3cf5f09aff 2
+app/src/main/res/values-sv/strings.xml
+  s_6cbe08de9829f1::t_b4f43b19ffca22 1203
+app/src/main/res/values-tr/strings.xml
+  s_6cbe08de9829f1::t_33049d16e5e875 2
+app/src/main/res/values-uk/strings.xml
+  s_6cbe08de9829f1::t_12886854055c2f 3
+app/src/main/res/values-vi/strings.xml
+  s_6cbe08de9829f1::t_ed54f48c83eae3 2
+app/src/main/res/values-zh-rCN/strings.xml
+  s_6cbe08de9829f1::t_fe595c671ddecf 2
+app/src/main/res/values-zh-rTW/strings.xml
+  s_6cbe08de9829f1::t_dd85542adccb44 2
+app/src/main/res/values/strings.xml
+  s_6cbe08de9829f1::t_f0e6a20c995610 2
+baselineprofile/src/main/java/com/nuvio/tv/baselineprofile/BaselineProfileGenerator.kt
+  s_6cbe08de9829f1::t_159b0caddb4069 24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "003c300592ff814ce3b174a842c6d461de91bfb7",
+  "prompts": {},
+  "humans": {
+    "h_b46d7b9083e084": {
+      "author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_6cbe08de9829f1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "s_6cbe08de9829f1",
+        "model": "unknown"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  }
+}
