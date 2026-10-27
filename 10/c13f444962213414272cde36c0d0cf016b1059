@@ -1,0 +1,21 @@
+README.md
+  s_7ac63acc4595cd::t_0f61fa8b5e966d 60-84,90
+app/build.gradle.kts
+  s_7ac63acc4595cd::t_190099ffcab1a4 159-160
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "10c13f444962213414272cde36c0d0cf016b1059",
+  "prompts": {},
+  "sessions": {
+    "s_7ac63acc4595cd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "s_7ac63acc4595cd",
+        "model": "unknown"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  }
+}
