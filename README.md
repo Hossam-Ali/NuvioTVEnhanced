@@ -19,37 +19,42 @@
 
 ## Why "Enhanced"?
 
-It started with one problem: watching with Arabic subtitles meant searching subtitle add-ons for a
-file that matched the exact video, and they were often out of sync. Videos usually carry their own
-subtitles, which are perfectly in sync, just in another language. This fork translates those
-subtitles with AI and keeps their timing, then fixes the speed problems found along the way.
+### Watch anything with subtitles in your language
 
-### AI subtitle translation
+Finding subtitles that match your exact video is a hunt: the right release, the right frame rate,
+and still a line that shows up a second late. But most videos already carry subtitles that are
+perfectly in sync, just not in your language.
 
-- **Perfect sync.** The video's own (embedded) subtitle is translated line by line. Only the text is
-  sent to the AI, so every line keeps its original timing.
-- **The right source.** It translates the subtitle in the film's spoken language: a Turkish film
-  uses its Turkish subtitle, a French film its French one. If there isn't one, English is used,
-  then any other text subtitle.
-- **One clear choice.** The subtitle menu shows a single **AI translation** entry under your
-  language. It's selected by default, even when an Arabic track or add-on subtitle exists.
-- **Falls back cleanly.** Videos with no text subtitles (or only image subtitles such as PGS) use
-  your add-on subtitles, and the app tells you why.
-- **Your own key.** Works with [OpenRouter](https://openrouter.ai) or OpenAI. You enter your key on
-  the TV. It's encrypted with the Android Keystore, never synced, and never shipped in the app.
-- **Two models.** Ling 3.0 Flash (default, cheapest) or GPT-6 Luna (faster and more accurate in our
-  tests). Each one takes over automatically when the other is busy.
-- **Smooth on screen.** Lines are translated in batches while the video buffers ahead. The app backs
-  off and retries on rate limits, holds a line briefly instead of flashing the original, and keeps
-  translations on the device, so resuming or rewatching is instant.
+**Nuvio TV Enhanced translates those built-in subtitles with AI, live, as you watch.** You get
+subtitles in your own language with the original's timing, on any movie or episode that ships with
+text subtitles. No searching, no syncing, no wrong-version files.
+
+- **Perfect sync, every time.** Only the subtitle text goes to the AI; every line keeps its original
+  timing, so the translation is exactly as in sync as the source.
+- **Natural translations.** Lines are translated together with the dialogue around them by a modern
+  language model, not word by word, so they read the way people actually speak.
+- **The best source, picked for you.** It translates the subtitle in the film's spoken language
+  (a Korean film uses its Korean subtitle), falling back to English, then any text subtitle.
+- **Zero setup per video.** A single **AI translation** entry sits under your language in the
+  subtitle menu and is selected by default. When a video has no text subtitles, your add-on
+  subtitles take over and the app tells you why.
+- **Any language.** Translate into whichever language you watch in.
+- **Smooth on screen.** Lines are translated ahead while the video buffers, so they're ready before
+  they appear. Busy providers are retried automatically, a late line is held for a moment instead
+  of flashing the original, and translations are kept on the device, so resuming or rewatching is
+  instant.
+- **Your key, your control.** Works with [OpenRouter](https://openrouter.ai) or OpenAI. Your key is
+  entered on the TV, encrypted with the Android Keystore, never synced, and never shipped in the app.
+- **Fast or frugal.** Pick Ling 3.0 Flash (cheapest) or GPT-6 Luna (fastest and most accurate). Each
+  steps in automatically when the other is busy. A full movie usually costs a few cents.
 
 ### Faster and smoother
 
 - **Movie and series pages open sooner.** The page shows as soon as the add-on details arrive, and
   TMDB extras (artwork, localized text, episode details) fill in when ready, instead of waiting for
   every season to load first.
-- **Original titles and logos** on the Modern home layout (for example Arabic logos for Arabic
-  shows), and cards show the whole poster instead of cropping it.
+- **Original titles and logos** on the Modern home layout, shown in each title's own language, and
+  cards show the whole poster instead of cropping it.
 - **Optimized release builds** with the startup profile applied.
 
 ### Fixes
@@ -95,10 +100,9 @@ updater checks this repository's releases.
 
 1. Create a key at [openrouter.ai](https://openrouter.ai/keys) (or OpenAI).
 2. On the TV: **Settings → Playback → Subtitles → AI subtitle translation**, turn it on, and enter the key.
-3. Choose **Translate to** (Arabic, or any language) and the model.
+3. Choose **Translate to** (any language) and the model.
 4. Use **Test translation** to check the key, then play something with built-in subtitles.
 
-A full movie usually costs a few cents with Ling 3.0 Flash.
 
 ## Build from source
 
