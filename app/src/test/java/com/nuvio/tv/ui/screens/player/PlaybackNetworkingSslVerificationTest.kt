@@ -66,24 +66,17 @@ class PlaybackNetworkingSslVerificationTest {
         var fallbackAttempted = false
 
         // Mock interceptor chain that simulates SSLException (e.g. self-signed local WebDAV server)
-        val mockChain = object : Interceptor.Chain {
-            private val req = Request.Builder().url("https://local-webdav.server:8443/movie.mp4").build()
-
-            override fun request(): Request = req
-
-            override fun proceed(request: Request): Response {
+        val req = Request.Builder().url("https://local-webdav.server:8443/movie.mp4").build()
+        // A mock rather than a hand-written chain: OkHttp keeps adding members to Interceptor.Chain.
+        val mockChain = io.mockk.mockk<Interceptor.Chain>(relaxed = true) {
+            io.mockk.every { request() } returns req
+            io.mockk.every { proceed(any()) } answers {
                 primaryAttempted = true
                 throw SSLException("CertificateNotTrusted: Local self-signed certificate")
             }
-
-            override fun connection(): okhttp3.Connection? = null
-            override fun call(): okhttp3.Call = error("Not implemented")
-            override fun connectTimeoutMillis(): Int = 15000
-            override fun readTimeoutMillis(): Int = 15000
-            override fun writeTimeoutMillis(): Int = 15000
-            override fun withConnectTimeout(timeout: Int, unit: java.util.concurrent.TimeUnit): Interceptor.Chain = this
-            override fun withReadTimeout(timeout: Int, unit: java.util.concurrent.TimeUnit): Interceptor.Chain = this
-            override fun withWriteTimeout(timeout: Int, unit: java.util.concurrent.TimeUnit): Interceptor.Chain = this
+            io.mockk.every { connectTimeoutMillis() } returns 15000
+            io.mockk.every { readTimeoutMillis() } returns 15000
+            io.mockk.every { writeTimeoutMillis() } returns 15000
         }
 
         // Find the fallback interceptor in primaryClient
