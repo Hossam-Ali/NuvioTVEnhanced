@@ -1,0 +1,39 @@
+app/src/main/java/com/nuvio/tv/ui/screens/settings/PlaybackSettingsScreen.kt
+  s_100b50deb95dee::t_1f65695d58b079 49,51-56,103-104,128-131
+app/src/main/java/com/nuvio/tv/ui/screens/settings/PlaybackSettingsSections.kt
+  s_100b50deb95dee::t_29b9783b9e3e7d 13,38-41,43-46,49-57
+app/src/main/java/com/nuvio/tv/ui/screens/settings/SettingsCatalog.kt
+  s_100b50deb95dee::t_19c7e6c97d4a4d 4,12-18,22-23,25-46,59-60,67-73
+app/src/main/java/com/nuvio/tv/ui/screens/settings/SettingsScreen.kt
+  s_100b50deb95dee::t_3cabd1a749dad5 51,53,60,139-144,152,174-196,242-246,250,253,256-266,279-280,294-295,314,414-416,482-484,489-490,495-512,515-518,523,529-531,623,630,683-684,688-692,718-721,723,777,797,820,857-861,887-890,892,921-924,927-935,989-992,1064-1074,1079-1116
+app/src/main/java/com/nuvio/tv/ui/screens/settings/SettingsSearch.kt
+  s_100b50deb95dee::t_8f37c42f03db78 1-252
+app/src/main/java/com/nuvio/tv/ui/screens/settings/SettingsSearchIndex.kt
+  s_100b50deb95dee::t_86f585c15d4964 1-303
+app/src/main/res/values-ar/strings.xml
+  s_100b50deb95dee::t_129baef276ae89 386-395
+app/src/main/res/values/strings.xml
+  s_100b50deb95dee::t_0b9b87d6181e2a 469-478
+app/src/test/java/com/nuvio/tv/ui/screens/settings/SettingsCatalogTest.kt
+  s_100b50deb95dee::t_8e221e9c1fc3f3 20,26-27,48,84-85,89,93-94,96-97,99-143,148,159,172
+app/src/test/java/com/nuvio/tv/ui/screens/settings/SettingsSearchTest.kt
+  s_100b50deb95dee::t_e2adabb6915b1c 1-54
+scripts/generate_settings_search_index.py
+  s_100b50deb95dee::t_af6dea3a5d4df2 1-125
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "c69390775d82ac572178c85e659998cd882bfd23",
+  "prompts": {},
+  "sessions": {
+    "s_100b50deb95dee": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "s_100b50deb95dee",
+        "model": "unknown"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  }
+}
