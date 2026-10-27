@@ -1,0 +1,19 @@
+app/src/main/java/com/nuvio/tv/ui/screens/home/ModernHomeRows.kt
+  s_4f22a9769af892::t_68b50e3d0ce8cb 1224-1225,1341-1342,1441
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "15a5b22e1da864f8f356d5e8c8cc09115f8a7540",
+  "prompts": {},
+  "sessions": {
+    "s_4f22a9769af892": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "s_4f22a9769af892",
+        "model": "unknown"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  }
+}
