@@ -1,0 +1,21 @@
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerSubtitleTranslation.kt
+  s_73a006aa7ef22d::t_1700c163bc390a 149-150,152-153
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerSidecarSubtitleTranslation.kt
+  s_73a006aa7ef22d::t_58b3979aa62f2e 12-13,39,43-45
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "25cad3729a7eaec7ed6cc7971cfc588f2c2fb090",
+  "prompts": {},
+  "sessions": {
+    "s_73a006aa7ef22d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "s_73a006aa7ef22d",
+        "model": "unknown"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  }
+}
