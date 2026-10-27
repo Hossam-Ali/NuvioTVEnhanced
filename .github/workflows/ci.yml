@@ -29,7 +29,11 @@ jobs:
           distribution: temurin
           java-version: "17"
 
+      # Only platform-tools: the default also asks for the retired "tools" package, which fails.
+      # The Gradle plugin installs the SDK platform and build tools it needs.
       - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
 
       - uses: gradle/actions/setup-gradle@v4
 
