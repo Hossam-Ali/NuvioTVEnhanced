@@ -33,6 +33,8 @@ class TraktAuthServiceTest {
             traktAuthDataStore = traktAuthDataStore,
             authSessionNoticeDataStore = authSessionNoticeDataStore
         )
+        // Builds without Trakt keys (CI, public releases) would skip the refresh entirely.
+        service.credentialsAvailable = { true }
 
         assertFalse(service.refreshTokenIfNeeded(force = true))
         assertFalse(service.refreshTokenIfNeeded(force = true))

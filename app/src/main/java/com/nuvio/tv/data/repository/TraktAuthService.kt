@@ -117,9 +117,12 @@ class TraktAuthService @Inject constructor(
         return BuildConfig.TRAKT_REDIRECT_URI.ifBlank { "urn:ietf:wg:oauth:2.0:oob" }
     }
 
-    fun hasRequiredCredentials(): Boolean {
-        return BuildConfig.TRAKT_CLIENT_ID.isNotBlank() && BuildConfig.TRAKT_CLIENT_SECRET.isNotBlank()
+    /** Whether the build carries Trakt client credentials. Tests replace it so they run without keys. */
+    internal var credentialsAvailable: () -> Boolean = {
+        BuildConfig.TRAKT_CLIENT_ID.isNotBlank() && BuildConfig.TRAKT_CLIENT_SECRET.isNotBlank()
     }
+
+    fun hasRequiredCredentials(): Boolean = credentialsAvailable()
 
     suspend fun getCurrentAuthState(): TraktAuthState = traktAuthDataStore.getCurrentState()
 

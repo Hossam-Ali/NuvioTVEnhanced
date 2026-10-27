@@ -147,6 +147,8 @@ class HomeEnrichmentRetryTest {
         awaitCalls(calls, 1, "TMDB succeeding should not stop the external fetch being attempted")
 
         // The state the second gate reads: TMDB resolved and is cached, external failed and is not.
+        // TMDB runs beside the external fetch, so it can land just after the call counted above.
+        awaitCondition { itemId in viewModel.prefetchedTmdbIds }
         assertTrue("TMDB should be cached after it resolved", itemId in viewModel.prefetchedTmdbIds)
         assertTrue(
             "a failed external fetch must not be cached",
@@ -318,6 +320,11 @@ class HomeEnrichmentRetryTest {
         viewModel.onItemFocusPipeline(item)
         // Debounce plus the fetch itself; the assertions that need a specific count poll instead.
         delay(HomeViewModel.EXTERNAL_META_PREFETCH_FOCUS_DEBOUNCE_MS + 400)
+    }
+
+    /** Polls [condition] for up to five seconds; the caller asserts on it afterwards. */
+    private suspend fun awaitCondition(condition: () -> Boolean) {
+        runCatching { withTimeout(5_000) { while (!condition()) delay(25) } }
     }
 
     /**
