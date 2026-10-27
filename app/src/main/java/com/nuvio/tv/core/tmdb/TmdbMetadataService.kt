@@ -302,11 +302,31 @@ class TmdbMetadataService(
                 val collectionId = details?.belongsToCollection?.id
                 val collectionName = details?.belongsToCollection?.name
 
-                val logoPath = images?.logos?.let {
-                    selectBestLocalizedImagePath(it, normalizedLanguage)
+                val logoImage = images?.logos?.let {
+                    selectBestLocalizedImage(it, normalizedLanguage)
                 }
 
-                val logo = buildImageUrl(logoPath, size = "w500")
+                val logo = buildImageUrl(logoImage?.filePath, size = "w500")
+                // The logo that reads like originalTitle, for screens that show the original title.
+                // includeImageLanguage only covers the app language and English, so an Arabic show in
+                // an English app needs one more request for its own logos. Without one, those screens
+                // show originalTitle as text.
+                val originalLanguageLogo = language?.let { original ->
+                    if (logoImage?.iso6391 == original) return@let logo
+                    val requested = includeImageLanguage.split(",")
+                    val originalLogos = if (original in requested) {
+                        images?.logos.orEmpty()
+                    } else {
+                        runCatching {
+                            when (tmdbType) {
+                                "tv" -> tmdbApi.getTvImages(numericId, TMDB_API_KEY, original)
+                                else -> tmdbApi.getMovieImages(numericId, TMDB_API_KEY, original)
+                            }.body()?.logos
+                        }.getOrNull().orEmpty()
+                    }
+                    selectBestLocalizedImage(originalLogos.filter { it.iso6391 == original }, original)
+                        ?.let { buildImageUrl(it.filePath, size = "w500") }
+                }
 
                 val castMembers = credits?.cast
                     .orEmpty()
@@ -472,6 +492,7 @@ class TmdbMetadataService(
                     genres = genres,
                     backdrop = backdrop,
                     logo = logo,
+                    originalLanguageLogo = originalLanguageLogo,
                     poster = poster,
                     directorMembers = exposedDirectorMembers,
                     writerMembers = exposedWriterMembers,
@@ -1226,7 +1247,12 @@ class TmdbMetadataService(
     private fun selectBestLocalizedImagePath(
         images: List<TmdbImage>,
         normalizedLanguage: String
-    ): String? {
+    ): String? = selectBestLocalizedImage(images, normalizedLanguage)?.filePath
+
+    private fun selectBestLocalizedImage(
+        images: List<TmdbImage>,
+        normalizedLanguage: String
+    ): TmdbImage? {
         if (images.isEmpty()) return null
         val languageCode = normalizedLanguage.substringBefore("-")
         val explicitRegion = normalizedLanguage.substringAfter("-", "").uppercase(Locale.US).takeIf { it.length == 2 }
@@ -1246,7 +1272,6 @@ class TmdbMetadataService(
                     .thenByDescending { it.iso6391 == null }
             )
             .firstOrNull()
-            ?.filePath
     }
 
     companion object {
@@ -1671,8 +1696,26 @@ data class TmdbEnrichment(
     val collectionName: String?,
     val originalTitle: String? = null,
     val alternativeTitles: List<String> = emptyList(),
-    val trailers: List<MetaTrailer> = emptyList()
-)
+    val trailers: List<MetaTrailer> = emptyList(),
+    /** A logo in the original [language], which reads like [originalTitle]. */
+    val originalLanguageLogo: String? = null
+) {
+    /**
+     * The modern home names a title the way its artwork does: by its original title ("طالع نازل",
+     * not "Up and Down"), whatever the app language.
+     */
+    fun originalTitleOr(fallback: String): String = originalTitle ?: localizedTitle ?: fallback
+
+    /**
+     * The logo beside [originalTitleOr]. A logo in another language would put "Up and Down" back over
+     * the original title, so without an original-language logo the hero shows the title as text.
+     * An addon's logo is assumed English.
+     */
+    fun logoForOriginalTitle(addonLogo: String?): String? {
+        if (originalTitle == null) return logo ?: addonLogo
+        return originalLanguageLogo ?: if (language == "en") logo ?: addonLogo else null
+    }
+}
 
 data class TmdbEpisodeEnrichment(
     val title: String?,

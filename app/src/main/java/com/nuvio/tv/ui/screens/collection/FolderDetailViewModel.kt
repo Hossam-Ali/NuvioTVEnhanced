@@ -1315,7 +1315,7 @@ class FolderDetailViewModel @Inject constructor(
                     if (tmdbSettings.useBasicInfo) {
                         val isModern = _uiState.value.homeLayout == HomeLayout.MODERN
                         result = result.copy(
-                            name = if (isModern) finalEnrichment.localizedTitle ?: result.name else result.name,
+                            name = if (isModern) finalEnrichment.originalTitleOr(result.name) else result.name,
                             description = finalEnrichment.description ?: result.description,
                             genres = if (finalEnrichment.genres.isNotEmpty()) finalEnrichment.genres else result.genres
                         )
@@ -1323,7 +1323,11 @@ class FolderDetailViewModel @Inject constructor(
                     if (tmdbSettings.useArtwork) {
                         result = result.copy(
                             background = finalEnrichment.backdrop ?: result.background,
-                            logo = finalEnrichment.logo ?: result.logo
+                            logo = if (tmdbSettings.useBasicInfo && _uiState.value.homeLayout == HomeLayout.MODERN) {
+                                finalEnrichment.logoForOriginalTitle(result.logo)
+                            } else {
+                                finalEnrichment.logo ?: result.logo
+                            }
                         )
                     }
                     if (tmdbSettings.useDetails) {
@@ -1609,7 +1613,7 @@ class FolderDetailViewModel @Inject constructor(
                                 if (tmdbSettings.useBasicInfo) {
                                     val isModern = _uiState.value.homeLayout == HomeLayout.MODERN
                                     result = result.copy(
-                                        name = if (isModern) enrichment.localizedTitle ?: result.name else result.name,
+                                        name = if (isModern) enrichment.originalTitleOr(result.name) else result.name,
                                         description = enrichment.description ?: result.description,
                                         genres = if (enrichment.genres.isNotEmpty()) enrichment.genres else result.genres
                                     )
@@ -1617,7 +1621,11 @@ class FolderDetailViewModel @Inject constructor(
                                 if (tmdbSettings.useArtwork) {
                                     result = result.copy(
                                         background = enrichment.backdrop ?: result.background,
-                                        logo = enrichment.logo ?: result.logo
+                                        logo = if (tmdbSettings.useBasicInfo && _uiState.value.homeLayout == HomeLayout.MODERN) {
+                                            enrichment.logoForOriginalTitle(result.logo)
+                                        } else {
+                                            enrichment.logo ?: result.logo
+                                        }
                                     )
                                 }
                                 if (tmdbSettings.useDetails) {

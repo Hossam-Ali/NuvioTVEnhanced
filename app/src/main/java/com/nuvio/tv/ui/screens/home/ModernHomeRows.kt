@@ -1191,9 +1191,11 @@ private fun ModernCarouselCard(
         isFocused -> payload.focusGifUrl
         else -> null
     }
+    // Fit, not Crop: art whose shape differs from the card (a poster on a landscape card, a custom
+    // card size) shows whole, with the card colour around it, instead of losing its edges.
     val imageContentScale = when (item.payload) {
         is ModernPayload.CollectionFolder -> ContentScale.FillBounds
-        else -> ContentScale.Crop
+        else -> ContentScale.Fit
     }
     // Keep decode target stable across expand/collapse to avoid recreating image requests/painters
     // purely due to animated width changes.

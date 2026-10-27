@@ -897,7 +897,7 @@ private fun HomeViewModel.updateCatalogItemWithTmdb(itemId: String, enrichment: 
         var merged = currentItem
         if (currentTmdbSettings.useBasicInfo) {
             merged = merged.copy(
-                name = if (isModernLayout) enrichment.localizedTitle ?: merged.name else merged.name,
+                name = if (isModernLayout) enrichment.originalTitleOr(merged.name) else merged.name,
                 description = enrichment.description ?: merged.description,
                 genres = if (enrichment.genres.isNotEmpty()) enrichment.genres else merged.genres
             )
@@ -905,7 +905,11 @@ private fun HomeViewModel.updateCatalogItemWithTmdb(itemId: String, enrichment: 
         if (currentTmdbSettings.useArtwork) {
             merged = merged.copy(
                 background = enrichment.backdrop ?: merged.background,
-                logo = enrichment.logo ?: merged.logo
+                logo = if (isModernLayout && currentTmdbSettings.useBasicInfo) {
+                    enrichment.logoForOriginalTitle(merged.logo)
+                } else {
+                    enrichment.logo ?: merged.logo
+                }
             )
         }
         if (currentTmdbSettings.useDetails) {
