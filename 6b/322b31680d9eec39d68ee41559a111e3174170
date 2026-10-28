@@ -1,0 +1,29 @@
+app/build.gradle.kts
+  s_8751b0673dcfa3::t_587b38e1f76e8d 158-159
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerObservers.kt
+  s_8751b0673dcfa3::t_53f6b9d83df956 173-174
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerSubtitleTranslation.kt
+  s_8751b0673dcfa3::t_2259ac12f22d05 120-121,134-167,178-180,182-186,188,191-196,198-202,204-210,214-219,228-239,242-254,256-264
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerTracks.kt
+  s_8751b0673dcfa3::t_90d9f644b44ec0 1050-1058
+app/src/main/java/com/nuvio/tv/ui/screens/player/SubtitleSelectionOverlay.kt
+  s_8751b0673dcfa3::t_ac71cecdf474b4 136-139,142-143,1874-1876,1880,1884-1885,1887-1893,1897,1899
+app/src/test/java/com/nuvio/tv/ui/screens/player/SubtitleTranslationSourceTest.kt
+  s_8751b0673dcfa3::t_1ecc5ef61faa59 6,13-15,36-61
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "6b322b31680d9eec39d68ee41559a111e3174170",
+  "prompts": {},
+  "sessions": {
+    "s_8751b0673dcfa3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "s_8751b0673dcfa3",
+        "model": "unknown"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  }
+}
