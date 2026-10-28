@@ -117,8 +117,8 @@ internal fun embeddedSubtitleForTranslation(
 ) { it.language }
 
 /**
- * The add-on subtitle to translate when a video has no embedded text subtitle: English first,
- * then any other language that is not already the target (see [pickTranslationSource]).
+ * The add-on subtitle to translate: English first, then any other language that is not already
+ * the target (see [pickTranslationSource]).
  */
 internal fun addonSubtitleForTranslation(
     subtitles: List<com.nuvio.tv.domain.model.Subtitle>,
@@ -131,6 +131,40 @@ internal fun addonSubtitleForTranslation(
     audioLanguage,
 ) { it.lang }
 
+/** The subtitle AI translation reads: one of the video's own tracks, or an add-on subtitle. */
+internal sealed interface TranslationSource {
+    data class Embedded(val track: TrackInfo) : TranslationSource
+    data class Addon(val subtitle: com.nuvio.tv.domain.model.Subtitle) : TranslationSource
+}
+
+internal val TranslationSource.language: String?
+    get() = when (this) {
+        is TranslationSource.Embedded -> track.language
+        is TranslationSource.Addon -> subtitle.lang
+    }
+
+internal fun TranslationSource.isEnglish(): Boolean = PlayerSubtitleUtils.matchesLanguageCode(language, "en")
+
+/**
+ * The subtitle to translate, English first wherever it is: the video's English track, then an
+ * English add-on, then the video's other tracks, then other add-ons. The video's own tracks win
+ * among the rest because they are always in sync.
+ */
+internal fun subtitleSourceForTranslation(
+    subtitleTracks: List<TrackInfo>,
+    addonSubtitles: List<com.nuvio.tv.domain.model.Subtitle>,
+    targetLanguage: String,
+    audioLanguage: String? = null,
+): TranslationSource? {
+    val embedded = embeddedSubtitleForTranslation(subtitleTracks, targetLanguage, audioLanguage)
+        ?.let(TranslationSource::Embedded)
+    if (embedded?.isEnglish() == true) return embedded
+    val addon = addonSubtitleForTranslation(addonSubtitles, targetLanguage, audioLanguage)
+        ?.let(TranslationSource::Addon)
+    if (addon?.isEnglish() == true) return addon
+    return embedded ?: addon
+}
+
 /** Spoken language of the audio track being played, for choosing the subtitle to translate. */
 internal fun PlayerRuntimeController.currentAudioLanguageForTranslation(): String? =
     selectedAudioTrackForSubtitleMatching(_uiState.value)?.language
@@ -141,38 +175,48 @@ internal fun PlayerRuntimeController.preferredEmbeddedTranslationTarget(): Strin
     return SubtitleTranslationService.translationTargetLanguage() ?: subtitleLanguageTargets().firstOrNull()
 }
 
+/** What to do with a subtitle remembered from earlier viewing while AI translation is on. */
+internal enum class RememberedSubtitleDecision { Keep, Wait, Replace }
+
 /**
- * True when a subtitle remembered from an earlier episode or movie (an add-on, or a track in the
- * target language) should give way to the AI-translated embedded track. Before the embedded
- * tracks are known the restore waits, so an add-on is not picked first.
+ * Whether a subtitle remembered from an earlier episode or movie gives way to the AI translation's
+ * own pick (see [subtitleSourceForTranslation]): one already in the target language always does,
+ * and one in another language does when an English source exists, since English translates best.
+ * Until the video's tracks (and, without a built-in English track, the add-ons) are known, the
+ * restore waits, so a subtitle is not shown and then swapped.
  */
-internal fun PlayerRuntimeController.shouldReplaceRememberedSubtitleWithTranslation(
+internal fun PlayerRuntimeController.rememberedSubtitleDecision(
     remembered: PlayerRuntimeController.RememberedSubtitleSelection,
     subtitleTracks: List<TrackInfo>,
-): Boolean {
-    val target = preferredEmbeddedTranslationTarget() ?: return false
-    // Only a subtitle already in the target language is swapped for the AI one: anything else
-    // the user picked (an English add-on, say) is translated as it is.
-    val replaceable = when (remembered) {
-        is PlayerRuntimeController.RememberedSubtitleSelection.Addon ->
-            PlayerSubtitleUtils.matchesLanguageCode(remembered.language, target)
-        is PlayerRuntimeController.RememberedSubtitleSelection.Internal ->
-            PlayerSubtitleUtils.matchesLanguageCode(remembered.track.language, target)
-        PlayerRuntimeController.RememberedSubtitleSelection.Disabled -> false
+): RememberedSubtitleDecision {
+    val target = preferredEmbeddedTranslationTarget() ?: return RememberedSubtitleDecision.Keep
+    val language = when (remembered) {
+        is PlayerRuntimeController.RememberedSubtitleSelection.Addon -> remembered.language
+        is PlayerRuntimeController.RememberedSubtitleSelection.Internal -> remembered.track.language
+        PlayerRuntimeController.RememberedSubtitleSelection.Disabled -> return RememberedSubtitleDecision.Keep
     }
-    if (!replaceable) return false
+    val inTarget = PlayerSubtitleUtils.matchesLanguageCode(language, target)
+    // An English pick is already the best source; it is translated as it is.
+    if (!inTarget && PlayerSubtitleUtils.matchesLanguageCode(language, "en")) return RememberedSubtitleDecision.Keep
+    if (!hasScannedTextTracksOnce) return RememberedSubtitleDecision.Wait
+    val state = _uiState.value
     val audio = currentAudioLanguageForTranslation()
-    return !hasScannedTextTracksOnce ||
-        embeddedSubtitleForTranslation(subtitleTracks, target, audio) != null ||
-        addonSubtitleForTranslation(_uiState.value.addonSubtitles, target, audio) != null
+    val embedded = embeddedSubtitleForTranslation(subtitleTracks, target, audio)
+    if (embedded == null || !PlayerSubtitleUtils.matchesLanguageCode(embedded.language, "en")) {
+        if (state.isLoadingAddonSubtitles) return RememberedSubtitleDecision.Wait
+    }
+    val source = subtitleSourceForTranslation(subtitleTracks, state.addonSubtitles, target, audio)
+    val replace = if (inTarget) source != null else source?.isEnglish() == true
+    return if (replace) RememberedSubtitleDecision.Replace else RememberedSubtitleDecision.Keep
 }
 
 /**
- * With "always translate with AI" on, picks the video's own text subtitle track and translates
- * it, even when an Arabic track or add-on subtitle exists. Only a video whose embedded text
- * tracks are all in the target language (or that has none) keeps the normal selection; then a
- * one-time notice says why add-on subtitles are shown.
- * Returns true when it handled the selection.
+ * With "always translate with AI" on, picks the subtitle to translate (English first, see
+ * [subtitleSourceForTranslation]) even when an Arabic track or add-on subtitle exists. Only when
+ * every subtitle is already in the target language (or there is none) does the normal selection
+ * apply; then a one-time notice says why.
+ * Returns true when it handled the selection, which includes waiting for the add-on list while it
+ * may still bring an English subtitle.
  */
 internal fun PlayerRuntimeController.tryAutoSelectEmbeddedSubtitleForTranslation(
     subtitleTracks: List<TrackInfo>,
@@ -181,37 +225,45 @@ internal fun PlayerRuntimeController.tryAutoSelectEmbeddedSubtitleForTranslation
     if (targetLanguage == null || !hasScannedTextTracksOnce) return false
     if (!SubtitleTranslationService.shouldPreferEmbeddedSubtitles()) return false
     val audio = currentAudioLanguageForTranslation()
-    val source = embeddedSubtitleForTranslation(subtitleTracks, targetLanguage, audio)
-    if (source == null) {
-        val state = _uiState.value
-        // Without an embedded text subtitle, an add-on subtitle in the spoken language (or
-        // English) is translated instead. Wait for the add-on list before deciding.
-        if (state.isLoadingAddonSubtitles) return false
-        val addonSource = addonSubtitleForTranslation(state.addonSubtitles, targetLanguage, audio)
-        val firstNotice = subtitleTranslationNoSourceNoticeStreamUrl != currentStreamUrl
-        if (firstNotice) subtitleTranslationNoSourceNoticeStreamUrl = currentStreamUrl
-        if (addonSource == null) {
-            if (firstNotice) showSubtitleTranslationNotice(context.getString(R.string.subtitle_ai_translation_no_source))
-            return false
-        }
-        autoSubtitleSelected = true
-        if (state.selectedAddonSubtitle?.url != addonSource.url) {
-            Log.d(PlayerRuntimeController.TAG, "AUTO_SUB pick addon ${addonSource.lang} from ${addonSource.addonName} for AI translation")
-            selectAddonSubtitle(addonSource)
-        }
-        if (firstNotice) {
-            showSubtitleTranslationNotice(context.getString(R.string.subtitle_ai_translation_addon_source, addonSource.addonName))
-        }
+    val state = _uiState.value
+    val embedded = embeddedSubtitleForTranslation(subtitleTracks, targetLanguage, audio)
+    if (state.isLoadingAddonSubtitles && (embedded == null || !PlayerSubtitleUtils.matchesLanguageCode(embedded.language, "en"))) {
         return true
     }
-    autoSubtitleSelected = true
-    val state = _uiState.value
-    if (state.selectedSubtitleTrackIndex != source.index || state.selectedAddonSubtitle != null) {
-        Log.d(PlayerRuntimeController.TAG, "AUTO_SUB pick embedded index=${source.index} lang=${source.language} for AI translation")
-        selectSubtitleTrack(source.index)
-        _uiState.update { it.copy(selectedSubtitleTrackIndex = source.index, selectedAddonSubtitle = null) }
+    val firstNotice = subtitleTranslationNoSourceNoticeStreamUrl != currentStreamUrl
+    when (val source = subtitleSourceForTranslation(subtitleTracks, state.addonSubtitles, targetLanguage, audio)) {
+        null -> {
+            if (firstNotice) {
+                subtitleTranslationNoSourceNoticeStreamUrl = currentStreamUrl
+                showSubtitleTranslationNotice(context.getString(R.string.subtitle_ai_translation_no_source))
+            }
+            return false
+        }
+        is TranslationSource.Addon -> {
+            val addonSource = source.subtitle
+            autoSubtitleSelected = true
+            if (state.selectedAddonSubtitle?.url != addonSource.url) {
+                Log.d(PlayerRuntimeController.TAG, "AUTO_SUB pick addon ${addonSource.lang} from ${addonSource.addonName} for AI translation")
+                selectAddonSubtitle(addonSource)
+            }
+            // The notice explains add-on subtitles only when the video has no text track to use.
+            if (firstNotice && embedded == null) {
+                subtitleTranslationNoSourceNoticeStreamUrl = currentStreamUrl
+                showSubtitleTranslationNotice(context.getString(R.string.subtitle_ai_translation_addon_source, addonSource.addonName))
+            }
+            return true
+        }
+        is TranslationSource.Embedded -> {
+            val track = source.track
+            autoSubtitleSelected = true
+            if (state.selectedSubtitleTrackIndex != track.index || state.selectedAddonSubtitle != null) {
+                Log.d(PlayerRuntimeController.TAG, "AUTO_SUB pick embedded index=${track.index} lang=${track.language} for AI translation")
+                selectSubtitleTrack(track.index)
+                _uiState.update { it.copy(selectedSubtitleTrackIndex = track.index, selectedAddonSubtitle = null) }
+            }
+            return true
+        }
     }
-    return true
 }
 
 /**

@@ -1047,10 +1047,15 @@ internal fun PlayerRuntimeController.applyPersistedTrackPreference(
     var subtitleToRestore = pending.subtitle
     // A pick carried over an engine switch or a player rebuild was made in this playback, so it
     // is kept; only a selection remembered from earlier viewing gives way to the AI translation.
-    if (subtitleToRestore != null && !usingSwitchPending && !persistedTrackPreferenceFromThisPlayback &&
-        subtitleChoiceVideoKey !in SessionSubtitleChoices &&
-        shouldReplaceRememberedSubtitleWithTranslation(subtitleToRestore, subtitleTracks)) {
-        if (hasScannedTextTracksOnce) {
+    val rememberedDecision = if (subtitleToRestore != null && !usingSwitchPending && !persistedTrackPreferenceFromThisPlayback &&
+        subtitleChoiceVideoKey !in SessionSubtitleChoices
+    ) {
+        rememberedSubtitleDecision(subtitleToRestore, subtitleTracks)
+    } else {
+        RememberedSubtitleDecision.Keep
+    }
+    if (rememberedDecision != RememberedSubtitleDecision.Keep) {
+        if (rememberedDecision == RememberedSubtitleDecision.Replace) {
             Log.d(PlayerRuntimeController.TAG, "TRACK_PREF restore: remembered subtitle replaced by the AI-translated embedded track")
             updatedPending = updatedPending.copy(subtitle = null)
             autoSubtitleSelected = false

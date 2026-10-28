@@ -170,6 +170,8 @@ internal fun PlayerRuntimeController.fetchAddonSubtitles() {
                     }
                 )
             }
+            // The AI translation's pick waits for the add-on list; with it settled, pick now.
+            if (e !is kotlinx.coroutines.CancellationException) tryAutoSelectPreferredSubtitleFromAvailableTracks()
         }
     }
 }

@@ -133,15 +133,14 @@ internal fun SubtitleSelectionOverlay(
     val sessionInstalledSubtitleAddonOrder = remember(visible) { installedSubtitleAddonOrder.toList() }
     val sessionIsLoadingAddons = isLoadingAddons
     val sessionAiTargetKey = remember(visible) { aiTranslationTarget?.let(::normalizeOverlayLanguageKey) }
-    val sessionAiSource = remember(visible) {
-        aiTranslationSource(sessionInternalTracks, sessionAiTargetKey, aiTranslationAudioLanguage, sessionSelectedInternalIndex)
-    }
-    // Without an embedded text source, an add-on subtitle is the one translated.
-    val sessionAiAddonSource = remember(visible, sessionAddonSubtitles) {
-        aiTranslationAddonSource(
-            sessionAiSource, sessionAiTargetKey, sessionAddonSubtitles, sessionSelectedAddonSubtitle, aiTranslationAudioLanguage
+    val sessionAiTranslationSource = remember(visible, sessionAddonSubtitles) {
+        aiTranslationSource(
+            sessionInternalTracks, sessionAddonSubtitles, sessionAiTargetKey, aiTranslationAudioLanguage,
+            sessionSelectedInternalIndex, sessionSelectedAddonSubtitle
         )
     }
+    val sessionAiSource = (sessionAiTranslationSource as? TranslationSource.Embedded)?.track
+    val sessionAiAddonSource = (sessionAiTranslationSource as? TranslationSource.Addon)?.subtitle
     val sessionSelectedSubtitleLanguageKey = remember(visible) {
         selectedSubtitleLanguageKey(
             internalTracks = sessionInternalTracks,
@@ -1872,37 +1871,32 @@ private enum class SubtitleOptionKind {
 private const val AiTranslationOptionIdPrefix = "ai:"
 
 /**
- * The one embedded track offered as "AI translation": the track being translated when one is
- * selected, otherwise the one the player would pick (the spoken language's subtitle, then
- * English), so the menu lists a single AI entry.
+ * The subtitle offered as "AI translation": the one being translated when one is selected,
+ * otherwise the one the player would pick (English first, see [subtitleSourceForTranslation]),
+ * so the menu lists a single AI entry.
  */
 private fun aiTranslationSource(
     internalTracks: List<TrackInfo>,
+    addonSubtitles: List<Subtitle>,
     aiTargetKey: String?,
     audioLanguage: String?,
     selectedInternalIndex: Int,
-): TrackInfo? {
+    selectedAddon: Subtitle?,
+): TranslationSource? {
     if (aiTargetKey == null) return null
-    val selected = internalTracks.firstOrNull { it.index == selectedInternalIndex } ?: internalTracks.firstOrNull { it.isSelected }
+    selectedAddon?.takeIf { !addonSubtitleIsForced(it) && normalizeOverlayLanguageKey(it.lang) != aiTargetKey }
+        ?.let { return TranslationSource.Addon(it) }
+    val selected = if (selectedAddon != null) {
+        null
+    } else {
+        internalTracks.firstOrNull { it.index == selectedInternalIndex } ?: internalTracks.firstOrNull { it.isSelected }
+    }
     if (selected != null && selected.isTranslatableTextSubtitle() && !selected.isForced &&
         normalizeOverlayLanguageKeyForTrack(selected) != aiTargetKey
     ) {
-        return selected
+        return TranslationSource.Embedded(selected)
     }
-    return embeddedSubtitleForTranslation(internalTracks, aiTargetKey, audioLanguage)
-}
-
-/** The add-on subtitle offered as "AI translation" when no embedded track can be translated. */
-private fun aiTranslationAddonSource(
-    internalSource: TrackInfo?,
-    aiTargetKey: String?,
-    addonSubtitles: List<Subtitle>,
-    selectedAddon: Subtitle?,
-    audioLanguage: String?,
-): Subtitle? {
-    if (aiTargetKey == null || internalSource != null) return null
-    selectedAddon?.takeIf { normalizeOverlayLanguageKey(it.lang) != aiTargetKey }?.let { return it }
-    return addonSubtitleForTranslation(addonSubtitles, aiTargetKey, audioLanguage)
+    return subtitleSourceForTranslation(internalTracks, addonSubtitles, aiTargetKey, audioLanguage)
 }
 
 private fun aiAddonOptionId(subtitle: Subtitle): String = "ai-${addonSubtitleOptionId(subtitle)}"
