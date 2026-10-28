@@ -25,6 +25,7 @@ internal fun PlayerRuntimeController.releasePlayer(
         val currentTracks = _uiState.value.subtitleTracks
         val currentSubTrack = currentTracks.getOrNull(currentSubIdx)
         if (currentSubTrack != null) {
+            persistedTrackPreferenceFromThisPlayback = true
             persistedTrackPreference = PlayerRuntimeController.TrackPreference(
                 subtitle = PlayerRuntimeController.RememberedSubtitleSelection.Internal(
                     track = PlayerRuntimeController.RememberedTrackSelection(
@@ -36,6 +37,7 @@ internal fun PlayerRuntimeController.releasePlayer(
                 )
             )
         } else if (currentAddon != null) {
+            persistedTrackPreferenceFromThisPlayback = true
             persistedTrackPreference = PlayerRuntimeController.TrackPreference(
                 subtitle = PlayerRuntimeController.RememberedSubtitleSelection.Addon(
                     id = currentAddon.id,

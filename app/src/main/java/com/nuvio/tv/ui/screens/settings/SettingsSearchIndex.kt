@@ -164,6 +164,7 @@ internal val settingsSearchIndex: List<SettingsSearchEntry> = listOf(
     SettingsSearchEntry(R.string.sub_hdr_text_color, null, SettingsCategory.SUBTITLES, PlaybackSection.SUBTITLES, null),
     SettingsSearchEntry(R.string.sub_hdr_brightness, null, SettingsCategory.SUBTITLES, PlaybackSection.SUBTITLES, null),
     SettingsSearchEntry(R.string.sub_libass, R.string.sub_libass_sub, SettingsCategory.SUBTITLES, PlaybackSection.SUBTITLES, null),
+    SettingsSearchEntry(R.string.sub_libass_render_mode, null, SettingsCategory.SUBTITLES, PlaybackSection.SUBTITLES, null),
     SettingsSearchEntry(R.string.sub_libass_render_scale, R.string.sub_libass_render_scale_sub, SettingsCategory.SUBTITLES, PlaybackSection.SUBTITLES, null),
     SettingsSearchEntry(R.string.subtitle_ai_translation_title, R.string.subtitle_ai_translation_subtitle, SettingsCategory.SUBTITLES, PlaybackSection.SUBTITLES, null),
     SettingsSearchEntry(R.string.subtitle_ai_translation_provider, R.string.subtitle_ai_translation_provider_subtitle, SettingsCategory.SUBTITLES, PlaybackSection.SUBTITLES, null),

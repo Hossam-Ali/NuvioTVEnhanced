@@ -547,6 +547,12 @@ class PlayerRuntimeController(
     internal var pendingAudioSelectionAfterSubtitleRefresh: PendingAudioSelection? = null
     internal var rememberedTrackPreference: TrackPreference? = null
     internal var persistedTrackPreference: TrackPreference? = null
+    /**
+     * True when [persistedTrackPreference] holds the selection captured from this playback before
+     * a player rebuild, rather than one saved for this title earlier. AI translation does not
+     * override such a selection: the user made it moments ago.
+     */
+    internal var persistedTrackPreferenceFromThisPlayback: Boolean = false
     internal var pendingEngineSwitchTrackPreference: PendingEngineSwitchTrackPreference? = null
     internal var explicitSubtitleSelectionForEngineSwitch: ExplicitSubtitleSelectionForEngineSwitch? = null
     internal var effectiveSubtitleSelectionForEngineSwitch: ExplicitSubtitleSelectionForEngineSwitch? = null

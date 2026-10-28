@@ -213,3 +213,21 @@ internal fun PlayerRuntimeController.tryAutoSelectEmbeddedSubtitleForTranslation
     }
     return true
 }
+
+/**
+ * Videos whose subtitle the user picked during this app session. A stream restart reloads the
+ * saved choice from storage; for these videos it is kept even when it is in the translation's
+ * target language, instead of giving way to the AI translation.
+ */
+internal object SessionSubtitleChoices {
+    private val videos = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
+
+    fun mark(videoKey: String?) {
+        videoKey?.takeIf { it.isNotBlank() }?.let(videos::add)
+    }
+
+    operator fun contains(videoKey: String?): Boolean = videoKey != null && videoKey in videos
+}
+
+internal val PlayerRuntimeController.subtitleChoiceVideoKey: String?
+    get() = currentVideoId ?: contentId

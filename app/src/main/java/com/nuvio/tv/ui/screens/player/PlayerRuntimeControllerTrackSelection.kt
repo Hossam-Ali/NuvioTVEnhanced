@@ -222,6 +222,7 @@ internal fun PlayerRuntimeController.selectSubtitleTrack(trackIndex: Int) {
 }
 
 internal fun PlayerRuntimeController.rememberInternalSubtitleSelection(trackIndex: Int) {
+    SessionSubtitleChoices.mark(subtitleChoiceVideoKey)
     val selectedTrack = _uiState.value.subtitleTracks.getOrNull(trackIndex) ?: return
     logSwitchTrace(
         stage = "user-remember-subtitle-internal",
@@ -640,6 +641,7 @@ internal fun PlayerRuntimeController.attachAddonSubtitleViaMediaReload(subtitle:
 
 
 internal fun PlayerRuntimeController.rememberAddonSubtitleSelection(subtitle: Subtitle) {
+    SessionSubtitleChoices.mark(subtitleChoiceVideoKey)
     logSwitchTrace(
         stage = "user-remember-subtitle-addon",
         message = "addonId=${subtitle.id} addonLang=${subtitle.lang} addonName=${subtitle.addonName}"

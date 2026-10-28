@@ -55,20 +55,31 @@ internal fun libassOverlayMargins(
     overlayWidth: Int,
     overlayHeight: Int,
     videoBounds: RectF
+): LibassOverlayMargins? = libassOverlayMargins(
+    overlayWidth, overlayHeight, videoBounds.left, videoBounds.top, videoBounds.right, videoBounds.bottom
+)
+
+/** [libassOverlayMargins] from the video rectangle's edges; plain numbers so it runs in JVM tests. */
+internal fun libassOverlayMargins(
+    overlayWidth: Int,
+    overlayHeight: Int,
+    left: Float,
+    top: Float,
+    right: Float,
+    bottom: Float
 ): LibassOverlayMargins? {
     if (
         overlayWidth <= 0 || overlayHeight <= 0 ||
-        !videoBounds.left.isFinite() || !videoBounds.top.isFinite() ||
-        !videoBounds.right.isFinite() || !videoBounds.bottom.isFinite() ||
-        videoBounds.width() <= 0f || videoBounds.height() <= 0f
+        !left.isFinite() || !top.isFinite() || !right.isFinite() || !bottom.isFinite() ||
+        right - left <= 0f || bottom - top <= 0f
     ) {
         return null
     }
     return LibassOverlayMargins(
-        top = videoBounds.top.roundToInt(),
-        bottom = (overlayHeight - videoBounds.bottom).roundToInt(),
-        left = videoBounds.left.roundToInt(),
-        right = (overlayWidth - videoBounds.right).roundToInt()
+        top = top.roundToInt(),
+        bottom = (overlayHeight - bottom).roundToInt(),
+        left = left.roundToInt(),
+        right = (overlayWidth - right).roundToInt()
     )
 }
 
