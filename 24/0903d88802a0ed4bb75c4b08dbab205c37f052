@@ -1,0 +1,31 @@
+app/build.gradle.kts
+  s_4264fde0456076::t_fdbb5ba17d4047 158-159
+app/src/main/java/com/nuvio/tv/core/tmdb/TmdbMetadataService.kt
+  s_4264fde0456076::t_22d1b0d0d9b241 330-342,508,1714-1716,1724-1735,1747-1756
+app/src/main/java/com/nuvio/tv/ui/screens/collection/FolderDetailViewModel.kt
+  s_4264fde0456076::t_9025206965ed23 1319,1617
+app/src/main/java/com/nuvio/tv/ui/screens/home/HomeViewModelContinueWatching.kt
+  s_4264fde0456076::t_ac77640d71e589 13,3010,3015-3016,3019-3020,3062-3073,3078-3083,3085-3088,3106-3125
+app/src/main/java/com/nuvio/tv/ui/screens/home/HomeViewModelPresentationPipeline.kt
+  s_4264fde0456076::t_de7c622d81a142 901-905
+app/src/test/java/com/nuvio/tv/core/tmdb/TmdbMetadataServiceTest.kt
+  s_4264fde0456076::t_4b2410d5d9a2ac 113-147
+app/src/test/java/com/nuvio/tv/ui/screens/home/ContinueWatchingOriginalLanguageTest.kt
+  s_4264fde0456076::t_b7fb68a1b25306 1-30
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "240903d88802a0ed4bb75c4b08dbab205c37f052",
+  "prompts": {},
+  "sessions": {
+    "s_4264fde0456076": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "s_4264fde0456076",
+        "model": "unknown"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  }
+}
