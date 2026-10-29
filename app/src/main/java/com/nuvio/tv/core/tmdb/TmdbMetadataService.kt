@@ -327,6 +327,19 @@ class TmdbMetadataService(
                         ?.let { buildImageUrl(it.filePath, size = "w500") }
                 }
 
+                // The overview in the original language, to go with originalTitle on screens that show
+                // it: an Arabic show in an English app reads "حد أقصى" over an Arabic description.
+                val originalLanguageDescription = language
+                    ?.takeIf { originalTitle != null && !normalizedLanguage.startsWith(it) }
+                    ?.let { original ->
+                        runCatching {
+                            when (tmdbType) {
+                                "tv" -> tmdbApi.getTvDetails(numericId, TMDB_API_KEY, normalizeTmdbLanguage(original))
+                                else -> tmdbApi.getMovieDetails(numericId, TMDB_API_KEY, normalizeTmdbLanguage(original))
+                            }.body()?.overview?.trim()?.takeIf { it.isNotBlank() && it != description?.trim() }
+                        }.getOrNull()
+                    }
+
                 val castMembers = credits?.cast
                     .orEmpty()
                     .mapNotNull { member ->
@@ -492,6 +505,7 @@ class TmdbMetadataService(
                     backdrop = backdrop,
                     logo = logo,
                     originalLanguageLogo = originalLanguageLogo,
+                    originalLanguageDescription = originalLanguageDescription,
                     poster = poster,
                     directorMembers = exposedDirectorMembers,
                     writerMembers = exposedWriterMembers,
@@ -1697,13 +1711,27 @@ data class TmdbEnrichment(
     val alternativeTitles: List<String> = emptyList(),
     val trailers: List<MetaTrailer> = emptyList(),
     /** A logo in the original [language], which reads like [originalTitle]. */
-    val originalLanguageLogo: String? = null
+    val originalLanguageLogo: String? = null,
+    /** The overview in the original [language], which goes with [originalTitle]. */
+    val originalLanguageDescription: String? = null
 ) {
     /**
      * The modern home names a title the way its artwork does: by its original title ("طالع نازل",
      * not "Up and Down"), whatever the app language.
      */
     fun originalTitleOr(fallback: String): String = originalTitle ?: localizedTitle ?: fallback
+
+    /**
+     * The description beside [originalTitleOr], in the title's own language: TMDB's overview in that
+     * language, else [fallback] (the addon's) when it is written in the title's script, else the
+     * overview in the app language.
+     */
+    fun descriptionForOriginalTitle(fallback: String?): String? {
+        originalLanguageDescription?.let { return it }
+        val title = originalTitle
+        if (title != null && fallback != null && firstLetterScript(fallback) == firstLetterScript(title)) return fallback
+        return description ?: fallback
+    }
 
     /**
      * The logo beside [originalTitleOr]. A logo in another language would put "Up and Down" back over
@@ -1714,6 +1742,16 @@ data class TmdbEnrichment(
         if (originalTitle == null) return logo ?: addonLogo
         return originalLanguageLogo ?: if (language == "en") logo ?: addonLogo else null
     }
+}
+
+private fun firstLetterScript(text: String): Character.UnicodeScript? {
+    var index = 0
+    while (index < text.length) {
+        val codePoint = text.codePointAt(index)
+        if (Character.isLetter(codePoint)) return Character.UnicodeScript.of(codePoint)
+        index += Character.charCount(codePoint)
+    }
+    return null
 }
 
 data class TmdbEpisodeEnrichment(

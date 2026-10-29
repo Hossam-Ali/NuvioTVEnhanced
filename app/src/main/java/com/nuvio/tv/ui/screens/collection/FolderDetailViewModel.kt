@@ -1316,7 +1316,7 @@ class FolderDetailViewModel @Inject constructor(
                         val isModern = _uiState.value.homeLayout == HomeLayout.MODERN
                         result = result.copy(
                             name = if (isModern) finalEnrichment.originalTitleOr(result.name) else result.name,
-                            description = finalEnrichment.description ?: result.description,
+                            description = if (isModern) finalEnrichment.descriptionForOriginalTitle(result.description) else finalEnrichment.description ?: result.description,
                             genres = if (finalEnrichment.genres.isNotEmpty()) finalEnrichment.genres else result.genres
                         )
                     }
@@ -1614,7 +1614,7 @@ class FolderDetailViewModel @Inject constructor(
                                     val isModern = _uiState.value.homeLayout == HomeLayout.MODERN
                                     result = result.copy(
                                         name = if (isModern) enrichment.originalTitleOr(result.name) else result.name,
-                                        description = enrichment.description ?: result.description,
+                                        description = if (isModern) enrichment.descriptionForOriginalTitle(result.description) else enrichment.description ?: result.description,
                                         genres = if (enrichment.genres.isNotEmpty()) enrichment.genres else result.genres
                                     )
                                 }

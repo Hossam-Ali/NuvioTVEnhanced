@@ -111,6 +111,41 @@ class TmdbMetadataServiceTest {
     }
 
     @Test
+    fun `fetchEnrichment adds the overview in the original language of a foreign show`() = runTest {
+        val api = mockk<TmdbApi>()
+        coEvery { api.getTvDetails(30, any(), any()) } returns Response.success(
+            TmdbDetailsResponse(id = 30, name = "حد أقصى", originalName = "حد أقصى", originalLanguage = "ar", overview = "حياة صباح تنقلب")
+        )
+        coEvery { api.getTvDetails(30, any(), "en") } returns Response.success(
+            TmdbDetailsResponse(id = 30, name = "Limit", originalName = "حد أقصى", originalLanguage = "ar", overview = "Sabah's life is turned upside down")
+        )
+        coEvery { api.getTvAggregateCredits(any(), any(), any()) } returns Response.success(TmdbAggregateCreditsResponse())
+        coEvery { api.getTvImages(any(), any(), any()) } returns Response.success(TmdbImagesResponse())
+        coEvery { api.getTvContentRatings(any(), any()) } returns Response.success(TmdbTvContentRatingsResponse())
+        coEvery { api.getTvVideos(any(), any(), any()) } returns Response.success(TmdbVideosResponse(id = 30))
+
+        val enrichment = TmdbMetadataService(api).fetchEnrichment(tmdbId = "30", contentType = ContentType.SERIES, language = "en")!!
+
+        assertEquals("Sabah's life is turned upside down", enrichment.description)
+        assertEquals("حد أقصى", enrichment.originalTitleOr("x"))
+        assertEquals("حياة صباح تنقلب", enrichment.descriptionForOriginalTitle(null))
+    }
+
+    @Test
+    fun `descriptionForOriginalTitle keeps an addon description written like the original title`() {
+        val enrichment = TmdbEnrichment(
+            localizedTitle = "Limit", description = "English overview", genres = emptyList(), backdrop = null, logo = null,
+            poster = null, directorMembers = emptyList(), writerMembers = emptyList(), castMembers = emptyList(),
+            releaseInfo = null, rating = null, runtimeMinutes = null, director = emptyList(), writer = emptyList(),
+            productionCompanies = emptyList(), networks = emptyList(), ageRating = null, status = null, countries = null,
+            language = "ar", collectionId = null, collectionName = null, originalTitle = "حد أقصى"
+        )
+        assertEquals("وصف من الإضافة", enrichment.descriptionForOriginalTitle("وصف من الإضافة"))
+        assertEquals("English overview", enrichment.descriptionForOriginalTitle("Addon English text"))
+        assertEquals("English overview", enrichment.descriptionForOriginalTitle(null))
+    }
+
+    @Test
     fun `fetchEnrichment formats ended tv release range`() = runTest {
         val api = mockk<TmdbApi>()
         coEvery { api.getTvDetails(any(), any(), any()) } returns Response.success(

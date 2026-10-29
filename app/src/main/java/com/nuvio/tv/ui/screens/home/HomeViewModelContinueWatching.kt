@@ -10,6 +10,7 @@ import com.nuvio.tv.core.util.parseEpisodeReleaseInstant
 import com.nuvio.tv.core.util.selectEpisodeReleaseValue
 import com.nuvio.tv.domain.model.ContinueWatchingSortMode
 import com.nuvio.tv.domain.model.ContentType
+import com.nuvio.tv.domain.model.HomeLayout
 import com.nuvio.tv.domain.model.Meta
 import com.nuvio.tv.domain.model.Video
 import com.nuvio.tv.domain.model.WatchProgress
@@ -3006,15 +3007,17 @@ private suspend fun HomeViewModel.resolveContinueWatchingTmdbData(
             success = movieMeta != null
         )
         return movieMeta?.let {
+            val original = originalLanguageForContinueWatching(it, language) != null
             NextUpTmdbData(
                 thumbnail = null,
                 backdrop = it.backdrop.normalizeImageUrl(),
                 poster = it.poster.normalizeImageUrl(),
-                logo = it.logo.normalizeImageUrl(),
-                name = it.localizedTitle?.trim()?.takeIf { t -> t.isNotEmpty() },
+                logo = (if (original) it.originalLanguageLogo ?: it.logo else it.logo).normalizeImageUrl(),
+                name = (if (original) it.originalTitle else it.localizedTitle)?.trim()?.takeIf { t -> t.isNotEmpty() },
                 episodeTitle = null,
                 airDate = null,
-                overview = it.description?.trim()?.takeIf { t -> t.isNotEmpty() },
+                overview = (if (original) it.descriptionForOriginalTitle(null) else it.description)
+                    ?.trim()?.takeIf { t -> t.isNotEmpty() },
                 showDescription = null,
                 rating = mdbImdbRating ?: it.rating,
                 contentLanguage = it.language
@@ -3056,16 +3059,33 @@ private suspend fun HomeViewModel.resolveContinueWatchingTmdbData(
         elapsedMs = SystemClock.elapsedRealtime() - episodeStartedAtMs,
         success = showMeta != null
     )
+    // A show from abroad reads in its own language, as on the catalog rows: its original title,
+    // and the episode's name and overview in that language when TMDB has them.
+    val originalLanguage = showMeta?.let { originalLanguageForContinueWatching(it, language) }
+    val originalEpisodeMeta = originalLanguage?.let { original ->
+        runCatching {
+            tmdbMetadataService.fetchEpisodeEnrichment(
+                tmdbId = tmdbId,
+                seasonNumbers = listOf(season),
+                language = original
+            )[season to episode]
+        }.getOrNull()
+    }
     val fallback = NextUpTmdbData(
         thumbnail = episodeMeta?.thumbnail.normalizeImageUrl(),
         backdrop = showMeta?.backdrop.normalizeImageUrl(),
         poster = showMeta?.poster.normalizeImageUrl(),
-        logo = showMeta?.logo.normalizeImageUrl(),
-        name = showMeta?.localizedTitle?.trim()?.takeIf { it.isNotEmpty() },
-        episodeTitle = episodeMeta?.title?.trim()?.takeIf { it.isNotEmpty() },
+        logo = (if (originalLanguage != null) showMeta.originalLanguageLogo ?: showMeta.logo else showMeta?.logo)
+            .normalizeImageUrl(),
+        name = (if (originalLanguage != null) showMeta.originalTitle else showMeta?.localizedTitle)
+            ?.trim()?.takeIf { it.isNotEmpty() },
+        episodeTitle = (originalEpisodeMeta?.title?.trim()?.takeIf { it.isNotEmpty() } ?: episodeMeta?.title)
+            ?.trim()?.takeIf { it.isNotEmpty() },
         airDate = episodeMeta?.airDate?.trim()?.takeIf { it.isNotEmpty() },
-        overview = episodeMeta?.overview?.trim()?.takeIf { it.isNotEmpty() },
-        showDescription = showMeta?.description?.trim()?.takeIf { it.isNotEmpty() },
+        overview = (originalEpisodeMeta?.overview?.trim()?.takeIf { it.isNotEmpty() } ?: episodeMeta?.overview)
+            ?.trim()?.takeIf { it.isNotEmpty() },
+        showDescription = (if (originalLanguage != null) showMeta.descriptionForOriginalTitle(null) else showMeta?.description)
+            ?.trim()?.takeIf { it.isNotEmpty() },
         rating = showMeta?.rating,
         contentLanguage = showMeta?.language
     )
@@ -3081,6 +3101,26 @@ private suspend fun HomeViewModel.resolveContinueWatchingTmdbData(
     } else {
         fallback
     }
+}
+
+/**
+ * The original language of [enrichment] when the modern home names it by its original title (see
+ * [com.nuvio.tv.core.tmdb.TmdbEnrichment.originalTitleOr]), so Continue Watching matches the catalog
+ * rows; null for titles already in the app's [appLanguage], or on other layouts.
+ */
+private fun HomeViewModel.originalLanguageForContinueWatching(
+    enrichment: com.nuvio.tv.core.tmdb.TmdbEnrichment,
+    appLanguage: String,
+): String? = continueWatchingOriginalLanguage(enrichment, appLanguage, _uiState.value.homeLayout == HomeLayout.MODERN)
+
+internal fun continueWatchingOriginalLanguage(
+    enrichment: com.nuvio.tv.core.tmdb.TmdbEnrichment,
+    appLanguage: String,
+    isModernLayout: Boolean,
+): String? {
+    if (!isModernLayout || enrichment.originalTitle == null) return null
+    return enrichment.language
+        ?.takeIf { it.isNotBlank() && !appLanguage.lowercase().startsWith(it.lowercase()) }
 }
 
 private suspend fun HomeViewModel.resolveTmdbIdForNextUp(
