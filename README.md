@@ -6,7 +6,7 @@
 
   <p>
     An unofficial fork of <a href="https://github.com/NuvioMedia/NuvioTV">Nuvio TV</a> for Android TV and Google TV,
-    with AI subtitles in any language, a home screen you can shape, and an up-to-date build.
+    with AI subtitles in any language, a redesigned look, a home screen you can shape, and an up-to-date build.
   </p>
 
 [Download the latest release](https://github.com/Hossam-Ali/NuvioTVEnhanced/releases/latest) · [Upstream Nuvio TV](https://github.com/NuvioMedia/NuvioTV) · [Report an issue](https://github.com/Hossam-Ali/NuvioTVEnhanced/issues)
@@ -50,7 +50,27 @@ it listens to the audio and writes them. No searching, no syncing, no wrong-vers
 - **Cheap.** GPT-6 Luna translates out of the box (enter any other OpenRouter model if you prefer);
   a full movie usually costs a few cents, and subtitles from audio about $0.05 an hour. Settings
   shows what you spent this month and on the video you're watching.
+- **Only when you need them.** A video already spoken in your language isn't translated or
+  transcribed; its own subtitle in your language is still shown if it has one.
 - **Style presets.** Classic, Cinema, Bold, Yellow, Boxed, Large or Small in one step, then fine-tune.
+
+### A redesigned look
+
+- **Everything about a title on one screen.** Info, buttons and cast on one side; seasons and
+  episodes on the other, each with its length, IMDb score, a short summary and how far you got.
+  Hold OK on an episode to mark it watched.
+- **A source list you can read.** The best source sits on top with a big Play button, and every
+  source is written as quality, HDR, audio, size and add-on instead of a raw file name. Quick
+  filters for 4K, 1080p, 720p and lower, or smallest first.
+- **Resume from the home screen.** A Resume button under the hero for whatever you're watching, with
+  the time left above its progress bar. It picks up with the same source you last played, and Back
+  takes you to the title's page.
+- **Your menu, your way.** Icons on the side (hide them until you press left or Back) or tabs across
+  the top, in **Settings → Appearance → Layout**.
+- **Real artwork on wide cards.** Cards whose add-on only has a poster get the title's wide picture
+  from TMDB or the add-on, instead of a poster squeezed into a wide frame.
+- **Long descriptions scroll by themselves** on the home screen when you rest on a title.
+- **English and Arabic**, laid out right to left in Arabic.
 
 ### A home screen you shape
 
@@ -63,8 +83,11 @@ it listens to the audio and writes them. No searching, no syncing, no wrong-vers
   icon packs to change their look.
 - **Automatic collection covers** made from a folder's first posters.
 - **Titles in their own language.** A show from abroad keeps its original title, logo and
-  description on the home screen, Continue Watching, episode names, details, filmography and search,
-  instead of a translated title over the original artwork.
+  description on the home screen, Continue Watching, episode names, details, filmography, search
+  and the pause screen, instead of a translated title over the original artwork. An episode whose
+  only summary is in English shows the show's own description instead.
+- **Upcoming episodes aren't blank.** An episode that hasn't aired shows the show's rating and
+  description in the hero.
 - **Cast on the source list.** See who's in a title before choosing a version, and open any actor's
   films and series.
 
@@ -73,7 +96,7 @@ it listens to the audio and writes them. No searching, no syncing, no wrong-vers
 - **Movie and series pages open sooner.** The page shows as soon as the add-on details arrive, and
   TMDB extras (artwork, localized text, episode details) fill in when ready, instead of waiting for
   every season to load first.
-- **Cards show the whole poster** instead of cropping it, and headshots keep the face in view.
+- **Headshots keep the face in view.**
 - **Optimized release builds** with the startup profile applied.
 
 ### Search that finds what you mean
@@ -121,6 +144,9 @@ Searching by original title and by actor uses TMDB: add your free TMDB key in
 - Playback no longer gets stuck between "starting stream" and "building player" when subtitle
   translation is on.
 - Ratings shown in the hero now match the details page, instead of numbers some add-ons report.
+- Resuming no longer jumps back a few minutes when the app closed before your position reached
+  your account: the newer position on the TV is kept.
+- The subtitle button stays in the player when the only subtitles are ones made from the audio.
 
 ### Up to date
 
