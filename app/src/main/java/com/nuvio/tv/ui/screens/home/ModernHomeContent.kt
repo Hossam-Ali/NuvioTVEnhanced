@@ -617,6 +617,8 @@ fun ModernHomeContent(
     }
 
     val latestCarouselRows by rememberUpdatedState(carouselRows)
+    // New look: the Continue Watching card in focus, for the hero's Resume button.
+    val heroResumeItem = remember { mutableStateOf<ModernCarouselItem?>(null) }
     val latestVerticalRowListState by rememberUpdatedState(verticalRowListState)
     val latestRowIndexByKey = rememberUpdatedState(rowIndexByKey)
     val latestSavedScrollAnchors by rememberUpdatedState(focusState.catalogRowScrollAnchors)
@@ -1154,6 +1156,19 @@ fun ModernHomeContent(
                         state.fullScreenBackdrop && shouldPlayTrailerLambda() && heroTrailerRenderedLambda()
                     }
                 },
+                hasFooter = { preview -> heroResumeCardFor(heroResumeItem.value, preview) != null },
+                footer = { preview, _ ->
+                    val resumeCard = heroResumeCardFor(heroResumeItem.value, preview)
+                    if (resumeCard != null) {
+                        val cwItem = (resumeCard.payload as ModernPayload.ContinueWatching).item
+                        NewLookHeroResumeRow(
+                            item = cwItem,
+                            progressFraction = resumeCard.heroPreview.progressFraction,
+                            downFocusRequester = contentFocusRequester,
+                            onClick = { onContinueWatchingClick(cwItem) }
+                        )
+                    }
+                },
                 modifier = heroMetadataModifier
             )
 
@@ -1186,6 +1201,12 @@ fun ModernHomeContent(
             }
             val onRowItemFocusedInternalLambda = remember(onRowItemFocusedPassedDown) {
                 { rowKey: String, index: Int, isCw: Boolean ->
+                    heroResumeItem.value = if (isCw) {
+                        latestCarouselRows.firstOrNull { it.key == rowKey }?.items?.getOrNull(index)
+                            ?.takeIf { it.payload is ModernPayload.ContinueWatching }
+                    } else {
+                        null
+                    }
                     onRowItemFocusedPassedDown.value.invoke(rowKey, index, isCw)
                 }
             }
@@ -1346,4 +1367,11 @@ private fun ModernHeroSection(
 @Composable
 private fun IsolatedReadScope(content: @Composable () -> Unit) {
     content()
+}
+
+/** The focused Continue Watching card, when the hero is showing it and it can be played now. */
+private fun heroResumeCardFor(card: ModernCarouselItem?, preview: HeroPreview): ModernCarouselItem? {
+    if (card == null || card.heroPreview.title != preview.title) return null
+    val item = (card.payload as? ModernPayload.ContinueWatching)?.item ?: return null
+    return card.takeIf { item !is ContinueWatchingItem.NextUp || item.info.hasAired }
 }

@@ -73,7 +73,12 @@ data class HeroPreview(
      *  even after navigation away and back. */
     val frozenBackdropUrl: String? = null,
     /** Same idea for the logo URL. */
-    val frozenLogoUrl: String? = null
+    val frozenLogoUrl: String? = null,
+    /** How far into a title in Continue Watching (0..1), and what's left, for the new look. */
+    val progressFraction: Float? = null,
+    val remainingMs: Long? = null,
+    /** An episode with no summary of its own: the hero shows the show's description instead. */
+    val wantsShowDescription: Boolean = false
 )
 
 @Immutable
@@ -304,16 +309,8 @@ internal fun buildContinueWatchingItem(
     context: android.content.Context
 ): ModernCarouselItem {
     val secondaryHighlightText = when (item) {
-        is ContinueWatchingItem.InProgress -> {
-            val progress = item.progress
-            formatContinueWatchingProgressLabel(
-                progress = progress,
-                resumeLabel = context.getString(R.string.cw_resume),
-                percentWatchedLabel = context.getString(R.string.cw_percent_watched),
-                hoursMinLeftLabel = context.getString(R.string.cw_hours_min_left),
-                minLeftLabel = context.getString(R.string.cw_min_left)
-            )
-        }
+        // The time left sits beside the hero's progress bar, under the title.
+        is ContinueWatchingItem.InProgress -> null
         is ContinueWatchingItem.NextUp -> {
             if (item.info.isReleaseAlert) {
                 if (item.info.isNewSeasonRelease) {
@@ -328,7 +325,7 @@ internal fun buildContinueWatchingItem(
                 context.getString(R.string.cw_next_up)
             }
         }
-    }.uppercase()
+    }?.uppercase()
 
     val heroPreview = when (item) {
         is ContinueWatchingItem.InProgress -> {
@@ -351,7 +348,9 @@ internal fun buildContinueWatchingItem(
                 title = item.progress.name,
                 logo = item.progress.logo,
                 description = item.episodeDescription ?: item.progress.episodeTitle?.localizeEpisodeTitle(context),
-                contentTypeText = episodeLabel,
+                wantsShowDescription = isSeries && item.episodeDescription.isNullOrBlank(),
+                // The hero's Resume button names the episode, so it isn't repeated above it.
+                contentTypeText = if (isSeries) null else episodeLabel,
                 isSeries = isSeries,
                 yearText = extractYearOrRange(item.releaseInfo),
                 secondaryHighlightText = secondaryHighlightText,
@@ -389,7 +388,9 @@ internal fun buildContinueWatchingItem(
                 description = item.info.episodeDescription
                     ?: item.info.episodeTitle?.localizeEpisodeTitle(context)
                     ?: item.info.airDateLabel?.let { airsDateTemplate.format(it) },
-                contentTypeText = episodeLabel,
+                wantsShowDescription = item.info.episodeDescription.isNullOrBlank(),
+                // An episode that can be played already has it on the hero's Play button.
+                contentTypeText = if (item.info.hasAired) null else episodeLabel,
                 isSeries = true,
                 yearText = extractYearOrRange(item.info.releaseInfo),
                 secondaryHighlightText = secondaryHighlightText,
@@ -470,7 +471,11 @@ internal fun buildContinueWatchingItem(
             }
         },
         imageUrl = imageUrl,
-        heroPreview = heroPreview.copy(imageUrl = imageUrl ?: heroPreview.imageUrl),
+        heroPreview = heroPreview.copy(
+            imageUrl = imageUrl ?: heroPreview.imageUrl,
+            progressFraction = (item as? ContinueWatchingItem.InProgress)?.progress?.progressPercentage?.takeIf { it > 0f },
+            remainingMs = (item as? ContinueWatchingItem.InProgress)?.progress?.takeIf { it.duration > 0 }?.remainingTime
+        ),
         payload = ModernPayload.ContinueWatching(item)
     )
 }

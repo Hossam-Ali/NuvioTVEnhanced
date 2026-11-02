@@ -150,6 +150,10 @@ class StreamScreenViewModel @Inject constructor(
     private val manualSelection: Boolean = savedStateHandle.get<String>("manualSelection")
         ?.toBooleanStrictOrNull()
         ?: false
+    /** Opened from Continue Watching: the last source used is played again, whatever the reuse setting. */
+    private val resumeLastSource: Boolean = savedStateHandle.get<String>("resumeLastSource")
+        ?.toBooleanStrictOrNull()
+        ?: false
     private val streamCacheKey: String = "${contentType.lowercase()}|$videoId"
     private val partyKey: String = com.nuvio.tv.core.party.partyMediaKey(
         metaType = contentType,
@@ -460,10 +464,15 @@ class StreamScreenViewModel @Inject constructor(
                 }
             }
 
-            if (!autoPlayHandledForSession && playerSettings.streamReuseLastLinkEnabled) {
+            if (!autoPlayHandledForSession && (playerSettings.streamReuseLastLinkEnabled || resumeLastSource)) {
+                val reuseHours = if (resumeLastSource) {
+                    maxOf(playerSettings.streamReuseLastLinkCacheHours, RESUME_LAST_SOURCE_MAX_AGE_HOURS)
+                } else {
+                    playerSettings.streamReuseLastLinkCacheHours
+                }
                 val cached = streamLinkCacheDataStore.getValid(
                     contentKey = streamCacheKey,
-                    maxAgeMs = playerSettings.streamReuseLastLinkCacheHours * 60L * 60L * 1000L
+                    maxAgeMs = reuseHours * 60L * 60L * 1000L
                 )
                 if (cached != null) {
                     autoPlayHandledForSession = true
@@ -2154,3 +2163,6 @@ private fun formatSpeed(context: android.content.Context, bytesPerSec: Long): St
 
 private fun formatMB(context: android.content.Context, bytes: Long): String =
     context.getString(R.string.unit_size_mb, String.format("%.1f", bytes / 1_048_576.0))
+
+/** How old a saved source may be for Resume to play it again; older links have often expired. */
+private const val RESUME_LAST_SOURCE_MAX_AGE_HOURS = 24

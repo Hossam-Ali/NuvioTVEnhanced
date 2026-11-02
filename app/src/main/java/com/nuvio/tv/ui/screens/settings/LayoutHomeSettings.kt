@@ -55,25 +55,6 @@ internal fun LayoutHomeLayoutSection(
     uiState: LayoutSettingsUiState,
     onEvent: (LayoutSettingsEvent) -> Unit
 ) {
-    val firstHomeLayoutFocusRequester = remember { FocusRequester() }
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .settingsOptionRow(firstHomeLayoutFocusRequester),
-        horizontalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.md)
-    ) {
-        listOf(HomeLayout.MODERN, HomeLayout.GRID, HomeLayout.CLASSIC).forEachIndexed { index, layout ->
-            LayoutCard(
-                layout = layout,
-                isSelected = uiState.selectedLayout == layout,
-                onClick = { onEvent(LayoutSettingsEvent.SelectLayout(layout)) },
-                modifier = Modifier
-                    .weight(1f)
-                    .then(if (index == 0) Modifier.focusRequester(firstHomeLayoutFocusRequester) else Modifier)
-            )
-        }
-    }
-
     HomeEditorEntry(uiState = uiState, onEvent = onEvent)
     HomeSetupRows()
 
@@ -201,137 +182,12 @@ internal fun LayoutSidebarSection(
     uiState: LayoutSettingsUiState,
     onEvent: (LayoutSettingsEvent) -> Unit
 ) {
-    SettingsToggleRow(
-        title = stringResource(R.string.layout_modern_sidebar),
-        subtitle = stringResource(R.string.layout_modern_sidebar_sub),
-        checked = uiState.modernSidebarEnabled,
-        onToggle = { onEvent(LayoutSettingsEvent.SetModernSidebarEnabled(!uiState.modernSidebarEnabled)) }
-    )
-    if (uiState.modernSidebarEnabled) {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
-            SettingsToggleRow(
-                title = stringResource(R.string.layout_modern_sidebar_blur),
-                subtitle = stringResource(R.string.layout_modern_sidebar_blur_sub),
-                checked = uiState.modernSidebarBlurEnabled,
-                onToggle = { onEvent(LayoutSettingsEvent.SetModernSidebarBlurEnabled(!uiState.modernSidebarBlurEnabled)) }
-            )
-        }
-        SettingsToggleRow(
-            title = stringResource(R.string.layout_hide_floating_pill),
-            subtitle = stringResource(R.string.layout_hide_floating_pill_sub),
-            checked = uiState.sidebarCollapsedByDefault,
-            onToggle = { onEvent(LayoutSettingsEvent.SetSidebarCollapsed(!uiState.sidebarCollapsedByDefault)) }
-        )
-    } else {
-        SettingsToggleRow(
-            title = stringResource(R.string.layout_collapse_sidebar),
-            subtitle = stringResource(R.string.layout_collapse_sidebar_sub),
-            checked = uiState.sidebarCollapsedByDefault,
-            onToggle = { onEvent(LayoutSettingsEvent.SetSidebarCollapsed(!uiState.sidebarCollapsedByDefault)) }
-        )
-    }
+    NewLookSettingsItems()
     DiscoverLocationRow(
         selectedLocation = uiState.discoverLocation,
         rememberedLocation = uiState.lastNonOffDiscoverLocation,
         onLocationSelected = { location -> onEvent(LayoutSettingsEvent.SetDiscoverLocation(location)) }
     )
-}
-
-@Composable
-private fun LayoutCard(
-    layout: HomeLayout,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    var isFocused by remember { mutableStateOf(false) }
-    val animatePreview = isSelected || isFocused
-
-    Card(
-        onClick = onClick,
-        modifier = modifier
-            .onFocusChanged { state ->
-                val nowFocused = state.isFocused
-                if (isFocused != nowFocused) {
-                    isFocused = nowFocused
-                }
-            }
-            .semantics {
-                role = Role.RadioButton
-                this.selected = isSelected
-            },
-        colors = CardDefaults.colors(
-            containerColor = NuvioTheme.colors.Background,
-            focusedContainerColor = NuvioTheme.colors.Background
-        ),
-        border = CardDefaults.border(
-            border = if (isSelected) Border(
-                border = NuvioTheme.focusRing.border(NuvioTheme.spacing.hairline),
-                shape = RoundedCornerShape(SettingsSecondaryCardRadius)
-            ) else Border.None,
-            focusedBorder = Border(
-                border = NuvioTheme.focusRing.border(NuvioTheme.spacing.xxs),
-                shape = RoundedCornerShape(SettingsSecondaryCardRadius)
-            )
-        ),
-        shape = CardDefaults.shape(RoundedCornerShape(SettingsSecondaryCardRadius)),
-        scale = CardDefaults.scale(focusedScale = 1f, pressedScale = 1f)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(112.dp)
-            ) {
-                when (layout) {
-                    HomeLayout.CLASSIC -> ClassicLayoutPreview(
-                        modifier = Modifier.fillMaxWidth(),
-                        animated = animatePreview
-                    )
-                    HomeLayout.GRID -> GridLayoutPreview(
-                        modifier = Modifier.fillMaxWidth(),
-                        animated = animatePreview
-                    )
-                    HomeLayout.MODERN -> ModernLayoutPreview(
-                        modifier = Modifier.fillMaxWidth(),
-                        animated = animatePreview
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                if (isSelected) {
-                    Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = null,
-                        tint = NuvioTheme.colors.FocusRing,
-                        modifier = Modifier
-                            .size(NuvioTheme.spacing.lg)
-                            .padding(end = 6.dp)
-                    )
-                }
-                Text(
-                    text = when (layout) {
-                        HomeLayout.CLASSIC -> stringResource(R.string.layout_classic)
-                        HomeLayout.GRID -> stringResource(R.string.layout_grid)
-                        HomeLayout.MODERN -> stringResource(R.string.layout_modern)
-                    },
-                    style = MaterialTheme.typography.labelLarge,
-                    color = if (isSelected || isFocused) NuvioTheme.colors.TextPrimary else NuvioTheme.colors.TextSecondary
-                )
-            }
-        }
-    }
 }
 
 @Composable

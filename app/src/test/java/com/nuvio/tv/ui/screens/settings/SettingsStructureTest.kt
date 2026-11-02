@@ -54,7 +54,6 @@ class SettingsStructureTest {
                 LayoutSection.POSTER_CARD,
                 LayoutSection.CARD_DEPTH,
                 LayoutSection.CUSTOM_POSTERS,
-                LayoutSection.DETAIL_PAGE,
                 LayoutSection.STREAMS
             ),
             visibleLayoutSections(essentialMode = false, focusedPosterHasOptions = true)

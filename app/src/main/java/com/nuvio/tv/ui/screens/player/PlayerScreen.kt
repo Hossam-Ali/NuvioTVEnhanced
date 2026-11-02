@@ -3021,7 +3021,10 @@ private fun PlayerControlsOverlay(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     val hasEpisodeContext = uiState.currentSeason != null && uiState.currentEpisode != null
-                    val hasSubtitleControl = uiState.subtitleTracks.isNotEmpty() || uiState.addonSubtitles.isNotEmpty()
+                    // Also when subtitles are being made from the audio, or could be, so they can be changed or turned off.
+                    val hasSubtitleControl = uiState.subtitleTracks.isNotEmpty() || uiState.addonSubtitles.isNotEmpty() ||
+                        uiState.isAiTranscribing ||
+                        com.nuvio.tv.core.subtitles.SubtitleTranslationService.transcriptionSetup() != null
                     val hasAudioControl = uiState.audioTracks.isNotEmpty()
                     val showNextEpisodeButton = uiState.nextEpisode?.hasAired == true &&
                         (uiState.postPlayMode as? PostPlayMode.AutoPlay)?.let {

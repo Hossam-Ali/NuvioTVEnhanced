@@ -862,8 +862,8 @@ open class MainActivity : ComponentActivity() {
 
                     val startDestination = when {
                         needsExperienceSelection -> Screen.ExperienceModeSelection.route
-                        layoutChosen -> Screen.Home.route
-                        else -> Screen.LayoutSelection.route
+                        // There's one home layout now, so no layout picker on first start.
+                        else -> Screen.Home.route
                     }
                     val navController = rememberNavController()
                     val navViewModelStoreOwner = rememberNavSessionViewModelStoreOwner(navController)
@@ -1164,8 +1164,9 @@ open class MainActivity : ComponentActivity() {
                         }
                         Box(modifier = Modifier.fillMaxSize()) {
                             CompositionLocalProvider(LocalNavViewModelStoreOwner provides navViewModelStoreOwner) {
-                                if (modernSidebarEnabled) {
-                                    ModernSidebarScaffold(
+                                val newLook = com.nuvio.tv.core.ui.NewLookPreferences.current.value
+                                if (newLook.navigation == com.nuvio.tv.core.ui.NewLookNavigation.TOP_TABS) {
+                                    NewLookTopTabsScaffold(
                                         longPressBackHeld = longPressBackHeld,
                                         navController = navController,
                                         startDestination = startDestination,
@@ -1173,10 +1174,6 @@ open class MainActivity : ComponentActivity() {
                                         rootRoutes = rootRoutes,
                                         drawerItems = drawerItems,
                                         selectedDrawerRoute = selectedDrawerRoute,
-                                        selectedDrawerItem = selectedDrawerItem,
-                                        sidebarCollapsed = sidebarCollapsed,
-                                        modernSidebarBlurEnabled = modernSidebarBlurEnabled,
-                                        hideBuiltInHeaders = hideBuiltInHeadersForFloatingPill,
                                         activeProfileName = activeProfile?.name ?: "",
                                         activeProfileColorHex = activeProfile?.avatarColorHex ?: "#1E88E5",
                                         activeProfileAvatarImageUrl = activeProfileAvatarImageUrl,
@@ -1194,7 +1191,8 @@ open class MainActivity : ComponentActivity() {
                                         rootRoutes = rootRoutes,
                                         drawerItems = drawerItems,
                                         selectedDrawerRoute = selectedDrawerRoute,
-                                        sidebarCollapsed = sidebarCollapsed,
+                                        // The icon rail, or nothing until asked for when the user hides it.
+                                        sidebarCollapsed = newLook.hideSideBar,
                                         hideBuiltInHeaders = false,
                                         activeProfileName = activeProfile?.name ?: "",
                                         activeProfileColorHex = activeProfile?.avatarColorHex ?: "#1E88E5",
@@ -2358,7 +2356,7 @@ private fun CollapsedSidebarPill(
     }
 }
 
-private fun navigateToDrawerRoute(
+internal fun navigateToDrawerRoute(
     navController: NavHostController,
     currentRoute: String?,
     targetRoute: String

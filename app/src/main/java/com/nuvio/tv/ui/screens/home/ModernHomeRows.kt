@@ -42,6 +42,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.key
@@ -1124,13 +1125,42 @@ private fun ModernCarouselCard(
         !item.heroPreview.backdrop.isNullOrBlank() && !item.heroPreview.backdrop.isPlaceholder()) {
         frozenBackdropUrl.value = item.heroPreview.backdrop
     }
-    if (!useLandscapeOverlayTreatment && !enrichedBackdropUrl.isNullOrBlank() && frozenBackdropUrl.value != enrichedBackdropUrl) {
+    // A landscape card keeps its first backdrop, but one that had none takes the enriched one
+    // instead of staying a poster.
+    val canTakeEnrichedBackdrop = !useLandscapeOverlayTreatment || frozenBackdropUrl.value.isNullOrBlank()
+    if (canTakeEnrichedBackdrop && !enrichedBackdropUrl.isNullOrBlank() && frozenBackdropUrl.value != enrichedBackdropUrl) {
         frozenBackdropUrl.value = enrichedBackdropUrl
     }
     val effectiveBackdropUrl = frozenBackdropUrl.value?.takeIf { !it.isPlaceholder() }
     var isFocused by remember { mutableStateOf(false) }
     val payload = item.payload as? ModernPayload.CollectionFolder
     val isCollectionFolder = item.payload is ModernPayload.CollectionFolder
+    // A landscape card whose add-on gave only a poster gets the title's wide art from TMDB.
+    val backdropContext = LocalContext.current
+    val cardBackdrops = remember(backdropContext) {
+        dagger.hilt.android.EntryPointAccessors.fromApplication(
+            backdropContext.applicationContext,
+            com.nuvio.tv.core.poster.CardBackdropEntryPoint::class.java
+        ).cardBackdropRepository()
+    }
+    // Some add-ons fill the background field with the poster itself; a tall picture that loads
+    // on a landscape card is treated the same as no background.
+    var artIsPortrait by remember(item.key) { mutableStateOf(false) }
+    val backdropLookupId = item.metaPreview?.id?.takeIf {
+        useLandscapeOverlayTreatment && !isCollectionFolder &&
+            (effectiveBackdropUrl == null || artIsPortrait) &&
+            item.metaPreview?.landscapePoster.isNullOrBlank()
+    }
+    val lookedUpBackdrop by produceState(initialValue = backdropLookupId?.let(cardBackdrops::cached), backdropLookupId) {
+        val id = backdropLookupId ?: return@produceState
+        if (value != null) return@produceState
+        // Cards passed while scrolling aren't looked up, only those that stay on screen.
+        kotlinx.coroutines.delay(CARD_BACKDROP_LOOKUP_DELAY_MS)
+        value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            cardBackdrops.backdrop(id, item.metaPreview?.apiType ?: "movie")
+        }
+    }
+    val cardBackdropUrl = if (artIsPortrait) lookedUpBackdrop ?: effectiveBackdropUrl else effectiveBackdropUrl ?: lookedUpBackdrop
     val effectiveIgnoreLandscapePoster = alwaysShowLandscapeClearlogo
     val useLandscapeAsExpanded = focusedPosterBackdropExpandEnabled && isBackdropExpanded &&
         !alwaysShowLandscapeClearlogo &&
@@ -1149,9 +1179,9 @@ private fun ModernCarouselCard(
         }
     } else if (useLandscapeOverlayTreatment && !isCollectionFolder) {
         if (effectiveIgnoreLandscapePoster) {
-            effectiveBackdropUrl ?: item.heroPreview.poster
+            cardBackdropUrl ?: item.heroPreview.poster
         } else {
-            item.metaPreview?.landscapePoster ?: effectiveBackdropUrl ?: item.heroPreview.poster
+            item.metaPreview?.landscapePoster ?: cardBackdropUrl ?: item.heroPreview.poster
         }
     } else if (isCollectionFolder && !payload?.coverEmoji.isNullOrBlank()) {
         // Emoji cover folders: never fall back to backdrop for the card poster
@@ -1171,12 +1201,13 @@ private fun ModernCarouselCard(
         isFocused -> payload.focusGifUrl
         else -> null
     }
-    // Fit, not Crop: art whose shape differs from the card (a poster on a landscape card, a custom
-    // card size) shows whole, with the card colour around it, instead of losing its edges.
+    // Art fills the whole card. A poster on a landscape card is cropped from near its top, where
+    // the faces and title usually are, rather than shown small with empty sides.
     val imageContentScale = when (item.payload) {
         is ModernPayload.CollectionFolder -> ContentScale.FillBounds
-        else -> ContentScale.Fit
+        else -> ContentScale.Crop
     }
+    val imageAlignment = if (item.payload is ModernPayload.CollectionFolder) Alignment.Center else CardArtAlignment
     // Keep decode target stable across expand/collapse to avoid recreating image requests/painters
     // purely due to animated width changes.
     val maxRequestCardWidth = if (focusedPosterBackdropExpandEnabled) {
@@ -1198,10 +1229,12 @@ private fun ModernCarouselCard(
             val builder = ImageRequest.Builder(context)
                 .data(it)
                 .crossfade(true)
-                .memoryCacheKey("${it}_${requestWidthPx}x${requestHeightPx}_v$revalidationKey")
+                .memoryCacheKey("${it}_${requestWidthPx}x${requestHeightPx}_fill_v$revalidationKey")
                 .size(width = requestWidthPx, height = requestHeightPx)
+                // Decoded to cover the card, so a cropped poster stays sharp.
+                .scale(coil3.size.Scale.FILL)
             if (revalidationKey > 0) {
-                builder.placeholderMemoryCacheKey("${it}_${requestWidthPx}x${requestHeightPx}_v${revalidationKey - 1}")
+                builder.placeholderMemoryCacheKey("${it}_${requestWidthPx}x${requestHeightPx}_fill_v${revalidationKey - 1}")
             }
             val isLandscapeCustomPoster = useLandscapeOverlayTreatment && !effectiveIgnoreLandscapePoster && !item.metaPreview?.landscapePoster.isNullOrBlank()
             val fallbackUrl = if (isLandscapeCustomPoster) {
@@ -1378,6 +1411,11 @@ private fun ModernCarouselCard(
                             error = backgroundPainter,
                             fallback = backgroundPainter,
                             contentScale = imageContentScale,
+                            alignment = imageAlignment,
+                            onSuccess = { state ->
+                                val size = state.painter.intrinsicSize
+                                if (useLandscapeOverlayTreatment && size.height > size.width * 1.1f) artIsPortrait = true
+                            },
                             onError = {
                                 if (!item.metaPreview?.landscapePoster.isNullOrBlank() || !item.metaPreview?.rawPosterUrl.isNullOrBlank()) {
                                     customPosterLoadFailed = true
@@ -1424,6 +1462,7 @@ private fun ModernCarouselCard(
                                 .fillMaxSize()
                                 .graphicsLayer { alpha = gifAlpha },
                             contentScale = imageContentScale,
+                            alignment = imageAlignment,
                             onSuccess = { gifLoaded = true }
                         )
                     }
@@ -1573,3 +1612,8 @@ private class AnimatedWidthNode(var width: State<Dp>) : LayoutModifierNode, Modi
     override fun IntrinsicMeasureScope.maxIntrinsicHeight(measurable: IntrinsicMeasurable, width: Int) =
         measurable.maxIntrinsicHeight(width)
 }
+
+/** Slightly above centre: keeps faces and title art in a poster cropped to a wide card. */
+private val CardArtAlignment = androidx.compose.ui.BiasAlignment(0f, -0.35f)
+
+private const val CARD_BACKDROP_LOOKUP_DELAY_MS = 250L

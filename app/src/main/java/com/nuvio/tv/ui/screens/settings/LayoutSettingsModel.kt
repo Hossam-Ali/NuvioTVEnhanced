@@ -40,7 +40,9 @@ internal fun visibleLayoutSections(
         listOf(LayoutSection.HOME_LAYOUT)
     } else {
         LayoutSection.entries.filter { section ->
-            section != LayoutSection.FOCUSED_POSTER || focusedPosterHasOptions
+            // The title page settings were for the previous page design.
+            section != LayoutSection.DETAIL_PAGE &&
+                (section != LayoutSection.FOCUSED_POSTER || focusedPosterHasOptions)
         }
     }
 

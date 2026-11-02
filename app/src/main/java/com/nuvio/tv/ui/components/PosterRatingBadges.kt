@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -49,7 +48,7 @@ fun BoxScope.PosterRatingBadges(
     tmdbRating: Float? = null,
     modifier: Modifier = Modifier,
 ) {
-    val settings by PosterRatingsPreferences.settings.collectAsState()
+    val settings = PosterRatingsPreferences.current.value
     if (!settings.enabled || itemId.isNullOrBlank()) return
     val context = LocalContext.current
     val repository = remember(context) {
@@ -60,13 +59,16 @@ fun BoxScope.PosterRatingBadges(
     // MDBList is only asked when a provider other than IMDb could be shown.
     val needsMdbList = settings.providers.take(settings.maxBadges + 2).any { it != "imdb" } || fromCatalog == null
     val type = itemType.orEmpty().ifBlank { "movie" }
-    val ratings by produceState(
-        initialValue = (repository.cached(itemId, type) ?: MDBListRatings()).withKnown(fromCatalog, fromTmdb),
-        itemId, type, needsMdbList, fromCatalog, fromTmdb
-    ) {
-        value = value.withKnown(fromCatalog, fromTmdb)
-        if (needsMdbList) {
-            repository.ratings(itemId, type)?.let { loaded -> value = loaded.withKnown(fromCatalog, fromTmdb) }
+    val initial = remember(itemId, type, fromCatalog, fromTmdb) {
+        (repository.cached(itemId, type) ?: MDBListRatings()).withKnown(fromCatalog, fromTmdb)
+    }
+    val ratings by produceState(initialValue = initial, itemId, type, needsMdbList, fromCatalog, fromTmdb) {
+        value = initial
+        if (needsMdbList && repository.cached(itemId, type) == null) {
+            // Cards scrolled straight past leave composition before this ends, so they cost nothing.
+            kotlinx.coroutines.delay(BADGE_LOOKUP_DELAY_MS)
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { repository.ratings(itemId, type) }
+                ?.let { loaded -> value = loaded.withKnown(fromCatalog, fromTmdb) }
         }
     }
     val badges = remember(ratings, settings) { settings.badgesFor(ratings) }
@@ -158,6 +160,8 @@ private fun RatingIcon(provider: String, iconUrl: String?, ratings: MDBListRatin
         }
     }
 }
+
+private const val BADGE_LOOKUP_DELAY_MS = 250L
 
 internal fun formatPosterRating(provider: String, value: Double): String = when (provider) {
     "imdb", "tmdb", "letterboxd", "mal" -> String.format(java.util.Locale.US, "%.1f", value)

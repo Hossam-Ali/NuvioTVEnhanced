@@ -49,6 +49,12 @@ object PosterRatingsPreferences {
     @Volatile private var appContext: Context? = null
     private val _settings = MutableStateFlow(PosterRatingsSettings())
     val settings: StateFlow<PosterRatingsSettings> = _settings.asStateFlow()
+
+    /**
+     * The same settings as Compose state, for the cards: reading it from a card costs nothing,
+     * where collecting the flow would start a coroutine for every card created while scrolling.
+     */
+    val current = androidx.compose.runtime.mutableStateOf(PosterRatingsSettings())
     private val http by lazy { OkHttpClient.Builder().callTimeout(20, TimeUnit.SECONDS).build() }
 
     fun attach(context: Context) {
@@ -56,11 +62,13 @@ object PosterRatingsPreferences {
         appContext = context.applicationContext
         val raw = context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getString(KEY, null)
         raw?.let { runCatching { _settings.value = decode(JSONObject(it)) } }
+        current.value = _settings.value
     }
 
     fun update(transform: (PosterRatingsSettings) -> PosterRatingsSettings) {
         val next = transform(_settings.value).let { it.copy(maxBadges = it.maxBadges.coerceIn(1, 3)) }
         _settings.value = next
+        current.value = next
         appContext?.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)?.edit()?.putString(KEY, encode(next).toString())?.apply()
     }
 
@@ -162,4 +170,5 @@ class PosterRatingsRepository @Inject constructor(private val mdbList: MDBListRe
 @InstallIn(SingletonComponent::class)
 interface PosterRatingsEntryPoint {
     fun posterRatingsRepository(): PosterRatingsRepository
+    fun metaRepository(): com.nuvio.tv.domain.repository.MetaRepository
 }

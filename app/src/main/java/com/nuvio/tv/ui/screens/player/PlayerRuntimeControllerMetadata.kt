@@ -1,5 +1,7 @@
 package com.nuvio.tv.ui.screens.player
 
+import com.nuvio.tv.ui.util.writtenLikeTitle
+
 import com.nuvio.tv.R
 import com.nuvio.tv.core.network.NetworkResult
 import com.nuvio.tv.data.local.AutoSkipSegmentType
@@ -85,7 +87,12 @@ internal fun PlayerRuntimeController.resolveDescription(meta: Meta): String? {
         val episodeOverview = meta.videos.firstOrNull { video ->
             video.season == currentSeason && video.episode == currentEpisode
         }?.overview
-        if (!episodeOverview.isNullOrBlank()) return episodeOverview
+        if (!episodeOverview.isNullOrBlank()) {
+            // An English summary for an Arabic show gives way to the show's own description.
+            val useShowText = !writtenLikeTitle(meta.name, episodeOverview) && writtenLikeTitle(meta.name, meta.description) &&
+                !meta.description.isNullOrBlank()
+            return if (useShowText) meta.description else episodeOverview
+        }
     }
 
     return meta.description
@@ -145,10 +152,18 @@ private suspend fun PlayerRuntimeController.enrichDescriptionFromTmdb(id: String
     } else null
 
     val inShowLanguage = enrichment.originalLanguageDifferentFrom(settings.language) != null
-    val tmdbDescription = episodeEnrichment?.overview
-        ?: if (inShowLanguage) enrichment.descriptionForOriginalTitle(null) else enrichment.description
+    val showTitle = if (inShowLanguage) enrichment.originalTitle else enrichment.localizedTitle
+    val showDescription = if (inShowLanguage) enrichment.descriptionForOriginalTitle(null) else enrichment.description
+    // The episode's own summary when it's in the show's language, else the show's description.
+    val tmdbDescription = episodeEnrichment?.overview?.takeIf { !inShowLanguage || writtenLikeTitle(showTitle, it) }
+        ?: showDescription
     if (settings.useBasicInfo && !tmdbDescription.isNullOrBlank()) {
-        _uiState.update { it.copy(description = tmdbDescription) }
+        _uiState.update { state ->
+            // Never swap a description in the show's language for one in another.
+            val keepCurrent = !writtenLikeTitle(showTitle, tmdbDescription) && writtenLikeTitle(showTitle, state.description) &&
+                !state.description.isNullOrBlank()
+            if (keepCurrent) state else state.copy(description = tmdbDescription)
+        }
     }
 
     // Enrich title from TMDB (localized).

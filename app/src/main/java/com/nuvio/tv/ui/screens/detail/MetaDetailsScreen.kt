@@ -848,246 +848,77 @@ fun MetaDetailsScreen(
                 if (playOnLoad && !playOnLoadReturnContentRevealed) {
                     PlaybackHandoffBackdrop(backdropUrl = heroBackdropUrl ?: meta.backdropUrl)
                 }
-                MetaDetailsContent(
-                    modifier = Modifier.graphicsLayer {
-                        alpha = playOnLoadReturnContentAlpha
-                    },
-                    heroBackdropUrl = heroBackdropUrl,
-                    meta = meta,
-                    detailReturnEpisodeFocusRequest = DetailReturnEpisodeFocusRequest(
-                        season = returnFocusSeason,
-                        episode = returnFocusEpisode
-                    ),
-                    onDetailReturnEpisodeFocusConsumed = onReturnFocusConsumed,
-                    lastFocusedEpisodeIdBySeason = viewModel.lastFocusedEpisodeIdBySeason,
-                    heroRestoreToken = heroRestoreToken,
-                    seasons = uiState.seasons,
-                    selectedSeason = uiState.selectedSeason,
-                    episodesForSeason = uiState.episodesForSeason,
-                    isInLibrary = uiState.isInLibrary,
-                    librarySourceMode = uiState.librarySourceMode,
-                    nextToWatch = uiState.nextToWatch,
-                    episodeProgressMap = uiState.episodeProgressMap,
-                    watchedEpisodes = uiState.watchedEpisodes,
-                    episodeWatchedPendingKeys = uiState.episodeWatchedPendingKeys,
-                    blurUnwatchedEpisodes = uiState.blurUnwatchedEpisodes,
-                    randomEpisodeEnabled = uiState.randomEpisodeEnabled,
-                    episodeShuffle = uiState.episodeShuffle,
-                    shufflePoolEmpty = uiState.shufflePoolEmpty,
-                    onEpisodeShuffleChange = viewModel::setEpisodeShuffle,
-                    episodeOptionsOverlayStyle = uiState.episodeOptionsOverlayStyle,
-                    showFullReleaseDate = uiState.showFullReleaseDate,
-                    overallRatingsVisibility = uiState.overallRatingsVisibility,
-                    detailImdbRatingsVisibility = uiState.detailImdbRatingsVisibility,
-                    isMovieWatched = uiState.isMovieWatched,
-                    isMovieWatchedPending = uiState.isMovieWatchedPending,
-                    moreLikeThis = uiState.moreLikeThis,
-                    moreLikeThisSource = uiState.moreLikeThisSource,
-                    posterCardCornerRadiusDp = posterCardCornerRadiusDp,
-                    collection = uiState.collection,
-                    collectionName = uiState.collectionName,
-                    relatedWatchedStatus = uiState.relatedWatchedStatus,
-                    episodeImdbRatings = uiState.episodeImdbRatings,
-                    isEpisodeRatingsLoading = uiState.isEpisodeRatingsLoading,
-                    episodeRatingsError = uiState.episodeRatingsError,
-                    mdbListRatings = uiState.mdbListRatings,
-                    mdbListRatingOrder = uiState.mdbListRatingOrder,
-                    isMdbListRatingsActive = uiState.isMdbListRatingsActive,
-                    tmdbRating = uiState.tmdbRating,
-                    comments = uiState.comments,
-                    commentsCurrentPage = uiState.commentsCurrentPage,
-                    commentsPageCount = uiState.commentsPageCount,
-                    isCommentsLoading = uiState.isCommentsLoading,
-                    isCommentsLoadingMore = uiState.isCommentsLoadingMore,
-                    commentsError = uiState.commentsError,
-                    shouldShowCommentsSection = uiState.shouldShowCommentsSection,
-                    commentsMode = uiState.commentsMode,
-                    commentsEpisodeTarget = uiState.commentsEpisodeTarget,
-                    selectedComment = uiState.selectedComment,
-                    onSeasonSelected = { viewModel.onEvent(MetaDetailsEvent.OnSeasonSelected(it)) },
-                    onEpisodeClick = playEpisode,
-                    onEpisodeManualPlayClick = playEpisodeManually,
-                    onPlayClick = playTitle,
-                    onPlayManuallyClick = playTitleManually,
-                    onEpisodeStartFromBeginningClick = onEpisodeStartFromBeginningClick@{ video ->
-                        if (!playbackAvailability.canStream(meta.apiType, video.id, meta.id, video)) {
-                            Toast.makeText(context, R.string.playback_unavailable_message, Toast.LENGTH_SHORT).show()
-                            return@onEpisodeStartFromBeginningClick
-                        }
-                        onPlayStartFromBeginningClick(
-                            video.id,
-                            meta.apiType,
-                            meta.id,
-                            meta.name,
-                            video.thumbnail ?: meta.poster,
-                            meta.backdropUrl,
-                            meta.logo,
-                            video.season,
-                            video.episode,
-                            video.title,
-                            null,
-                            null,
-                            video.runtime,
-                            meta.resolveContentLanguage()
+                run {
+                    val heroPlayable = playbackAvailability.canStream(
+                        meta.apiType,
+                        playOnLoadVideo?.id ?: meta.id,
+                        meta.id,
+                        playOnLoadVideo
+                    )
+                    val newLookCast = remember(meta.castMembers, meta.cast) {
+                        newLookCastOrder(
+                            meta.castMembers.ifEmpty { meta.cast.map { name -> MetaCastMember(name = name) } }
                         )
-                    },
-                    onPlayStartFromBeginningClick = onPlayStartFromBeginningClick@{ videoId ->
-                        if (!playbackAvailability.canStream(meta.apiType, videoId, meta.id)) {
-                            Toast.makeText(context, R.string.playback_unavailable_message, Toast.LENGTH_SHORT).show()
-                            return@onPlayStartFromBeginningClick
-                        }
-                        onPlayStartFromBeginningClick(
-                            videoId,
-                            meta.apiType,
-                            meta.id,
-                            meta.name,
-                            meta.poster,
-                            meta.backdropUrl,
-                            meta.logo,
-                            null,
-                            null,
-                            null,
-                            genresString,
-                            yearString,
-                            null,
-                            meta.resolveContentLanguage()
+                    }
+                    Box(modifier = Modifier.graphicsLayer { alpha = playOnLoadReturnContentAlpha }) {
+                        NewLookDetailsContent(
+                            meta = meta,
+                            seasons = uiState.seasons,
+                            selectedSeason = uiState.selectedSeason,
+                            episodesForSeason = uiState.episodesForSeason,
+                            episodeProgressMap = uiState.episodeProgressMap,
+                            watchedEpisodes = uiState.watchedEpisodes,
+                            episodeImdbRatings = uiState.episodeImdbRatings,
+                            mdbListRatings = uiState.mdbListRatings?.takeIf { uiState.isMdbListRatingsActive },
+                            mdbListRatingOrder = uiState.mdbListRatingOrder,
+                            isInLibrary = uiState.isInLibrary,
+                            playText = uiState.nextToWatch?.displayText,
+                            isPlayEnabled = heroPlayable,
+                            moreLikeThis = uiState.moreLikeThis,
+                            cast = newLookCast,
+                            onPlay = {
+                                val video = if (isSeries) playOnLoadVideo else null
+                                if (video != null) playEpisode(video) else playTitle(meta.id)
+                            },
+                            onPlayLongPress = {
+                                val video = if (isSeries) playOnLoadVideo else null
+                                if (video != null) playEpisodeManually(video) else playTitleManually(meta.id)
+                            },
+                            onTrailer = meta.trailers.firstOrNull()?.let { trailer ->
+                                { viewModel.onEvent(MetaDetailsEvent.OnSharedTrailerSelected(trailer)) }
+                            },
+                            onToggleLibrary = { viewModel.onEvent(MetaDetailsEvent.OnToggleLibrary) },
+                            onLibraryLongPress = { viewModel.onEvent(MetaDetailsEvent.OnLibraryLongPress) },
+                            onSeasonSelected = { viewModel.onEvent(MetaDetailsEvent.OnSeasonSelected(it)) },
+                            onEpisodeClick = playEpisode,
+                            onEpisodeLongPress = { video ->
+                                viewModel.onEvent(MetaDetailsEvent.OnToggleEpisodeWatched(video))
+                            },
+                            onCastClick = { member ->
+                                member.tmdbId?.let { id ->
+                                    val preferCrew = listOf("Creator", "Director", "Writer")
+                                        .any { member.character.equals(it, ignoreCase = true) }
+                                    onNavigateToCastDetail(id, member.name, preferCrew)
+                                }
+                            },
+                            onMoreLikeThisClick = { item ->
+                                onNavigateToDetail(item.id, item.apiType, null)
+                            }
                         )
-                    },
-                    showManualPlayOption = effectiveAutoplayEnabled,
-                    onPlayButtonFocused = { viewModel.onEvent(MetaDetailsEvent.OnPlayButtonFocused) },
-                    onToggleLibrary = { viewModel.onEvent(MetaDetailsEvent.OnToggleLibrary) },
-                    onLibraryLongPress = { viewModel.onEvent(MetaDetailsEvent.OnLibraryLongPress) },
-                    onToggleMovieWatched = { viewModel.onEvent(MetaDetailsEvent.OnToggleMovieWatched) },
-                    onToggleEpisodeWatched = { video ->
-                        viewModel.onEvent(MetaDetailsEvent.OnToggleEpisodeWatched(video))
-                    },
-                    onMarkSeasonWatched = { season ->
-                        viewModel.onEvent(MetaDetailsEvent.OnMarkSeasonWatched(season))
-                    },
-                    onMarkSeasonUnwatched = { season ->
-                        viewModel.onEvent(MetaDetailsEvent.OnMarkSeasonUnwatched(season))
-                    },
-                    onMarkPreviousEpisodesWatched = { video ->
-                        viewModel.onEvent(MetaDetailsEvent.OnMarkPreviousEpisodesWatched(video))
-                    },
-                    onMarkPreviousSeasonsWatched = { season ->
-                        viewModel.onEvent(MetaDetailsEvent.OnMarkPreviousSeasonsWatched(season))
-                    },
-                    isSeasonFullyWatched = { season ->
-                        viewModel.isSeasonFullyWatched(season)
-                    },
-                    trailerUrl = uiState.trailerUrl,
-                    trailerAudioUrl = uiState.trailerAudioUrl,
-                    isTrailerPlaying = uiState.isTrailerPlaying,
-                    isBackgroundTrailerPlaying = uiState.isBackgroundTrailerPlaying,
-                    pauseBackgroundTrailerOnScroll = uiState.pauseBackgroundTrailerOnScroll,
-                    isTrailerPaused = isTrailerPaused,
-                    showTrailerControls = uiState.showTrailerControls,
-                    hideLogoDuringTrailer = uiState.hideLogoDuringTrailer,
-                    trailerButtonEnabled = uiState.trailerButtonEnabled,
-                    isSharedTrailerOverlayVisible = uiState.isSharedTrailerOverlayVisible,
-                    isSharedTrailerLoading = uiState.isSharedTrailerLoading,
-                    sharedTrailerUrl = uiState.sharedTrailerUrl,
-                    sharedTrailerAudioUrl = uiState.sharedTrailerAudioUrl,
-                    sharedTrailerErrorMessage = uiState.sharedTrailerErrorMessage,
-                    selectedSharedTrailer = uiState.selectedSharedTrailer,
-                    trailerSeekToken = trailerSeekToken,
-                    trailerSeekDeltaMs = trailerSeekDeltaMs,
-                    onTrailerControlKey = { keyCode, action, repeatCount ->
-                        if (!uiState.showTrailerControls || !uiState.isTrailerPlaying) {
-                            false
-                        } else if (action != KeyEvent.ACTION_DOWN) {
-                            false
-                        } else {
-                            val seekStepMs = when {
-                                repeatCount >= 12 -> 12_000L
-                                repeatCount >= 6 -> 8_000L
-                                repeatCount >= 2 -> 5_000L
-                                else -> 3_000L
-                            }
-                            when (keyCode) {
-                                KeyEvent.KEYCODE_DPAD_CENTER,
-                                KeyEvent.KEYCODE_ENTER,
-                                KeyEvent.KEYCODE_NUMPAD_ENTER -> {
-                                    isTrailerPaused = !isTrailerPaused
-                                    trailerSeekOverlayVisible = true
-                                    true
-                                }
-                                KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE -> {
-                                    isTrailerPaused = !isTrailerPaused
-                                    true
-                                }
-                                KeyEvent.KEYCODE_MEDIA_PAUSE -> {
-                                    isTrailerPaused = true
-                                    true
-                                }
-                                KeyEvent.KEYCODE_MEDIA_PLAY -> {
-                                    isTrailerPaused = false
-                                    true
-                                }
-                                KeyEvent.KEYCODE_DPAD_UP -> {
-                                    trailerSeekOverlayVisible = true
-                                    true
-                                }
-                                KeyEvent.KEYCODE_DPAD_DOWN -> {
-                                    trailerSeekOverlayVisible = false
-                                    true
-                                }
-                                KeyEvent.KEYCODE_DPAD_LEFT -> {
-                                    trailerSeekDeltaMs = -seekStepMs
-                                    trailerSeekToken += 1
-                                    trailerSeekOverlayVisible = true
-                                    true
-                                }
-                                KeyEvent.KEYCODE_DPAD_RIGHT -> {
-                                    trailerSeekDeltaMs = seekStepMs
-                                    trailerSeekToken += 1
-                                    trailerSeekOverlayVisible = true
-                                    true
-                                }
-                                else -> false
-                            }
+                        if (uiState.isSharedTrailerOverlayVisible) {
+                            SharedTrailerOverlay(
+                                title = uiState.selectedSharedTrailer?.name?.takeIf { it.isNotBlank() }
+                                    ?: stringResource(R.string.detail_tab_trailer),
+                                trailerUrl = uiState.sharedTrailerUrl,
+                                trailerAudioUrl = uiState.sharedTrailerAudioUrl,
+                                isLoading = uiState.isSharedTrailerLoading,
+                                errorMessage = uiState.sharedTrailerErrorMessage,
+                                onDismiss = { viewModel.onEvent(MetaDetailsEvent.OnDismissSharedTrailer) },
+                                onRetry = { viewModel.onEvent(MetaDetailsEvent.OnRetrySharedTrailer) }
+                            )
                         }
-                    },
-                    onTrailerProgressChanged = onTrailerProgressChanged,
-                    onTrailerEnded = {
-                        restorePlayFocusAfterTrailerBackToken += 1
-                        isTrailerPaused = false
-                        viewModel.onEvent(MetaDetailsEvent.OnTrailerEnded)
-                    },
-                    onTrailerButtonClick = { viewModel.onEvent(MetaDetailsEvent.OnTrailerButtonClick) },
-                    onSharedTrailerSelected = { viewModel.onEvent(MetaDetailsEvent.OnSharedTrailerSelected(it)) },
-                    onDismissSharedTrailer = { viewModel.onEvent(MetaDetailsEvent.OnDismissSharedTrailer) },
-                    onRetrySharedTrailer = { viewModel.onEvent(MetaDetailsEvent.OnRetrySharedTrailer) },
-                    onRetryComments = { viewModel.onEvent(MetaDetailsEvent.OnRetryComments) },
-                    onLoadMoreComments = { viewModel.onEvent(MetaDetailsEvent.OnLoadMoreComments) },
-                    onCommentsModeSelected = { viewModel.onEvent(MetaDetailsEvent.OnCommentsModeSelected(it)) },
-                    onCommentsEpisodeSelected = { viewModel.onEvent(MetaDetailsEvent.OnCommentsEpisodeSelected(it)) },
-                    onCommentClick = {
-                        commentOverlayDirection = 0
-                        viewModel.onEvent(MetaDetailsEvent.OnCommentSelected(it))
-                    },
-                    onShowPreviousComment = {
-                        commentOverlayDirection = -1
-                        viewModel.onEvent(MetaDetailsEvent.OnAdvanceCommentOverlay(direction = -1))
-                    },
-                    onShowNextComment = {
-                        commentOverlayDirection = 1
-                        viewModel.onEvent(MetaDetailsEvent.OnAdvanceCommentOverlay(direction = 1))
-                    },
-                    onDismissCommentOverlay = {
-                        commentOverlayDirection = 0
-                        viewModel.onEvent(MetaDetailsEvent.OnDismissCommentOverlay)
-                    },
-                    commentOverlayDirection = commentOverlayDirection,
-                    restorePlayFocusAfterTrailerBackToken = restorePlayFocusAfterTrailerBackToken,
-                    restoreSharedTrailerFocusToken = restoreSharedTrailerFocusToken,
-                    onSharedTrailerFocusRestored = { restoreSharedTrailerFocusToken = 0 },
-                    onNavigateToCastDetail = onNavigateToCastDetail,
-                    onNavigateToTmdbEntityBrowse = onNavigateToTmdbEntityBrowse,
-                    onNavigateToDetail = onNavigateToDetail,
-                    onPosterLongPress = { item -> viewModel.posterOptions.show(item, null) }
-                )
+                    }
+                }
             }
         }
 

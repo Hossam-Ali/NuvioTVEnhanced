@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,6 +21,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -61,6 +65,7 @@ import com.nuvio.tv.ui.util.recompositionHighlighter
 import coil3.request.transitionFactory
 import com.nuvio.tv.R
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.firstOrNull
 import com.nuvio.tv.ui.components.ImdbRatingSourceLabel
 import com.nuvio.tv.ui.components.TrailerPlayer
 import androidx.compose.ui.res.stringResource
@@ -304,6 +309,9 @@ internal fun HeroTitleBlock(
     mdbListShowOnHero: Boolean = false,
     mdbListRatingOrder: List<String> = com.nuvio.tv.domain.model.MDBListSettings.DEFAULT_RATING_ORDER,
     trailerPlaying: () -> Boolean = { false },
+    footer: @Composable (preview: HeroPreview, description: String?) -> Unit = { _, _ -> },
+    /** True when [footer] shows something: the description is shortened to make room. */
+    hasFooter: (HeroPreview) -> Boolean = { false },
     modifier: Modifier = Modifier
 ) {
     // The providers read hero state that is rewritten on every focus move, often with an equal
@@ -330,10 +338,11 @@ internal fun HeroTitleBlock(
 
     val displayPreview = if (!isEnriching && currentPreview != null) currentPreview else stablePreview
     if (displayPreview == null) return
+    val heroDescription = rememberHeroDescription(displayPreview)
     
-    Box(
+    Column(
         modifier = modifier,
-        contentAlignment = Alignment.BottomStart
+        verticalArrangement = Arrangement.Bottom
     ) {
         HeroTitleContent(
             previewProvider = { displayPreview },
@@ -341,8 +350,11 @@ internal fun HeroTitleBlock(
             showImdbRatings = showImdbRatings,
             mdbListShowOnHero = mdbListShowOnHero,
             mdbListRatingOrder = mdbListRatingOrder,
-            trailerPlaying = trailerPlaying
+            trailerPlaying = trailerPlaying,
+            descriptionMaxLines = if (hasFooter(displayPreview)) 2 else 4,
+            description = heroDescription
         )
+        footer(displayPreview, heroDescription)
     }
 }
 
@@ -353,33 +365,37 @@ private fun HeroTitleContent(
     showImdbRatings: Boolean,
     mdbListShowOnHero: Boolean = false,
     mdbListRatingOrder: List<String> = com.nuvio.tv.domain.model.MDBListSettings.DEFAULT_RATING_ORDER,
-    trailerPlaying: () -> Boolean = { false }
+    trailerPlaying: () -> Boolean = { false },
+    descriptionMaxLines: Int = 4,
+    description: String? = previewProvider()?.description
 ) {
     val preview = previewProvider() ?: return
     // Ratings MDBList hasn't attached to the row item yet are asked for here (batched and cached).
     val ratingsContext = LocalContext.current
-    val posterRatings = remember(ratingsContext) {
+    val heroEntryPoint = remember(ratingsContext) {
         dagger.hilt.android.EntryPointAccessors.fromApplication(
             ratingsContext.applicationContext,
             com.nuvio.tv.core.poster.PosterRatingsEntryPoint::class.java
-        ).posterRatingsRepository()
+        )
     }
+    val posterRatings = remember(heroEntryPoint) { heroEntryPoint.posterRatingsRepository() }
     // Asked for whenever the item has no MDBList ratings yet (or none with IMDb), with or without
     // "Use Ratings on Hero": with an MDBList key the hero always shows its scores.
     val fetchedHeroRatings by androidx.compose.runtime.produceState<com.nuvio.tv.domain.model.MDBListRatings?>(
         initialValue = null, preview.ratingsId, preview.mdbListRatings
     ) {
         val id = preview.ratingsId
-        value = if (preview.mdbListRatings?.imdb == null && !id.isNullOrBlank()) {
-            posterRatings.enabledRatings(id, preview.ratingsType.orEmpty().ifBlank { "movie" }).also {
-                android.util.Log.d("HeroRatings", "id=$id imdb=${it?.imdb} tomatoes=${it?.tomatoes}")
+        value = null
+        if (preview.mdbListRatings?.imdb == null && !id.isNullOrBlank()) {
+            // Titles passed while scrolling aren't looked up: only one focus rests on for a moment.
+            kotlinx.coroutines.delay(HERO_RATINGS_SETTLE_MS)
+            value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                posterRatings.enabledRatings(id, preview.ratingsType.orEmpty().ifBlank { "movie" })
             }
-        } else {
-            null
         }
     }
+    val heroDescription = description
     val highlighterEnabled = LocalRecompositionHighlighterEnabled.current
-    val descriptionMaxLines = 4
     val descriptionScale = if (portraitMode) 0.90f else 1f
     val titleScale = if (portraitMode) 0.92f else 1f
     val metaScale = 1f
@@ -500,7 +516,8 @@ private fun HeroTitleContent(
         // MDBList follows IMDb's own data; add-on numbers can be stale or wrong, so they only fill in.
         // An episode keeps its own IMDb score.
         val heroImdb = if (preview.isEpisodePreview) {
-            preview.imdbRating?.takeIf { it > 0.0 }
+            // An episode with no score yet (not aired, or not rated) shows the show's.
+            preview.imdbRating?.takeIf { it > 0.0 } ?: mdbListHeroRatings?.imdb?.takeIf { it > 0.0 }
         } else {
             mdbListHeroRatings?.imdb?.takeIf { it > 0.0 } ?: preview.imdbRating?.takeIf { it > 0.0 }
         }
@@ -697,13 +714,11 @@ private fun HeroTitleContent(
             }
         }
 
-        preview.description?.takeIf { it.isNotBlank() }?.let { description ->
-            Text(
-                text = description,
+        heroDescription?.takeIf { it.isNotBlank() }?.let { description ->
+            HeroAutoScrollDescription(
+                description = description,
                 style = scaledDescriptionStyle.copy(textDirection = description.contentTextDirection()),
-                color = NuvioTheme.colors.TextPrimary,
-                maxLines = descriptionMaxLines,
-                overflow = TextOverflow.Ellipsis,
+                visibleLines = descriptionMaxLines,
                 modifier = Modifier.graphicsLayer { alpha = metaAlpha }
             )
         }
@@ -827,3 +842,143 @@ private fun HeroMetaDivider(
 /** The ratings the hero shows, in order. */
 private val HERO_RATING_ORDER = listOf("imdb", "tomatoes", "metacritic")
 
+private const val HERO_RATINGS_SETTLE_MS = 350L
+
+
+/** New look: a short bar showing how far into the title you are. */
+@Composable
+internal fun HeroResumeProgress(fraction: Float, modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(4.dp)
+                .clip(RoundedCornerShape(50))
+                .background(Color.White.copy(alpha = 0.22f))
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth(fraction.coerceIn(0f, 1f))
+                    .background(Color.White)
+            )
+        }
+    }
+}
+
+/** The show's own description: from memory when it's been opened, else from its add-on. */
+private suspend fun heroShowDescription(
+    metaRepository: com.nuvio.tv.domain.repository.MetaRepository,
+    type: String,
+    id: String
+): String? {
+    metaRepository.getCachedMeta(type, id)?.description?.takeIf { it.isNotBlank() }?.let { return it }
+    // All add-ons, as the details page asks: right after a cold start nothing is in memory yet, and
+    // the primary add-on alone can answer "use the catalog's copy" with no description.
+    return kotlinx.coroutines.withTimeoutOrNull(8_000L) {
+        metaRepository.getMetaFromAllAddons(type, id)
+            .firstOrNull { it !is com.nuvio.tv.core.network.NetworkResult.Loading }
+            ?.let { it as? com.nuvio.tv.core.network.NetworkResult.Success }
+            ?.data?.description?.takeIf { it.isNotBlank() }
+    }
+}
+
+/** The writing system of the first letter, e.g. ARABIC or LATIN; null for text without letters. */
+internal fun heroTextScript(text: String?): Character.UnicodeScript? {
+    val letter = text?.firstOrNull { Character.isLetter(it) } ?: return null
+    return Character.UnicodeScript.of(letter.code)
+}
+
+/**
+ * The hero's description. An episode without its own summary (often one that hasn't aired), or
+ * with one in another language than the show's title, uses the show's description.
+ */
+@Composable
+private fun rememberHeroDescription(preview: HeroPreview): String? {
+    val context = LocalContext.current
+    val heroEntryPoint = remember(context) {
+        dagger.hilt.android.EntryPointAccessors.fromApplication(
+            context.applicationContext,
+            com.nuvio.tv.core.poster.PosterRatingsEntryPoint::class.java
+        )
+    }
+    val titleScript = remember(preview.title) { heroTextScript(preview.title) }
+    val episodeTextInOtherScript = preview.isEpisodePreview &&
+        titleScript != null && titleScript != Character.UnicodeScript.LATIN &&
+        heroTextScript(preview.description) != titleScript
+    val needsShowDescription = preview.wantsShowDescription || episodeTextInOtherScript
+    val showDescription by androidx.compose.runtime.produceState<String?>(
+        initialValue = null, preview.ratingsId, needsShowDescription
+    ) {
+        val id = preview.ratingsId
+        value = null
+        if (needsShowDescription && !id.isNullOrBlank()) {
+            kotlinx.coroutines.delay(HERO_RATINGS_SETTLE_MS)
+            value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                heroShowDescription(heroEntryPoint.metaRepository(), preview.ratingsType.orEmpty().ifBlank { "series" }, id)
+            }?.takeIf { !episodeTextInOtherScript || heroTextScript(it) == titleScript }
+        }
+    }
+    return (showDescription ?: preview.description)?.let(::withoutSourceCredit)
+}
+
+private val SOURCE_CREDIT_LINE = Regex("(?im)^\\s*(catalog(ue)?\\s+source|source|id)\\s*[:：].*$")
+
+/** Drops lines like "Catalogue source: elCinema.com" that some add-ons append to descriptions. */
+internal fun withoutSourceCredit(text: String): String =
+    text.replace(SOURCE_CREDIT_LINE, "").trim().replace(Regex("\\n{3,}"), "\n\n")
+
+private const val DESCRIPTION_SCROLL_START_DELAY_MS = 3_000L
+private const val DESCRIPTION_SCROLL_HOLD_MS = 2_500L
+private const val DESCRIPTION_SCROLL_MS_PER_PX = 28
+
+/**
+ * A description that shows [visibleLines] lines and, when there's more, slowly scrolls up to the
+ * end once focus has rested on the title for a few seconds, then back to the start, and repeats.
+ */
+@Composable
+private fun HeroAutoScrollDescription(
+    description: String,
+    style: androidx.compose.ui.text.TextStyle,
+    visibleLines: Int,
+    modifier: Modifier = Modifier
+) {
+    val density = LocalDensity.current
+    val scrollState = androidx.compose.foundation.rememberScrollState()
+    val boxHeight = remember(style, visibleLines, density) {
+        with(density) { (style.lineHeight.toPx() * visibleLines).toDp() }
+    }
+    LaunchedEffect(description, visibleLines) {
+        scrollState.scrollTo(0)
+        while (true) {
+            delay(DESCRIPTION_SCROLL_START_DELAY_MS)
+            val distance = scrollState.maxValue
+            if (distance <= 0) return@LaunchedEffect
+            scrollState.animateScrollTo(
+                distance,
+                androidx.compose.animation.core.tween(
+                    durationMillis = distance * DESCRIPTION_SCROLL_MS_PER_PX,
+                    easing = androidx.compose.animation.core.LinearEasing
+                )
+            )
+            delay(DESCRIPTION_SCROLL_HOLD_MS)
+            scrollState.animateScrollTo(0, androidx.compose.animation.core.tween(durationMillis = 600))
+        }
+    }
+    Box(
+        modifier = modifier
+            .heightIn(max = boxHeight)
+            .clipToBounds()
+    ) {
+        Text(
+            text = description,
+            style = style,
+            color = NuvioTheme.colors.TextPrimary,
+            modifier = Modifier.verticalScroll(scrollState, enabled = false)
+        )
+    }
+}

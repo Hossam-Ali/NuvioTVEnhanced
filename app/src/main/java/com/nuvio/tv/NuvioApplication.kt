@@ -91,6 +91,7 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
         com.nuvio.tv.core.poster.PosterRatingsPreferences.attach(this)
         com.nuvio.tv.core.poster.HomeRowStylePreferences.attach(this)
         com.nuvio.tv.core.player.AudioPassthroughPreferences.attach(this)
+        com.nuvio.tv.core.ui.NewLookPreferences.attach(this)
         applyPersonalSetupOnce()
         SentryInitializer.start(this, sentrySettingsDataStore)
         PluginRuntimeHooks.onApplicationCreate(this)

@@ -195,8 +195,11 @@ internal fun autoSubtitleChoice(
     targetLanguage: String,
     audioLanguage: String? = null,
     canTranscribe: Boolean = true,
+    audioInTargetLanguage: Boolean = false,
 ): AutoSubtitleChoice? {
     embeddedSubtitleInTarget(subtitleTracks, targetLanguage)?.let { return AutoSubtitleChoice.Embedded(it) }
+    // Already spoken in the viewer's language: nothing to translate or transcribe.
+    if (audioInTargetLanguage) return addonSubtitleInTarget(addonSubtitles, targetLanguage)?.let { AutoSubtitleChoice.Addon(it) }
     embeddedSubtitleForTranslation(subtitleTracks, targetLanguage, audioLanguage)?.let { return AutoSubtitleChoice.Embedded(it) }
     addonSubtitleInTarget(addonSubtitles, targetLanguage)?.let { return AutoSubtitleChoice.Addon(it) }
     addonSubtitleForTranslation(addonSubtitles, targetLanguage, audioLanguage)?.let { return AutoSubtitleChoice.Addon(it) }
@@ -225,6 +228,17 @@ internal fun rememberedSubtitleMatchesChoice(
 internal fun PlayerRuntimeController.currentAudioLanguageForTranslation(): String? =
     selectedAudioTrackForSubtitleMatching(_uiState.value)?.language
 
+/**
+ * Whether the audio is already in [targetLanguage]: the playing track's language when it names one,
+ * else the title's original language (an Arabic series, say, whose track is unlabelled).
+ */
+internal fun PlayerRuntimeController.isAudioInTargetLanguage(targetLanguage: String): Boolean {
+    val trackLanguage = currentAudioLanguageForTranslation()
+        ?.takeIf { it.isNotBlank() && !it.equals("und", ignoreCase = true) && !it.equals("unknown", ignoreCase = true) }
+    val spoken = trackLanguage ?: contentLanguage ?: return false
+    return PlayerSubtitleUtils.matchesLanguageCode(spoken, targetLanguage)
+}
+
 /** The language "always translate with AI" translates into, or null when it does not apply. */
 internal fun PlayerRuntimeController.preferredEmbeddedTranslationTarget(): String? {
     if (!SubtitleTranslationService.shouldPreferEmbeddedSubtitles()) return null
@@ -252,7 +266,8 @@ internal fun PlayerRuntimeController.rememberedSubtitleDecision(
         return RememberedSubtitleDecision.Wait
     }
     val choice = autoSubtitleChoice(
-        subtitleTracks, state.addonSubtitles, target, currentAudioLanguageForTranslation(), canTranscribe = canTranscribeAudio()
+        subtitleTracks, state.addonSubtitles, target, currentAudioLanguageForTranslation(),
+        canTranscribe = canTranscribeAudio(), audioInTargetLanguage = isAudioInTargetLanguage(target)
     )
     return if (rememberedSubtitleMatchesChoice(remembered, choice)) RememberedSubtitleDecision.Keep else RememberedSubtitleDecision.Replace
 }
@@ -272,13 +287,19 @@ internal fun PlayerRuntimeController.tryAutoSelectEmbeddedSubtitleForTranslation
     if (!SubtitleTranslationService.shouldPreferEmbeddedSubtitles()) return false
     val state = _uiState.value
     if (state.isLoadingAddonSubtitles && autoSubtitleChoiceNeedsAddons(subtitleTracks, targetLanguage)) return true
+    val audioInTarget = isAudioInTargetLanguage(targetLanguage)
     val firstNotice = subtitleTranslationNoSourceNoticeStreamUrl != currentStreamUrl
     val choice = autoSubtitleChoice(
-        subtitleTracks, state.addonSubtitles, targetLanguage, currentAudioLanguageForTranslation(), canTranscribe = canTranscribeAudio()
+        subtitleTracks, state.addonSubtitles, targetLanguage, currentAudioLanguageForTranslation(),
+        canTranscribe = canTranscribeAudio(), audioInTargetLanguage = audioInTarget
     )
     if (choice !is AutoSubtitleChoice.Transcribe) stopAudioTranscription()
     when (choice) {
         null -> {
+            if (audioInTarget) {
+                Log.d(PlayerRuntimeController.TAG, "AUTO_SUB audio already in $targetLanguage: no AI subtitles")
+                return false
+            }
             if (firstNotice) {
                 subtitleTranslationNoSourceNoticeStreamUrl = currentStreamUrl
                 showSubtitleTranslationNotice(context.getString(R.string.subtitle_ai_translation_no_source))

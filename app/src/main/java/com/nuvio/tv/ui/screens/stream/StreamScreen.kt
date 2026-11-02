@@ -438,92 +438,30 @@ fun StreamScreen(
                 modifier = Modifier.fillMaxSize()
             )
         } else {
-            // Content overlay
-            Row(
-                modifier = Modifier.fillMaxSize()
-            ) {
-                // Left side - Title/Logo (centered vertically)
-                LeftContentSection(
-                    title = uiState.title,
-                    logo = uiState.logo,
-                    isEpisode = uiState.isEpisode,
-                    season = uiState.season,
-                    episode = uiState.episode,
-                    episodeName = uiState.episodeName,
-                    runtime = uiState.runtime,
-                    genres = uiState.genres,
-                    year = uiState.year,
-                    modifier = Modifier
-                        .weight(0.4f)
-                        .fillMaxHeight(),
-                    castPeople = castPeople,
-                    onCastClick = { person -> person.tmdbId?.let { onNavigateToCastDetail(it, person.name) } }
-                )
-
-                // Right side - Streams container
-                RightStreamSection(
-                    isLoading = uiState.isLoading,
-                    resumeText = resumeText,
-                    error = uiState.error,
-                    streams = uiState.filteredStreams,
-                    availableAddons = uiState.availableAddons,
-                    sourceChips = uiState.sourceChips,
-                    selectedAddonFilter = uiState.selectedAddonFilter,
-                    showFileSizeBadges = streamBadgeSettings.showFileSizeBadges,
-                    showAddonLogo = streamBadgeSettings.showAddonLogo,
-                    badgePlacement = streamBadgeSettings.badgePlacement,
-                    hasBadgeRules = streamBadgeSettings.rules.hasImport,
-                    onAddonFilterSelected = { viewModel.onEvent(StreamScreenEvent.OnAddonFilterSelected(it)) },
-                    onRefresh = { viewModel.onEvent(StreamScreenEvent.OnRefresh) },
-                    sharedStream = sharedStream,
-                    partySource = partySource,
-                    onSharedStreamSelected = { stream ->
-                        scope.coroutineLaunch {
-                            val playbackInfo = viewModel.resolveStreamForPlayback(stream, saveLastLink = false)
-                            if (playbackInfo != null) {
-                                pendingRestoreOnResume = true
-                                routePlayback(playbackInfo)
-                                viewModel.onEvent(StreamScreenEvent.OnAutoPlayConsumed)
-                            }
+            NewLookStreamContent(
+                uiState = uiState,
+                resumeText = resumeText,
+                shouldRestoreFocus = restoreFocusedStream,
+                onRestoreFocusHandled = {
+                    restoreFocusedStream = false
+                    if (restoreSourceSelection) {
+                        onSourceSelectionRestoreHandled()
+                    }
+                },
+                onStreamSelected = { stream ->
+                    scope.coroutineLaunch {
+                        val playbackInfo = viewModel.resolveStreamForPlayback(stream)
+                        if (playbackInfo != null) {
+                            viewModel.persistBingeGroupForStream(stream)
+                            pendingRestoreOnResume = true
+                            routePlayback(playbackInfo)
+                            viewModel.onEvent(StreamScreenEvent.OnAutoPlayConsumed)
                         }
-                    },
-                    onStreamSelected = { stream ->
-                        val currentIndex = uiState.filteredStreams.indexOfFirst {
-                            it.url == stream.url &&
-                                it.infoHash == stream.infoHash &&
-                                it.ytId == stream.ytId &&
-                                it.serverTarget == stream.serverTarget &&
-                                it.addonName == stream.addonName
-                        }
-                        if (currentIndex >= 0) {
-                            focusedStreamIndex = currentIndex
-                        }
-                        scope.coroutineLaunch {
-                            val playbackInfo = viewModel.resolveStreamForPlayback(stream)
-                            if (playbackInfo != null) {
-                                viewModel.persistBingeGroupForStream(stream)
-                                pendingRestoreOnResume = true
-                                routePlayback(playbackInfo)
-                                viewModel.onEvent(StreamScreenEvent.OnAutoPlayConsumed)
-                            }
-                        }
-                    },
-                    focusedStreamIndex = focusedStreamIndex,
-                    shouldRestoreFocusedStream = restoreFocusedStream,
-                    onRestoreFocusedStreamHandled = {
-                        restoreFocusedStream = false
-                        if (restoreSourceSelection) {
-                            onSourceSelectionRestoreHandled()
-                        }
-                    },
-                    onRetry = { viewModel.onEvent(StreamScreenEvent.OnRetry) },
-                    onExpandStreams = { viewModel.expandFilteredStreamsIfNeeded() },
-                    hazeState = streamHazeState,
-                    modifier = Modifier
-                        .weight(0.6f)
-                        .fillMaxHeight()
-                )
-            }
+                    }
+                },
+                onRetry = { viewModel.onEvent(StreamScreenEvent.OnRetry) },
+                onExpandStreams = { viewModel.expandFilteredStreamsIfNeeded() }
+            )
         }
 
         // Player choice dialog for "Ask every time" preference

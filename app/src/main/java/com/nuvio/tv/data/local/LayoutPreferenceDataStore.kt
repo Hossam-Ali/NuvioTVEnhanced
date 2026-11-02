@@ -155,14 +155,8 @@ class LayoutPreferenceDataStore @Inject constructor(
     private fun positiveOrDefault(value: Int?, defaultValue: Int): Int =
         value?.takeIf { it > 0 } ?: defaultValue
 
-    val selectedLayout: Flow<HomeLayout> = profileFlow { prefs ->
-        val layoutName = prefs[layoutKey] ?: HomeLayout.MODERN.name
-        try {
-            HomeLayout.valueOf(layoutName)
-        } catch (e: IllegalArgumentException) {
-            HomeLayout.MODERN
-        }
-    }
+    // The redesigned home is the only layout; a saved Grid or Classic choice is ignored.
+    val selectedLayout: Flow<HomeLayout> = profileFlow { HomeLayout.MODERN }
 
     val continueWatchingEnabled: Flow<Boolean> = profileFlow { prefs ->
         prefs[continueWatchingEnabledKey] ?: true

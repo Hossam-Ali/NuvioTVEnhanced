@@ -91,6 +91,16 @@ class SubtitleTranslationSourceTest {
     }
 
     @Test
+    fun `audio already in arabic gets no translated or transcribed subtitles`() {
+        fun inArabic(tracks: List<TrackInfo>, subs: List<Subtitle>) =
+            autoSubtitleChoice(tracks, subs, "ar", audioInTargetLanguage = true)
+        assertNull(inArabic(emptyList(), emptyList()))
+        assertNull(inArabic(listOf(track(1, "eng")), listOf(sub("en", "eng"))))
+        assertEquals(2, (inArabic(listOf(track(2, "ara")), emptyList()) as AutoSubtitleChoice.Embedded).track.index)
+        assertEquals("ar", (inArabic(emptyList(), listOf(sub("ar", "ara"))) as AutoSubtitleChoice.Addon).subtitle.id)
+    }
+
+    @Test
     fun `the add-on list only matters when the video has no track to use`() {
         assertTrue(autoSubtitleChoiceNeedsAddons(emptyList(), "ar"))
         assertTrue(autoSubtitleChoiceNeedsAddons(listOf(track(1, "eng", codec = "hdmv/pgs")), "ar"))

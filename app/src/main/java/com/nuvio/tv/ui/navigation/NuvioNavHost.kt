@@ -215,10 +215,12 @@ private fun PlaybackNavHost(
                         contentName = item.progress.name,
                         runtime = null,
                         manualSelection = manualSelection,
-                        returnToDetailOnBack = item.progress.contentType.equals("series", ignoreCase = true),
+                        returnToDetailOnBack = true,
                         returnToHomeOnBack = true,
                         startFromBeginning = startFromBeginning,
-                        contentLanguage = item.contentLanguage
+                        contentLanguage = item.contentLanguage,
+                        // Resuming plays the source last used for this episode or film again.
+                        resumeLastSource = !manualSelection && !startFromBeginning
                     )
                     is ContinueWatchingItem.NextUp -> Screen.Stream.createRoute(
                         videoId = item.info.videoId,
@@ -236,7 +238,7 @@ private fun PlaybackNavHost(
                         contentName = item.info.name,
                         runtime = null,
                         manualSelection = manualSelection,
-                        returnToDetailOnBack = item.info.contentType.equals("series", ignoreCase = true),
+                        returnToDetailOnBack = true,
                         returnToHomeOnBack = true,
                         startFromBeginning = startFromBeginning,
                         contentLanguage = item.info.contentLanguage
@@ -533,6 +535,11 @@ private fun PlaybackNavHost(
                     nullable = true
                     defaultValue = "false"
                 },
+                navArgument("resumeLastSource") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = "false"
+                },
                 navArgument("returnToDetailOnBack") {
                     type = NavType.StringType
                     nullable = true
@@ -588,7 +595,7 @@ private fun PlaybackNavHost(
                     val streamContentId = streamArgs?.getString("contentId").orEmpty()
                     val season = streamArgs?.getString("season")?.toIntOrNull()
                     val episode = streamArgs?.getString("episode")?.toIntOrNull()
-                    if (streamContentType.equals("series", ignoreCase = true) && streamContentId.isNotBlank()) {
+                    if ((streamContentType.equals("series", ignoreCase = true) || returnToDetailOnBack) && streamContentId.isNotBlank()) {
                         val detailEntry = runCatching { navController.getBackStackEntry(Screen.Detail.route) }.getOrNull()
                         if (detailEntry != null) {
                             detailEntry.savedStateHandle["returnFocusSeasonState"] = season
@@ -957,7 +964,7 @@ private fun PlaybackNavHost(
                         }
                         episodeChangedInPlace && autoPlayEnabled -> {
                             // autoplay moved to next episode — skip Stream, go to detail
-                            if (returnToDetailOnBack && contentType.equals("series", ignoreCase = true) && contentId.isNotBlank()) {
+                            if (returnToDetailOnBack && contentId.isNotBlank()) {
                                 returnToDetail()
                             } else {
                                 navController.popBackStack()
@@ -993,10 +1000,14 @@ private fun PlaybackNavHost(
                                 navController.popBackStack()
                             }
                         }
+                        // Started from Continue Watching (or the launcher row): back to the title's page.
+                        returnToDetailOnBack && returnToHomeOnBack && contentId.isNotBlank() -> {
+                            returnToDetail()
+                        }
                         else -> {
                             val returnedToStream = popBackToStream()
                             if (!returnedToStream) {
-                                if (returnToDetailOnBack && contentType.equals("series", ignoreCase = true) && contentId.isNotBlank()) {
+                                if (returnToDetailOnBack && contentId.isNotBlank()) {
                                     returnToDetail()
                                 } else {
                                     navController.popBackStack()

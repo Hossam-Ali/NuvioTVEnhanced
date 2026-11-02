@@ -34,7 +34,8 @@ fun AutoCollectionCover(
     val resolver = remember(context) {
         EntryPointAccessors.fromApplication(context.applicationContext, CollectionCoverEntryPoint::class.java).collectionCoverResolver()
     }
-    val posters by produceState(resolver.cached(collectionId, folderId), collectionId, folderId) {
+    val saved = remember(collectionId, folderId) { resolver.cached(collectionId, folderId) }
+    val posters by produceState(saved, collectionId, folderId) {
         value = resolver.posters(collectionId, folderId)
     }
     if (posters.isEmpty()) {

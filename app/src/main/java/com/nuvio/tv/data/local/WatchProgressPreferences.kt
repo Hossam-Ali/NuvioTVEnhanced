@@ -492,6 +492,10 @@ class WatchProgressPreferences @Inject constructor(
                 when {
                     key in pendingDeleteKeys -> local.remove(key)
                     key in pendingUpsertKeys && existing != null -> preservedLocalItems = true
+                    // Watched further here since the account copy was written (the app closed
+                    // before it pushed, say): keep the newer local position and push it later.
+                    existing != null && remote.contentId == existing.contentId &&
+                        remote.lastWatched < existing.lastWatched -> preservedLocalItems = true
                     existing != null &&
                         lastSuccessfulPushMs != null &&
                         remote.lastWatched <= existing.lastWatched -> {
@@ -547,6 +551,10 @@ class WatchProgressPreferences @Inject constructor(
                 when {
                     key in pendingDeleteKeys -> local.remove(key)
                     key in pendingUpsertKeys && existing != null -> preservedLocalItems = true
+                    // Watched further here since the account copy was written (the app closed
+                    // before it pushed, say): keep the newer local position and push it later.
+                    existing != null && remote.contentId == existing.contentId &&
+                        remote.lastWatched < existing.lastWatched -> preservedLocalItems = true
                     existing != null &&
                         lastSuccessfulPushMs != null &&
                         remote.lastWatched <= existing.lastWatched -> {
