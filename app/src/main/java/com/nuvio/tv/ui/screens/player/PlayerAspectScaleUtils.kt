@@ -56,10 +56,10 @@ internal fun libassOverlayMargins(
     overlayHeight: Int,
     videoBounds: RectF
 ): LibassOverlayMargins? = libassOverlayMargins(
-    overlayWidth, overlayHeight, videoBounds.left, videoBounds.top, videoBounds.right, videoBounds.bottom
+    overlayWidth, overlayHeight,
+    videoBounds.left, videoBounds.top, videoBounds.right, videoBounds.bottom
 )
 
-/** [libassOverlayMargins] from the video rectangle's edges; plain numbers so it runs in JVM tests. */
 internal fun libassOverlayMargins(
     overlayWidth: Int,
     overlayHeight: Int,
@@ -70,8 +70,9 @@ internal fun libassOverlayMargins(
 ): LibassOverlayMargins? {
     if (
         overlayWidth <= 0 || overlayHeight <= 0 ||
-        !left.isFinite() || !top.isFinite() || !right.isFinite() || !bottom.isFinite() ||
-        right - left <= 0f || bottom - top <= 0f
+        !left.isFinite() || !top.isFinite() ||
+        !right.isFinite() || !bottom.isFinite() ||
+        right <= left || bottom <= top
     ) {
         return null
     }

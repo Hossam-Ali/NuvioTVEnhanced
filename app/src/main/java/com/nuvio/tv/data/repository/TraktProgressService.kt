@@ -1107,10 +1107,10 @@ class TraktProgressService @Inject constructor(
                 null
             }
             watchedMoviesDeferred?.let {
-                try { it.await() } catch (_: Exception) { }
+                try { it.await() } catch (e: CancellationException) { throw e } catch (_: Exception) { }
             }
             seedsDeferred?.let {
-                try { it.await() } catch (_: Exception) { }
+                try { it.await() } catch (e: CancellationException) { throw e } catch (_: Exception) { }
             }
 
             if (snapshot == null) {
