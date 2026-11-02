@@ -132,6 +132,24 @@ class TmdbMetadataServiceTest {
     }
 
     @Test
+    fun `episode names and overviews prefer the show's own language where TMDB has them`() {
+        val english = mapOf(
+            (1 to 1) to TmdbEpisodeEnrichment("Flower Bouquet", "Mohammad takes the first step", "t1", "2025-03-01", 30),
+            (1 to 2) to TmdbEpisodeEnrichment("The Second Wife", "English overview", null, null, null),
+        )
+        val arabic = mapOf(
+            (1 to 1) to TmdbEpisodeEnrichment("باقة ورد", "", null, null, null),
+            (1 to 3) to TmdbEpisodeEnrichment("الحلقة 3", "وصف", null, null, null),
+        )
+        val merged = preferOriginalEpisodeText(english, arabic)
+        assertEquals("باقة ورد", merged[1 to 1]?.title)
+        assertEquals("Mohammad takes the first step", merged[1 to 1]?.overview)
+        assertEquals("t1", merged[1 to 1]?.thumbnail)
+        assertEquals("The Second Wife", merged[1 to 2]?.title)
+        assertEquals("الحلقة 3", merged[1 to 3]?.title)
+    }
+
+    @Test
     fun `descriptionForOriginalTitle keeps an addon description written like the original title`() {
         val enrichment = TmdbEnrichment(
             localizedTitle = "Limit", description = "English overview", genres = emptyList(), backdrop = null, logo = null,
@@ -143,6 +161,21 @@ class TmdbMetadataServiceTest {
         assertEquals("وصف من الإضافة", enrichment.descriptionForOriginalTitle("وصف من الإضافة"))
         assertEquals("English overview", enrichment.descriptionForOriginalTitle("Addon English text"))
         assertEquals("English overview", enrichment.descriptionForOriginalTitle(null))
+    }
+
+    @Test
+    fun `the original language counts only for a foreign show with its own title`() {
+        fun show(language: String?, originalTitle: String?) = TmdbEnrichment(
+            localizedTitle = "x", description = null, genres = emptyList(), backdrop = null, logo = null, poster = null,
+            directorMembers = emptyList(), writerMembers = emptyList(), castMembers = emptyList(), releaseInfo = null,
+            rating = null, runtimeMinutes = null, director = emptyList(), writer = emptyList(), productionCompanies = emptyList(),
+            networks = emptyList(), ageRating = null, status = null, countries = null, language = language,
+            collectionId = null, collectionName = null, originalTitle = originalTitle
+        )
+        assertEquals("ar", show("ar", "نص الشعب اسمه محمد").originalLanguageDifferentFrom("en-US"))
+        assertNull(show("ar", "نص الشعب اسمه محمد").originalLanguageDifferentFrom("ar"))
+        assertNull(show("en", "Game of Thrones").originalLanguageDifferentFrom("en"))
+        assertNull(show("ar", null).originalLanguageDifferentFrom("en"))
     }
 
     @Test

@@ -7,6 +7,7 @@ import com.nuvio.tv.data.repository.SkipInterval
 import com.nuvio.tv.domain.model.ContentType
 import com.nuvio.tv.domain.model.Meta
 import com.nuvio.tv.domain.model.Stream
+import com.nuvio.tv.domain.model.Video
 import com.nuvio.tv.domain.model.resolveContentLanguage
 import com.nuvio.tv.domain.model.normalizeLanguageCode
 import com.nuvio.tv.data.local.AudioLanguageOption
@@ -133,22 +134,25 @@ private suspend fun PlayerRuntimeController.enrichDescriptionFromTmdb(id: String
     // For series, try to get episode-level overview and title from TMDB.
     val episodeEnrichment = if (isSeries && season != null && episode != null) {
         runCatching {
-            tmdbMetadataService.fetchEpisodeEnrichment(
+            tmdbMetadataService.fetchEpisodeEnrichmentForShow(
                 tmdbId = tmdbId,
                 seasonNumbers = listOf(season),
-                language = settings.language
+                language = settings.language,
+                show = enrichment
             )[season to episode]
         }.getOrNull()
     } else null
 
-    val tmdbDescription = episodeEnrichment?.overview ?: enrichment.description
+    val inShowLanguage = enrichment.originalLanguageDifferentFrom(settings.language) != null
+    val tmdbDescription = episodeEnrichment?.overview
+        ?: if (inShowLanguage) enrichment.descriptionForOriginalTitle(null) else enrichment.description
     if (settings.useBasicInfo && !tmdbDescription.isNullOrBlank()) {
         _uiState.update { it.copy(description = tmdbDescription) }
     }
 
     // Enrich title from TMDB (localized).
     if (settings.useBasicInfo) {
-        val tmdbTitle = enrichment.localizedTitle
+        val tmdbTitle = if (inShowLanguage) enrichment.originalTitle else enrichment.localizedTitle
         if (!tmdbTitle.isNullOrBlank()) {
             _uiState.update { it.copy(title = tmdbTitle) }
         }
@@ -569,3 +573,35 @@ internal fun PlayerRuntimeController.fetchParentalGuide(id: String?, type: Strin
         }
     }
 }
+
+/**
+ * Names the episodes in the panel like the details screen does: TMDB's names and overviews, in
+ * the show's own language for a show named by its original title (an Arabic series in Arabic).
+ */
+internal suspend fun PlayerRuntimeController.enrichEpisodesPanelFromTmdb(id: String?, type: String?, episodes: List<Video>) {
+    if (id.isNullOrBlank() || type.isNullOrBlank() || episodes.isEmpty()) return
+    val settings = tmdbSettingsDataStore.settings.first()
+    if (!settings.enabled || !settings.useEpisodes) return
+    val tmdbId = runCatching { tmdbService.ensureTmdbId(id, type) }.getOrNull() ?: return
+    val byEpisode = runCatching {
+        val show = tmdbMetadataService.fetchEnrichment(tmdbId = tmdbId, contentType = ContentType.SERIES, language = settings.language)
+        tmdbMetadataService.fetchEpisodeEnrichmentForShow(
+            tmdbId = tmdbId,
+            seasonNumbers = episodes.mapNotNull { it.season }.distinct(),
+            language = settings.language,
+            show = show
+        )
+    }.getOrNull().orEmpty()
+    if (byEpisode.isEmpty()) return
+    fun Video.named(): Video {
+        val episode = season?.let { s -> this.episode?.let { e -> byEpisode[s to e] } } ?: return this
+        return copy(
+            title = episode.title?.takeIf { it.isNotBlank() } ?: title,
+            overview = episode.overview?.takeIf { it.isNotBlank() } ?: overview
+        )
+    }
+    _uiState.update { state ->
+        state.copy(episodesAll = state.episodesAll.map { it.named() }, episodes = state.episodes.map { it.named() })
+    }
+}
+

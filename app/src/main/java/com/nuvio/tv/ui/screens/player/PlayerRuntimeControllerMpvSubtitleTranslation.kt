@@ -42,6 +42,11 @@ internal fun PlayerRuntimeController.startMpvSubtitleTranslation() {
         var ticks = 0
         var prefetchedAddonUrl: String? = null
         while (isActive) {
+            // Subtitles made from the audio draw themselves into the same overlay.
+            if (isAudioTranscriptionActive()) {
+                delay(MPV_IDLE_POLL_MS)
+                continue
+            }
             val view = mpvView
             val translator = if (view != null) mpvSubtitleTranslator() else null
             if (view == null || translator == null) {

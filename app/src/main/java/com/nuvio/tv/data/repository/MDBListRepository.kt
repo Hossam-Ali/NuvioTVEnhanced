@@ -31,7 +31,11 @@ class MDBListRepository internal constructor(
 
     fun isAvailable(settings: MDBListSettings): Boolean = settings.enabled && api.credential(settings.apiKey) != null
 
-    suspend fun getImdbRatingForItem(itemId: String, itemType: String): Double? {
+    suspend fun getImdbRatingForItem(itemId: String, itemType: String): Double? =
+        getAllRatingsForItem(itemId, itemType)?.imdb
+
+    /** Every rating MDBList has for an item, whatever the detail-page provider settings; null without MDBList. */
+    suspend fun getAllRatingsForItem(itemId: String, itemType: String): MDBListRatings? {
         val settings = settingsDataStore.settings.first()
         if (!settings.enabled) return null
         val credential = api.credential(settings.apiKey) ?: return null
@@ -67,7 +71,7 @@ class MDBListRepository internal constructor(
             mediaType = mediaType
         ) ?: return null
 
-        return ratingsLoader.getRatings(ref.provider, ref.mediaType, ref.id, credential)?.imdb
+        return ratingsLoader.getRatings(ref.provider, ref.mediaType, ref.id, credential)
     }
 
     suspend fun getRatingsForMeta(

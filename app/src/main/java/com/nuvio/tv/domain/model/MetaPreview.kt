@@ -36,6 +36,8 @@ data class MetaPreview(
     val voteCount: Int? = null,
     val sourceAddonBaseUrl: String? = null,
     val mdbListRatings: MDBListRatings? = null,
+    /** TMDB's audience score, from TMDB enrichment. */
+    val tmdbRating: Float? = null,
     val mdbListRatingOrder: List<String> = MDBListSettings.DEFAULT_RATING_ORDER
 ) {
     val apiType: String

@@ -3,6 +3,7 @@ package com.nuvio.tv.ui.screens.player
 import com.nuvio.tv.domain.model.Subtitle
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -35,9 +36,9 @@ class SubtitleTranslationSourceTest {
     }
 
     @Test
-    fun `an english add-on comes before the video's own track in another language`() {
+    fun `the video's own track in another language comes before an english add-on`() {
         val source = subtitleSourceForTranslation(listOf(track(7, "fre")), listOf(sub("en", "eng")), "ar")
-        assertEquals("en", (source as TranslationSource.Addon).subtitle.id)
+        assertEquals(7, (source as TranslationSource.Embedded).track.index)
     }
 
     @Test
@@ -58,5 +59,56 @@ class SubtitleTranslationSourceTest {
         val source = subtitleSourceForTranslation(tracks, listOf(sub("tr", "tur")), "ar")
         assertTrue(source is TranslationSource.Addon)
         assertNull(subtitleSourceForTranslation(tracks, listOf(sub("ar", "ara")), "ar"))
+    }
+
+    private fun choice(tracks: List<TrackInfo>, subs: List<Subtitle>, canTranscribe: Boolean = true) =
+        autoSubtitleChoice(tracks, subs, "ar", canTranscribe = canTranscribe)
+
+    @Test
+    fun `the video's own arabic track is shown as it is, before anything translated`() {
+        val result = choice(listOf(track(1, "eng"), track(2, "ara", codec = "hdmv/pgs")), listOf(sub("ar", "ara")))
+        assertEquals(2, (result as AutoSubtitleChoice.Embedded).track.index)
+    }
+
+    @Test
+    fun `without an arabic track, the video's english then other tracks are translated`() {
+        assertEquals(3, (choice(listOf(track(2, "fre"), track(3, "eng")), listOf(sub("ar", "ara"))) as AutoSubtitleChoice.Embedded).track.index)
+        assertEquals(2, (choice(listOf(track(2, "fre")), listOf(sub("ar", "ara"), sub("en", "eng"))) as AutoSubtitleChoice.Embedded).track.index)
+    }
+
+    @Test
+    fun `without video tracks, an arabic add-on comes first, then english, then any other`() {
+        assertEquals("ar", (choice(emptyList(), listOf(sub("en", "eng"), sub("ar", "ara"))) as AutoSubtitleChoice.Addon).subtitle.id)
+        assertEquals("en", (choice(emptyList(), listOf(sub("fr", "fre"), sub("en", "eng"))) as AutoSubtitleChoice.Addon).subtitle.id)
+        assertEquals("fr", (choice(listOf(track(1, "eng", codec = "hdmv/pgs")), listOf(sub("fr", "fre"))) as AutoSubtitleChoice.Addon).subtitle.id)
+    }
+
+    @Test
+    fun `with no subtitle at all, the audio is transcribed when possible`() {
+        assertEquals(AutoSubtitleChoice.Transcribe, choice(emptyList(), emptyList()))
+        assertNull(choice(emptyList(), emptyList(), canTranscribe = false))
+        assertEquals(AutoSubtitleChoice.Transcribe, choice(listOf(track(1, "eng", codec = "hdmv/pgs")), listOf(sub("en-forced", "eng"))))
+    }
+
+    @Test
+    fun `the add-on list only matters when the video has no track to use`() {
+        assertTrue(autoSubtitleChoiceNeedsAddons(emptyList(), "ar"))
+        assertTrue(autoSubtitleChoiceNeedsAddons(listOf(track(1, "eng", codec = "hdmv/pgs")), "ar"))
+        assertFalse(autoSubtitleChoiceNeedsAddons(listOf(track(1, "eng")), "ar"))
+        assertFalse(autoSubtitleChoiceNeedsAddons(listOf(track(1, "ara", codec = "hdmv/pgs")), "ar"))
+    }
+
+    @Test
+    fun `a remembered subtitle is kept only when it matches the automatic choice`() {
+        val internalFrench = PlayerRuntimeController.RememberedSubtitleSelection.Internal(
+            PlayerRuntimeController.RememberedTrackSelection(language = "fre", name = "French")
+        )
+        val addonEnglish = PlayerRuntimeController.RememberedSubtitleSelection.Addon("x", "https://subs/x.srt", "eng", "OpenSubtitles")
+        val embeddedEnglish = AutoSubtitleChoice.Embedded(track(3, "eng"))
+        assertFalse(rememberedSubtitleMatchesChoice(internalFrench, embeddedEnglish))
+        assertTrue(rememberedSubtitleMatchesChoice(internalFrench, AutoSubtitleChoice.Embedded(track(4, "fre"))))
+        assertFalse(rememberedSubtitleMatchesChoice(addonEnglish, embeddedEnglish))
+        assertTrue(rememberedSubtitleMatchesChoice(addonEnglish, AutoSubtitleChoice.Addon(sub("en2", "eng"))))
+        assertTrue(rememberedSubtitleMatchesChoice(PlayerRuntimeController.RememberedSubtitleSelection.Disabled, embeddedEnglish))
     }
 }

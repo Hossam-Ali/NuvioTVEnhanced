@@ -522,6 +522,8 @@ private fun CastMemberItem(
                         contentDescription = null,
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop,
+                        // Headshots are portraits; a centred round crop cuts the top of the head.
+                        alignment = com.nuvio.tv.ui.screens.stream.PortraitFaceAlignment,
                         placeholder = bgPainter,
                         error = bgPainter,
                         fallback = bgPainter

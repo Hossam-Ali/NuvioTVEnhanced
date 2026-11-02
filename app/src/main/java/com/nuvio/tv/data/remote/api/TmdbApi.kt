@@ -615,7 +615,8 @@ data class TmdbMultiSearchResult(
     @Json(name = "release_date") val releaseDate: String? = null,
     @Json(name = "first_air_date") val firstAirDate: String? = null,
     @Json(name = "vote_average") val voteAverage: Double? = null,
-    @Json(name = "known_for_department") val knownForDepartment: String? = null
+    @Json(name = "known_for_department") val knownForDepartment: String? = null,
+    @Json(name = "original_language") val originalLanguage: String? = null
 )
 
 @JsonClass(generateAdapter = true)
@@ -696,6 +697,7 @@ data class TmdbPersonCreditCast(
     @Json(name = "name") val name: String? = null,
     @Json(name = "original_title") val originalTitle: String? = null,
     @Json(name = "original_name") val originalName: String? = null,
+    @Json(name = "original_language") val originalLanguage: String? = null,
     @Json(name = "media_type") val mediaType: String? = null,
     @Json(name = "poster_path") val posterPath: String? = null,
     @Json(name = "backdrop_path") val backdropPath: String? = null,
@@ -715,6 +717,7 @@ data class TmdbPersonCreditCrew(
     @Json(name = "name") val name: String? = null,
     @Json(name = "original_title") val originalTitle: String? = null,
     @Json(name = "original_name") val originalName: String? = null,
+    @Json(name = "original_language") val originalLanguage: String? = null,
     @Json(name = "media_type") val mediaType: String? = null,
     @Json(name = "poster_path") val posterPath: String? = null,
     @Json(name = "backdrop_path") val backdropPath: String? = null,

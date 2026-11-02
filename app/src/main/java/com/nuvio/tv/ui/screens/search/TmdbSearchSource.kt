@@ -9,6 +9,8 @@ import com.nuvio.tv.domain.model.MetaPreview
 import com.nuvio.tv.domain.model.PosterShape
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
 
 data class TmdbSearchResults(val titles: List<MetaPreview>, val people: List<MetaPreview>) {
@@ -27,16 +29,25 @@ class TmdbSearchSource @Inject constructor(
     private val tmdbApi: TmdbApi,
     private val tmdbSettingsDataStore: TmdbSettingsDataStore,
 ) {
-    suspend fun search(query: String): TmdbSearchResults {
+    suspend fun search(query: String): TmdbSearchResults = coroutineScope {
         val apiKey = TmdbApiKey.current()
-        if (apiKey.isBlank()) return TmdbSearchResults.EMPTY
+        if (apiKey.isBlank()) return@coroutineScope TmdbSearchResults.EMPTY
         val language = runCatching { tmdbSettingsDataStore.settings.first().language }.getOrNull()
+        val appLanguage = language.orEmpty().lowercase().substringBefore('-').ifBlank { "en" }
+        // English titles keep their English name and overview, so a second search in English runs
+        // alongside when the app language is another one.
+        val englishDeferred = if (appLanguage != "en") {
+            async { runCatching { tmdbApi.searchMulti(apiKey = apiKey, query = query, language = "en-US").body()?.results }.getOrNull().orEmpty() }
+        } else {
+            null
+        }
         val results = runCatching {
             tmdbApi.searchMulti(apiKey = apiKey, query = query, language = language)
                 .body()?.results
         }.getOrNull().orEmpty()
-        return TmdbSearchResults(
-            titles = results.mapNotNull { it.toTitle() }.take(MAX_TITLES),
+        val english = englishDeferred?.await().orEmpty().associateBy { "${it.mediaType}:${it.id}" }
+        TmdbSearchResults(
+            titles = results.mapNotNull { it.inOwnLanguage(appLanguage, english["${it.mediaType}:${it.id}"]).toTitle() }.take(MAX_TITLES),
             people = results.mapNotNull { it.toPerson() }.take(MAX_PEOPLE),
         )
     }
@@ -90,3 +101,25 @@ class TmdbSearchSource @Inject constructor(
         const val MAX_PEOPLE = 15
     }
 }
+
+/**
+ * A result named in its own language, as on the home screen: an English film keeps its English
+ * title and overview ([english], from the English search), a title in the app language keeps the
+ * localized ones, and any other is named by its original title.
+ */
+internal fun TmdbMultiSearchResult.inOwnLanguage(appLanguage: String, english: TmdbMultiSearchResult?): TmdbMultiSearchResult {
+    val original = originalLanguage?.lowercase()?.takeIf { it.isNotBlank() } ?: return this
+    return when {
+        original == appLanguage -> this
+        original == "en" && english != null -> copy(
+            title = english.title ?: title,
+            name = english.name ?: name,
+            overview = english.overview?.takeIf { it.isNotBlank() } ?: overview
+        )
+        else -> copy(
+            title = originalTitle?.takeIf { it.isNotBlank() } ?: title,
+            name = originalName?.takeIf { it.isNotBlank() } ?: name
+        )
+    }
+}
+

@@ -26,6 +26,8 @@ data class SubtitleTranslationSettings(
     val targetLanguage: String = SUBTITLE_TRANSLATION_TARGET_PREFERRED,
     /** Pick the video's embedded subtitle track and translate it instead of add-on subtitles. */
     val preferEmbeddedSubtitles: Boolean = true,
+    /** With no subtitle at all, make subtitles from the audio (OpenRouter only). */
+    val transcribeAudio: Boolean = true,
 ) {
     val apiKey: String
         get() = when (provider) {
@@ -55,7 +57,7 @@ data class SubtitleTranslationSettings(
     /** Never prints the keys, so the settings can be logged safely. */
     override fun toString(): String =
         "SubtitleTranslationSettings(enabled=$enabled, provider=$provider, model=$model, " +
-            "targetLanguage=$targetLanguage, preferEmbeddedSubtitles=$preferEmbeddedSubtitles, " +
+            "targetLanguage=$targetLanguage, preferEmbeddedSubtitles=$preferEmbeddedSubtitles, transcribeAudio=$transcribeAudio, " +
             "hasApiKey=${apiKey.isNotEmpty()})"
 }
 

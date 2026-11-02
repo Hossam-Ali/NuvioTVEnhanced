@@ -74,6 +74,9 @@ internal fun LayoutHomeLayoutSection(
         }
     }
 
+    HomeEditorEntry(uiState = uiState, onEvent = onEvent)
+    HomeSetupRows()
+
     if (uiState.selectedLayout == HomeLayout.MODERN) {
         SettingsToggleRow(
             title = stringResource(R.string.layout_fullscreen_hero_backdrop),
@@ -190,6 +193,7 @@ internal fun LayoutHomeContentSection(
             onEvent(LayoutSettingsEvent.SetHomeImdbRatingsVisibility(visibility))
         }
     )
+    PosterRatingsSettingsItems()
 }
 
 @Composable

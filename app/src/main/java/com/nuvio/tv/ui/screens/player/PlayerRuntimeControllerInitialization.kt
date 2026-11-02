@@ -2255,6 +2255,16 @@ private class SubtitleOffsetRenderersFactory(
                 DefaultAudioSink.Builder(context)
                     .setAudioCapabilities(buildStableAudioCapabilities(context, true))
             }
+            // Formats switched off in Passthrough formats are decoded by the app instead.
+            com.nuvio.tv.core.player.AudioPassthroughPreferences.blockedEncodings().isNotEmpty() -> {
+                DefaultAudioSink.Builder(context)
+                    .setAudioCapabilities(
+                        withoutEncodings(
+                            AudioCapabilities.getCapabilities(context, AudioAttributes.DEFAULT, null),
+                            com.nuvio.tv.core.player.AudioPassthroughPreferences.blockedEncodings()
+                        )
+                    )
+            }
             else -> DefaultAudioSink.Builder(context)
         }
             .setEnableFloatOutput(enableFloatOutput)
@@ -2658,6 +2668,16 @@ private fun DefaultRenderersFactory.applyMapDv7ToHevcIfSupported(enabled: Boolea
     }.getOrElse { this }
 }
 
+/** [capabilities] without [blocked] encodings, so those are decoded to PCM instead of passed through. */
+internal fun withoutEncodings(capabilities: AudioCapabilities, blocked: Set<Int>): AudioCapabilities =
+    AudioCapabilities(keptEncodings(capabilities::supportsEncoding, blocked), capabilities.maxChannelCount)
+
+/** The encodings the output [supports], minus [blocked] ones. */
+internal fun keptEncodings(supports: (Int) -> Boolean, blocked: Set<Int>): IntArray = intArrayOf(
+    C.ENCODING_PCM_16BIT, C.ENCODING_AC3, C.ENCODING_AC4, C.ENCODING_E_AC3, C.ENCODING_E_AC3_JOC,
+    C.ENCODING_DOLBY_TRUEHD, C.ENCODING_DTS, C.ENCODING_DTS_HD, C.ENCODING_DTS_UHD_P2
+).filter { supports(it) && it !in blocked }.toIntArray()
+
 private fun buildStableAudioCapabilities(context: Context, forceOpticalPassthrough: Boolean = false): AudioCapabilities {
     val detected = AudioCapabilities.getCapabilities(context, AudioAttributes.DEFAULT, null)
     val supportedEncodings = mutableListOf<Int>()
@@ -2673,6 +2693,7 @@ private fun buildStableAudioCapabilities(context: Context, forceOpticalPassthrou
     if ((detected.supportsEncoding(C.ENCODING_DTS_HD) || detected.supportsEncoding(C.ENCODING_DTS_UHD_P2)) && C.ENCODING_DTS !in supportedEncodings) {
         supportedEncodings += C.ENCODING_DTS
     }
+    supportedEncodings.removeAll(com.nuvio.tv.core.player.AudioPassthroughPreferences.blockedEncodings())
     if (forceOpticalPassthrough) {
         val forced = intArrayOf(
             C.ENCODING_AC3,
@@ -2682,7 +2703,7 @@ private fun buildStableAudioCapabilities(context: Context, forceOpticalPassthrou
             C.ENCODING_DTS_HD
         )
         for (encoding in forced) {
-            if (encoding !in supportedEncodings) {
+            if (encoding !in supportedEncodings && encoding !in com.nuvio.tv.core.player.AudioPassthroughPreferences.blockedEncodings()) {
                 supportedEncodings += encoding
             }
         }

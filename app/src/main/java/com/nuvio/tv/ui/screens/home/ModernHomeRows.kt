@@ -122,6 +122,8 @@ import com.nuvio.tv.ui.components.continueWatchingShouldBlur
 import com.nuvio.tv.ui.components.continueWatchingUsesEpisodeThumbnails
 import com.nuvio.tv.ui.components.LocalCardDepthStyle
 import com.nuvio.tv.ui.components.MonochromePosterPlaceholder
+import com.nuvio.tv.ui.components.PosterRatingBadges
+import com.nuvio.tv.ui.components.AutoCollectionCover
 import com.nuvio.tv.ui.components.TrailerPlayer
 import com.nuvio.tv.ui.components.WatchedMarker
 import com.nuvio.tv.ui.components.placeholderCardShimmer
@@ -1392,6 +1394,10 @@ private fun ModernCarouselCard(
                                 fontSize = 48.sp
                             )
                         }
+                    } else if (isCollectionFolder && payload != null) {
+                        AutoCollectionCover(collectionId = payload.collectionId, folderId = payload.folderId) {
+                            MonochromePosterPlaceholder()
+                        }
                     } else {
                         MonochromePosterPlaceholder()
                     }
@@ -1436,6 +1442,12 @@ private fun ModernCarouselCard(
                                 modifier = Modifier.fillMaxSize()
                             )
                         }
+                    }
+                }
+
+                if (!shouldPlayTrailerInCard && item.payload is ModernPayload.Catalog) {
+                    item.metaPreview?.let { meta ->
+                        PosterRatingBadges(meta.id, meta.apiType, meta.imdbRating, meta.tmdbRating)
                     }
                 }
 

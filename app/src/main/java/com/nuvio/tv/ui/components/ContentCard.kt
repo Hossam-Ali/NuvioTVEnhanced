@@ -416,6 +416,10 @@ fun ContentCard(
                     MonochromePosterPlaceholder(contentDescription = item.name)
                 }
 
+                if (!isPlaceholderItem && !isBackdropExpanded) {
+                    PosterRatingBadges(item.id, item.apiType, item.imdbRating, item.tmdbRating)
+                }
+
                 // Landscape mode: show clearlogo or title overlay on backdrop cards
                 val isLandscapeBackdropCard = globalLandscape &&
                     effectiveLandscapePoster.isNullOrBlank()

@@ -9,6 +9,8 @@ import com.nuvio.tv.domain.model.CatalogRow
 import com.nuvio.tv.domain.model.Collection
 import com.nuvio.tv.domain.model.PLACEHOLDER_IMAGE_URL
 import com.nuvio.tv.domain.model.stableItemKey
+import com.nuvio.tv.domain.model.legacyKey
+import com.nuvio.tv.core.poster.landscapeFor
 import com.nuvio.tv.ui.util.StableList
 import com.nuvio.tv.ui.util.asStable
 import kotlinx.coroutines.withContext
@@ -25,7 +27,9 @@ internal data class ModernHomePresentationInput(
     val showImdbRatings: Boolean,
     val detailImdbRatingsVisibility: com.nuvio.tv.domain.model.DetailImdbRatingsVisibility =
         com.nuvio.tv.domain.model.DetailImdbRatingsVisibility.SHOW_ALL,
-    val localeTag: String
+    val localeTag: String,
+    /** Card style per row from the home editor, keyed like the catalog order. */
+    val rowStyles: Map<String, com.nuvio.tv.core.poster.HomeRowStyle> = emptyMap()
 )
 
 internal fun buildModernHomePresentation(
@@ -139,13 +143,15 @@ internal fun buildModernHomePresentation(
                     }
                     renderedCatalogRows++
                     val rowKey = catalogRowKey(row)
+                    // A row can have its own card shape, set in the home editor.
+                    val rowLandscape = input.rowStyles.landscapeFor(row.legacyKey(), input.useLandscapePosters)
                     activeCatalogKeys += rowKey
                     val cached = cache.catalogRows[rowKey]
                     val currentLocaleTag = LocaleCache.localeTag
                     val canReuseMappedRow =
                         cached != null &&
                             cached.source == row &&
-                            cached.useLandscapePosters == input.useLandscapePosters &&
+                            cached.useLandscapePosters == rowLandscape &&
                             cached.showCatalogTypeSuffix == input.showCatalogTypeSuffix &&
                             cached.showImdbRatings == input.showImdbRatings &&
                             cached.localeTag == currentLocaleTag
@@ -175,6 +181,7 @@ internal fun buildModernHomePresentation(
                             supportsSkip = row.supportsSkip,
                             hasMore = row.hasMore,
                             isLoading = row.isLoading,
+                            useLandscapePosters = rowLandscape.takeIf { it != input.useLandscapePosters },
                             items = row.items.mapIndexed { itemIndex, item ->
                                 val occurrence = rowItemOccurrenceCounts.getOrDefault(item.id, 0)
                                 rowItemOccurrenceCounts[item.id] = occurrence + 1
@@ -182,7 +189,7 @@ internal fun buildModernHomePresentation(
                                 val cachedItem = rowItemCache[cacheKey]
                                 if (cachedItem != null &&
                                     cachedItem.source == item &&
-                                    cachedItem.useLandscapePosters == input.useLandscapePosters &&
+                                    cachedItem.useLandscapePosters == rowLandscape &&
                                     cachedItem.showFullReleaseDate == input.showFullReleaseDate &&
                                     cachedItem.showImdbRatings == input.showImdbRatings
                                 ) {
@@ -195,7 +202,7 @@ internal fun buildModernHomePresentation(
                                     val built = buildCatalogItem(
                                         item = item,
                                         row = row,
-                                        useLandscapePosters = input.useLandscapePosters,
+                                        useLandscapePosters = rowLandscape,
                                         occurrence = occurrence,
                                         strTypeMovie = strTypeMovie,
                                         strTypeSeries = strTypeSeries,
@@ -205,7 +212,7 @@ internal fun buildModernHomePresentation(
                                     ).copy(key = row.stableItemKey(item, occurrence))
                                     rowItemCache[cacheKey] = CachedCarouselItem(
                                         source = item,
-                                        useLandscapePosters = input.useLandscapePosters,
+                                        useLandscapePosters = rowLandscape,
                                         showFullReleaseDate = input.showFullReleaseDate,
                                         showImdbRatings = input.showImdbRatings,
                                         carouselItem = built
@@ -218,7 +225,7 @@ internal fun buildModernHomePresentation(
 
                     cache.catalogRows[rowKey] = ModernCatalogRowBuildCacheEntry(
                         source = row,
-                        useLandscapePosters = input.useLandscapePosters,
+                        useLandscapePosters = rowLandscape,
                         showCatalogTypeSuffix = input.showCatalogTypeSuffix,
                         showImdbRatings = input.showImdbRatings,
                         localeTag = currentLocaleTag,

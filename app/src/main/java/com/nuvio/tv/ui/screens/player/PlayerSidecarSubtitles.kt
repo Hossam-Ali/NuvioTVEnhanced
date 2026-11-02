@@ -94,6 +94,7 @@ internal fun PlayerRuntimeController.bindExoSubtitleView(subtitleView: SubtitleV
 }
 
 internal fun PlayerRuntimeController.stopSidecarAddonSubtitle(clearView: Boolean = true) {
+    if (isTranscriptionSidecarKey(activeSidecarSubtitleKey)) endAudioTranscriptionJobs()
     sidecarSubtitleJob?.cancel()
     sidecarSubtitleJob = null
     activeSidecarSubtitleKey = null
@@ -201,6 +202,39 @@ internal fun PlayerRuntimeController.startSidecarAddonSubtitle(
         }
     }
     return true
+}
+
+/**
+ * Shows subtitles the app makes itself (from the audio) through this path, under [key]. Cues are
+ * added with [updateGeneratedSidecarCues] as they are made. Returns the attachment's generation.
+ */
+internal fun PlayerRuntimeController.startGeneratedSidecarSubtitle(key: String, language: String): Long {
+    if (activeSidecarSubtitleKey != null && activeSidecarSubtitleKey != key) stopSidecarAddonSubtitle(clearView = true)
+    sidecarSubtitleJob?.cancel()
+    val generation = ++sidecarGenerationCounter
+    activeSidecarGeneration = generation
+    AutoSyncSyncedSubtitle.clear() // AutoSync hook
+    activeSidecarSubtitleKey = key
+    activeSidecarSubtitleLanguage = language
+    lastSidecarCueSignature = null
+    sidecarTimedCues = emptyList()
+    postToSubtitleView { view ->
+        view.setTag(R.id.player_view_sidecar_generation_tag, key)
+        showSidecarCues(view, emptyList())
+    }
+    sidecarSubtitleJob = scope.launch {
+        while (isActive && activeSidecarSubtitleKey == key && activeSidecarGeneration == generation) {
+            renderSidecarCuesAtCurrentPosition()
+            delay(SIDECAR_RENDER_INTERVAL_MS)
+        }
+    }
+    return generation
+}
+
+internal fun PlayerRuntimeController.updateGeneratedSidecarCues(key: String, generation: Long, cues: List<CuesWithTiming>) {
+    if (activeSidecarSubtitleKey != key || activeSidecarGeneration != generation) return
+    sidecarTimedCues = cues
+    lastSidecarCueSignature = null
 }
 
 /** Identifies one attachment of [url]; changes whenever the sidecar restarts or stops. */

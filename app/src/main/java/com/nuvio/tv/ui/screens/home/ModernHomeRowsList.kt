@@ -192,7 +192,7 @@ internal fun ModernHomeRowsList(
                             val item = row.items.list[i]
                             val url = item.imageUrl ?: continue
                             val metrics = item.catalogCardRequestMetrics(
-                                useLandscapePosters = useLandscapePosters,
+                                useLandscapePosters = row.useLandscapePosters ?: useLandscapePosters,
                                 portraitCardWidth = portraitCatalogCardWidth,
                                 portraitCardHeight = portraitCatalogCardHeight,
                                 landscapeCardWidth = landscapeCatalogCardWidth,
@@ -439,7 +439,7 @@ internal fun ModernHomeRowsList(
                     pendingRowFocusNonce = pendingRowFocusNonce,
                     onPendingRowFocusCleared = onPendingRowFocusCleared,
                     onRowItemFocused = stableOnRowItemFocused,
-                    useLandscapePosters = useLandscapePosters,
+                    useLandscapePosters = row.useLandscapePosters ?: useLandscapePosters,
                     alwaysShowLandscapeClearlogo = alwaysShowLandscapeClearlogo,
                     showLabels = showLabels,
                     posterCardCornerRadius = posterCardCornerRadius,

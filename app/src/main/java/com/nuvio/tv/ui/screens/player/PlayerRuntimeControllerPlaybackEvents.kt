@@ -1564,6 +1564,18 @@ fun PlayerRuntimeController.onEvent(event: PlayerEvent) {
                 )
             }
         }
+        PlayerEvent.OnTranscribeAudio -> {
+            val target = com.nuvio.tv.core.subtitles.SubtitleTranslationService.translationTargetLanguage()
+            if (target != null) {
+                autoSubtitleSelected = true
+                isUserExplicitSubtitleSelection = true
+                pendingAddonSubtitleLanguage = null
+                pendingAddonSubtitleTrackId = null
+                disableSubtitles()
+                _uiState.update { it.copy(selectedAddonSubtitle = null, selectedSubtitleTrackIndex = -1) }
+                startAudioTranscription(target)
+            }
+        }
         PlayerEvent.OnDisableSubtitles -> {
             logSwitchTrace(
                 stage = "event-disable-subtitles",

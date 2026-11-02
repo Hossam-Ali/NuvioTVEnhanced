@@ -454,6 +454,9 @@ class SearchViewModelSuggestionsTest {
             posterOptions = mockk<PosterOptionsController>(relaxed = true),
             serverCatalog = mockk { every { searchAddons } returns flowOf(emptyList()) },
             tmdbSearchSource = mockk(relaxed = true),
+            tmdbService = mockk(relaxed = true),
+            tmdbMetadataService = mockk(relaxed = true),
+            tmdbSettingsDataStore = mockk(relaxed = true),
             context = mockk<Context>(relaxed = true)
         )
     }

@@ -4,6 +4,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.nuvio.tv.R
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
 import com.nuvio.tv.data.local.AVAILABLE_SUBTITLE_LANGUAGES
 import com.nuvio.tv.data.local.AudioLanguageOption
 import com.nuvio.tv.data.local.AudioOutputChannels
@@ -60,6 +65,7 @@ internal fun PlaybackAudioSection(
     SettingsSectionLabel(text = stringResource(R.string.audio_advanced_section))
     SettingsNote(text = stringResource(R.string.audio_advanced_warning), tone = SettingsNoteTone.Warning)
 
+    AudioPassthroughRow()
     SettingsActionRow(
         title = stringResource(R.string.audio_decoder_priority),
         subtitle = null,
@@ -255,3 +261,38 @@ internal fun DecoderPriorityDialog(
         maxHeight = 320.dp
     )
 }
+
+/** Which surround formats go untouched to the TV or receiver; the others are decoded by the app. */
+@Composable
+private fun AudioPassthroughRow() {
+    val disabled by com.nuvio.tv.core.player.AudioPassthroughPreferences.disabled.collectAsState()
+    var showDialog by remember { mutableStateOf(false) }
+    val names = com.nuvio.tv.core.player.PassthroughFormat.entries.associateWith { stringResource(it.titleRes) }
+    SettingsActionRow(
+        title = stringResource(R.string.audio_passthrough_title),
+        subtitle = stringResource(R.string.audio_passthrough_subtitle),
+        value = if (disabled.isEmpty()) {
+            stringResource(R.string.audio_passthrough_all)
+        } else {
+            stringResource(R.string.audio_passthrough_off_list, disabled.sortedBy { it.ordinal }.joinToString(", ") { names.getValue(it) })
+        },
+        onClick = { showDialog = true }
+    )
+    if (showDialog) {
+        val onLabel = stringResource(R.string.audio_passthrough_on)
+        val offLabel = stringResource(R.string.audio_passthrough_decoded)
+        SettingsSingleChoiceDialog(
+            title = stringResource(R.string.audio_passthrough_title),
+            subtitle = stringResource(R.string.audio_passthrough_dialog_subtitle),
+            options = com.nuvio.tv.core.player.PassthroughFormat.entries.map { format ->
+                SettingsPickerOption(format, names.getValue(format), trailing = if (format in disabled) offLabel else onLabel)
+            },
+            selectedValue = com.nuvio.tv.core.player.PassthroughFormat.entries.first(),
+            onOptionSelected = { format -> com.nuvio.tv.core.player.AudioPassthroughPreferences.toggle(format) },
+            onDismiss = { showDialog = false },
+            width = 460.dp,
+            maxHeight = 460.dp
+        )
+    }
+}
+

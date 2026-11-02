@@ -103,6 +103,15 @@ internal fun PlaybackSubtitlesSection(
     )
 
     SettingsSectionLabel(text = stringResource(R.string.sub_style_label))
+    SettingsActionRow(
+        title = stringResource(R.string.sub_style_preset),
+        subtitle = stringResource(R.string.sub_style_preset_sub),
+        value = com.nuvio.tv.data.local.SubtitleStylePreset.matching(style)
+            ?.let { stringResource(it.titleRes) }
+            ?: stringResource(R.string.sub_preset_custom),
+        enabled = enabled,
+        onClick = { onOpenDialog(PlaybackDialog.SUBTITLE_STYLE_PRESET) }
+    )
     SliderSettingsItem(
         title = stringResource(R.string.sub_size),
         value = style.size,
@@ -238,6 +247,25 @@ internal fun SubtitleSettingsDialogs(
 ) {
     val style = settings.subtitleStyle
     when (dialog) {
+        PlaybackDialog.SUBTITLE_STYLE_PRESET -> SettingsSingleChoiceDialog(
+            title = stringResource(R.string.sub_style_preset),
+            subtitle = stringResource(R.string.sub_style_preset_sub),
+            options = com.nuvio.tv.data.local.SubtitleStylePreset.entries.map { preset ->
+                SettingsPickerOption<com.nuvio.tv.data.local.SubtitleStylePreset?>(
+                    value = preset,
+                    title = stringResource(preset.titleRes),
+                    description = stringResource(preset.descriptionRes)
+                )
+            },
+            selectedValue = com.nuvio.tv.data.local.SubtitleStylePreset.matching(style),
+            onOptionSelected = { preset ->
+                if (preset != null) onUpdate { applySubtitleStylePreset(preset) }
+                onDismiss()
+            },
+            onDismiss = onDismiss,
+            width = 480.dp,
+            maxHeight = 520.dp
+        )
         PlaybackDialog.SUBTITLE_LANGUAGE -> LanguageSelectionDialog(
             title = stringResource(R.string.sub_preferred_lang),
             selectedLanguage = when {

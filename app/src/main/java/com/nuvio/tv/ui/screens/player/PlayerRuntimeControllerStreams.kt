@@ -1188,6 +1188,7 @@ internal fun PlayerRuntimeController.loadEpisodesIfNeeded() {
                         episodesError = null
                     )
                 }
+                enrichEpisodesPanelFromTmdb(id, type, allEpisodes)
             }
 
             is NetworkResult.Error -> {

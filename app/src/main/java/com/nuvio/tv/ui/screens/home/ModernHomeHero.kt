@@ -356,6 +356,25 @@ private fun HeroTitleContent(
     trailerPlaying: () -> Boolean = { false }
 ) {
     val preview = previewProvider() ?: return
+    // Ratings MDBList hasn't attached to the row item yet are asked for here (batched and cached).
+    val ratingsContext = LocalContext.current
+    val posterRatings = remember(ratingsContext) {
+        dagger.hilt.android.EntryPointAccessors.fromApplication(
+            ratingsContext.applicationContext,
+            com.nuvio.tv.core.poster.PosterRatingsEntryPoint::class.java
+        ).posterRatingsRepository()
+    }
+    val fetchedHeroRatings by androidx.compose.runtime.produceState<com.nuvio.tv.domain.model.MDBListRatings?>(
+        initialValue = null, preview.ratingsId, preview.mdbListRatings, mdbListShowOnHero
+    ) {
+        val id = preview.ratingsId
+        value = if (mdbListShowOnHero && preview.mdbListRatings == null && !id.isNullOrBlank()) {
+            posterRatings.cached(id, preview.ratingsType.orEmpty().ifBlank { "movie" })
+                ?: posterRatings.ratings(id, preview.ratingsType.orEmpty().ifBlank { "movie" })
+        } else {
+            null
+        }
+    }
     val highlighterEnabled = LocalRecompositionHighlighterEnabled.current
     val descriptionMaxLines = 4
     val descriptionScale = if (portraitMode) 0.90f else 1f
@@ -472,7 +491,19 @@ private fun HeroTitleContent(
         val secondaryDetails = secondaryMeta.details
         val hasSecondaryBadge = ageRatingBadge != null || statusBadge != null
         val hasImdbRatingForLayout = !preview.imdbText.isNullOrBlank()
-        val hasMdbListRatings = mdbListShowOnHero && preview.mdbListRatings != null && !preview.mdbListRatings.isEmpty()
+        // IMDb, Rotten Tomatoes and Metacritic side by side, each only when known; an episode shows
+        // its own IMDb score beside the show's critic scores.
+        val mdbListHeroRatings = (preview.mdbListRatings ?: fetchedHeroRatings)?.takeIf { mdbListShowOnHero }
+        val heroImdb = preview.imdbRating?.takeIf { it > 0.0 }
+            ?: mdbListHeroRatings?.imdb?.takeIf { !preview.isEpisodePreview }
+        val heroRatings = com.nuvio.tv.domain.model.MDBListRatings(
+            imdb = heroImdb,
+            tomatoes = mdbListHeroRatings?.tomatoes,
+            metacritic = mdbListHeroRatings?.metacritic,
+            tomatoesCertified = mdbListHeroRatings?.tomatoesCertified ?: false
+        ).takeIf { it.imdb != null || it.tomatoes != null || it.metacritic != null }
+        val heroRatingOrder = HERO_RATING_ORDER
+        val hasMdbListRatings = heroRatings != null
         // When MDBList ratings are shown, don't reserve space for standalone IMDb badge.
         val reserveImdbInPrimary = !hasMdbListRatings && !preview.isSeries && !hasSecondaryBadge && hasImdbRatingForLayout
         val reserveImdbInPrimaryWithHighlight = reserveImdbInPrimary && secondaryHighlightText == null
@@ -650,9 +681,9 @@ private fun HeroTitleContent(
                         HeroMetaDivider(metaScale)
                     }
                     com.nuvio.tv.ui.components.MDBListRatingsRow(
-                        ratings = preview.mdbListRatings!!,
+                        ratings = heroRatings!!,
                         maxItems = 3,
-                        order = mdbListRatingOrder
+                        order = heroRatingOrder
                     )
                 }
             }
@@ -784,3 +815,7 @@ private fun HeroMetaDivider(
             .background(NuvioTheme.colors.TextTertiary.copy(alpha = 0.78f))
     )
 }
+
+/** The ratings the hero shows, in order. */
+private val HERO_RATING_ORDER = listOf("imdb", "tomatoes", "metacritic")
+

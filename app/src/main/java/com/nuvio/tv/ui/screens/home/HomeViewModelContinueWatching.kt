@@ -1335,10 +1335,16 @@ private suspend fun HomeViewModel.resolveCurrentEpisodeDescription(
                 if (tmdbId != null) {
                     val tmdbStartedAtMs = SystemClock.elapsedRealtime()
                     val tmdbOverview = runCatching {
-                        tmdbMetadataService.fetchEpisodeEnrichment(
+                        val show = if (_uiState.value.homeLayout == HomeLayout.MODERN) {
+                            tmdbMetadataService.fetchEnrichment(tmdbId = tmdbId, contentType = ContentType.SERIES, language = currentTmdbSettings.language)
+                        } else {
+                            null
+                        }
+                        tmdbMetadataService.fetchEpisodeEnrichmentForShow(
                             tmdbId = tmdbId,
                             seasonNumbers = listOf(season),
-                            language = currentTmdbSettings.language
+                            language = currentTmdbSettings.language,
+                            show = show
                         )[season to episode]?.overview
                     }.getOrNull()
                     debug?.recordTmdbCall(

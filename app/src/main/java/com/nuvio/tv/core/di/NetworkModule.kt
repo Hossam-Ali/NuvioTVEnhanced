@@ -159,6 +159,14 @@ object NetworkModule {
         }
         return okHttpClient.newBuilder()
             .cache(Cache(File(context.cacheDir, "addon_http_cache"), 50L * 1024 * 1024))
+            // The add-on timeout setting applies per request, so a change needs no restart.
+            .addInterceptor { chain ->
+                val timeout = com.nuvio.tv.core.network.AddonNetworkPreferences.timeoutSeconds.value
+                chain
+                    .withConnectTimeout(com.nuvio.tv.core.network.AddonNetworkPreferences.connectTimeoutSeconds(timeout), TimeUnit.SECONDS)
+                    .withReadTimeout(timeout, TimeUnit.SECONDS)
+                    .proceed(chain.request())
+            }
             .sslSocketFactory(sslContext.socketFactory, trustAllManager)
             .hostnameVerifier { _, _ -> true }
             .build()

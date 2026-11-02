@@ -56,10 +56,10 @@ internal class SubtitleTranslationException(
     val isFatal: Boolean get() = code == Code.Auth || code == Code.Model
 }
 
-private const val OPENROUTER_ENDPOINT = "https://openrouter.ai/api/v1/chat/completions"
+internal const val OPENROUTER_ENDPOINT = "https://openrouter.ai/api/v1/chat/completions"
 private const val OPENAI_ENDPOINT = "https://api.openai.com/v1/chat/completions"
-private const val OPENROUTER_APP_URL = "https://nuvio.tv"
-private const val OPENROUTER_APP_TITLE = "Nuvio TV"
+internal const val OPENROUTER_APP_URL = "https://nuvio.tv"
+internal const val OPENROUTER_APP_TITLE = "Nuvio TV"
 // Smaller batches come back sooner (reply time grows with the number of lines) and run side by side.
 private const val BATCH_SIZE = 20
 private const val MAX_CONCURRENT_REQUESTS = 3
@@ -78,7 +78,8 @@ private val languageNames = mapOf(
     "ur" to "Urdu", "vi" to "Vietnamese", "zh" to "Chinese",
 )
 
-private val json = Json { ignoreUnknownKeys = true }
+internal val subtitleTranslationJson = Json { ignoreUnknownKeys = true }
+private val json get() = subtitleTranslationJson
 
 internal fun languageNameForPrompt(code: String): String {
     val normalized = code.trim().replace('_', '-').lowercase()

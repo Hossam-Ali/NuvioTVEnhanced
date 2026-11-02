@@ -245,6 +245,8 @@ fun GridContentCard(
                     )
                 }
 
+                PosterRatingBadges(item.id, item.apiType, item.imdbRating, item.tmdbRating)
+
                 // Backdrop cards name the title in text; the title logo belongs to the hero.
                 val isLandscapeBackdropCard = globalLandscape &&
                     effectiveLandscapePoster.isNullOrBlank()

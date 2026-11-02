@@ -629,6 +629,42 @@ class TmdbMetadataService(
             .toList()
     }
 
+    private val originalTitleCache = ConcurrentHashMap<String, Pair<String, String>>()
+
+    /**
+     * A title's original language and name from one details request, cached: enough to name a
+     * search result the way the home screen does, without a full enrichment.
+     */
+    suspend fun fetchOriginalTitle(tmdbId: String, contentType: ContentType): Pair<String, String>? = withContext(ioDispatcher) {
+        val key = "${contentType.toApiString()}:$tmdbId"
+        originalTitleCache[key]?.let { return@withContext it }
+        val numericId = tmdbId.toIntOrNull() ?: return@withContext null
+        val details = runCatching {
+            when (contentType) {
+                ContentType.SERIES, ContentType.TV -> tmdbApi.getTvDetails(numericId, TMDB_API_KEY, "en-US")
+                else -> tmdbApi.getMovieDetails(numericId, TMDB_API_KEY, "en-US")
+            }.body()
+        }.getOrNull() ?: return@withContext null
+        val language = details.originalLanguage?.takeIf { it.isNotBlank() } ?: return@withContext null
+        val title = (details.originalTitle ?: details.originalName)?.trim()?.takeIf { it.isNotBlank() } ?: return@withContext null
+        (language to title).also { originalTitleCache[key] = it }
+    }
+
+    /**
+     * Episodes of a show named by its original title ([show]), with names and overviews in the
+     * show's own language where TMDB has them (an Arabic series reads in Arabic), else in [language].
+     */
+    suspend fun fetchEpisodeEnrichmentForShow(
+        tmdbId: String,
+        seasonNumbers: List<Int>,
+        language: String,
+        show: TmdbEnrichment?,
+    ): Map<Pair<Int, Int>, TmdbEpisodeEnrichment> {
+        val local = fetchEpisodeEnrichment(tmdbId, seasonNumbers, language)
+        val original = show?.originalLanguageDifferentFrom(language) ?: return local
+        return preferOriginalEpisodeText(local, fetchEpisodeEnrichment(tmdbId, seasonNumbers, original))
+    }
+
     suspend fun fetchEpisodeEnrichment(
         tmdbId: String,
         seasonNumbers: List<Int>,
@@ -1431,6 +1467,34 @@ class TmdbMetadataService(
                     else -> crewTvCredits
                 }
 
+                // A title from abroad is named as in its own language, with its overview in that
+                // language when TMDB has one, as on the home screen.
+                val originals = buildMap {
+                    credits?.cast.orEmpty().forEach { put(creditKey(it.mediaType, it.id), it.originalLanguage.orEmpty() to (it.originalTitle ?: it.originalName)) }
+                    credits?.crew.orEmpty().forEach { putIfAbsent(creditKey(it.mediaType, it.id), it.originalLanguage.orEmpty() to (it.originalTitle ?: it.originalName)) }
+                }
+                val foreignLanguages = originals.values.map { it.first }
+                    .filter { it.isNotBlank() && !normalizedLanguage.startsWith(it) }
+                    .groupingBy { it }.eachCount().entries.sortedByDescending { it.value }.take(3).map { it.key }
+                val overviewsByLanguage = coroutineScope {
+                    foreignLanguages.associateWith { original ->
+                        async {
+                            runCatching { tmdbApi.getPersonCombinedCredits(personId, TMDB_API_KEY, normalizeTmdbLanguage(original)).body() }.getOrNull()
+                                ?.let { translated ->
+                                    (translated.cast.orEmpty().map { creditKey(it.mediaType, it.id) to it.overview } +
+                                        translated.crew.orEmpty().map { creditKey(it.mediaType, it.id) to it.overview })
+                                        .filter { !it.second.isNullOrBlank() }.toMap()
+                                }.orEmpty()
+                        }
+                    }.mapValues { it.value.await() }
+                }
+                fun MetaPreview.inOriginalLanguage(mediaType: String): MetaPreview {
+                    val key = creditKey(mediaType, id.removePrefix("tmdb:").toIntOrNull() ?: return this)
+                    val (original, originalTitle) = originals[key] ?: return this
+                    if (original.isBlank() || normalizedLanguage.startsWith(original) || originalTitle.isNullOrBlank()) return this
+                    return copy(name = originalTitle, description = overviewsByLanguage[original]?.get(key) ?: description)
+                }
+
                 val detail = PersonDetail(
                     tmdbId = person.id,
                     name = resolvedPersonName,
@@ -1440,8 +1504,8 @@ class TmdbMetadataService(
                     placeOfBirth = person.placeOfBirth?.takeIf { it.isNotBlank() },
                     profilePhoto = buildImageUrl(person.profilePath, "w500"),
                     knownFor = person.knownForDepartment?.takeIf { it.isNotBlank() },
-                    movieCredits = movieCredits,
-                    tvCredits = tvCredits
+                    movieCredits = movieCredits.map { it.inOriginalLanguage("movie") },
+                    tvCredits = tvCredits.map { it.inOriginalLanguage("tv") }
                 )
                 personCache[cacheKey] = detail
                 detail
@@ -1450,6 +1514,8 @@ class TmdbMetadataService(
                 null
             }
         }
+
+    private fun creditKey(mediaType: String?, id: Int): String = "${if (mediaType == "tv") "tv" else "movie"}:$id"
 
     private fun shouldPreferCrewCredits(knownForDepartment: String?): Boolean {
         val department = knownForDepartment?.trim()?.lowercase() ?: return false
@@ -1721,6 +1787,12 @@ data class TmdbEnrichment(
      */
     fun originalTitleOr(fallback: String): String = originalTitle ?: localizedTitle ?: fallback
 
+    /** The show's original language when it has its own title and is not in [appLanguage]. */
+    fun originalLanguageDifferentFrom(appLanguage: String): String? {
+        if (originalTitle == null) return null
+        return language?.takeIf { it.isNotBlank() && !appLanguage.lowercase().startsWith(it.lowercase()) }
+    }
+
     /**
      * The description beside [originalTitleOr], in the title's own language: TMDB's overview in that
      * language, else [fallback] (the addon's) when it is written in the title's script, else the
@@ -1752,6 +1824,21 @@ private fun firstLetterScript(text: String): Character.UnicodeScript? {
         index += Character.charCount(codePoint)
     }
     return null
+}
+
+/** [local] episodes with the names and overviews of [original] where those are not blank. */
+internal fun preferOriginalEpisodeText(
+    local: Map<Pair<Int, Int>, TmdbEpisodeEnrichment>,
+    original: Map<Pair<Int, Int>, TmdbEpisodeEnrichment>,
+): Map<Pair<Int, Int>, TmdbEpisodeEnrichment> {
+    val merged = local.mapValues { (key, episode) ->
+        val translated = original[key] ?: return@mapValues episode
+        episode.copy(
+            title = translated.title?.takeIf { it.isNotBlank() } ?: episode.title,
+            overview = translated.overview?.takeIf { it.isNotBlank() } ?: episode.overview,
+        )
+    }
+    return merged + original.filterKeys { it !in local }
 }
 
 data class TmdbEpisodeEnrichment(

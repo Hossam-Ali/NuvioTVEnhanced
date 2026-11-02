@@ -866,17 +866,20 @@ class MetaDetailsViewModel @Inject constructor(
             contentType = type,
             language = settings.language
         ) ?: return false
+        // An Arabic film opened from a filmography reads in Arabic: title, logo and description.
+        val inOriginalLanguage = enrichment.originalLanguageDifferentFrom(settings.language) != null
         val meta = Meta(
             id = itemId,
             type = type,
             rawType = itemType,
-            name = enrichment.localizedTitle ?: enrichment.originalTitle
+            name = (if (inOriginalLanguage) enrichment.originalTitle else null)
+                ?: enrichment.localizedTitle ?: enrichment.originalTitle
                 ?: context.getString(R.string.detail_tmdb_fallback_title, tmdbId),
             poster = enrichment.poster,
             posterShape = com.nuvio.tv.domain.model.PosterShape.POSTER,
             background = enrichment.backdrop,
-            logo = enrichment.logo,
-            description = enrichment.description,
+            logo = if (inOriginalLanguage) enrichment.logoForOriginalTitle(null) else enrichment.logo,
+            description = if (inOriginalLanguage) enrichment.descriptionForOriginalTitle(null) else enrichment.description,
             releaseInfo = enrichment.releaseInfo,
             status = enrichment.status,
             imdbRating = enrichment.rating?.toFloat(),
@@ -1613,22 +1616,43 @@ class MetaDetailsViewModel @Inject constructor(
                     )
                 }
             } else null
-            main.await() to episodes?.await()
+            val show = main.await()
+            val localEpisodes = episodes?.await()
+            // An Arabic series lists its episodes in Arabic, whatever the app language.
+            val original = show?.originalLanguageDifferentFrom(settings.language)
+            val episodesInShowLanguage = if (localEpisodes != null && original != null) {
+                val seasonNumbers = meta.videos.mapNotNull { it.season }.distinct()
+                val translated = runCatching {
+                    tmdbMetadataService.fetchEpisodeEnrichment(tmdbId = tmdbId, seasonNumbers = seasonNumbers, language = original)
+                }.getOrNull().orEmpty()
+                com.nuvio.tv.core.tmdb.preferOriginalEpisodeText(localEpisodes, translated)
+            } else {
+                localEpisodes
+            }
+            show to episodesInShowLanguage
         }
 
         var updated = meta
 
         if (enrichment != null && settings.useArtwork) {
+            val foreign = settings.useBasicInfo && enrichment.originalLanguageDifferentFrom(settings.language) != null
             updated = updated.copy(
                 background = enrichment.backdrop ?: updated.background,
-                logo = enrichment.logo ?: updated.logo
+                // An English logo would put the English name back over an Arabic title.
+                logo = if (foreign) enrichment.logoForOriginalTitle(updated.logo) else enrichment.logo ?: updated.logo
             )
         }
 
         if (enrichment != null && settings.useBasicInfo) {
+            // A title from abroad (an Arabic film, say) reads in its own language, as on the home screen.
+            val inOriginalLanguage = enrichment.originalLanguageDifferentFrom(settings.language) != null
             updated = updated.copy(
-                name = enrichment.localizedTitle ?: updated.name,
-                description = enrichment.description ?: updated.description
+                name = if (inOriginalLanguage) enrichment.originalTitle ?: updated.name else enrichment.localizedTitle ?: updated.name,
+                description = if (inOriginalLanguage) {
+                    enrichment.descriptionForOriginalTitle(updated.description)
+                } else {
+                    enrichment.description ?: updated.description
+                }
             )
             if (enrichment.genres.isNotEmpty()) {
                 updated = updated.copy(genres = enrichment.genres)

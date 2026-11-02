@@ -575,6 +575,9 @@ private fun PlaybackNavHost(
                 ?.getString("startFromBeginning")
                 ?.toBooleanStrictOrNull() == true
             StreamScreen(
+                onNavigateToCastDetail = { personId, personName ->
+                    navController.navigate(Screen.CastDetail.createRoute(personId, personName))
+                },
                 startFromBeginning = startFromBeginning,
                 restoreSourceSelection = restoreSourceSelection,
                 onSourceSelectionRestoreHandled = {

@@ -96,18 +96,21 @@ class MetaPreviewEnricher @Inject constructor(
 
         if (enrichment == null) return@coroutineScope enriched
 
+        // A title from abroad is named in its own language, as on the Modern home.
+        val foreign = settings.useBasicInfo && enrichment.originalLanguageDifferentFrom(settings.language) != null
         if (settings.useArtwork) {
             enriched = enriched.copy(
                 background = enrichment.backdrop ?: enriched.background,
-                logo = enrichment.logo ?: enriched.logo,
+                logo = if (foreign) enrichment.logoForOriginalTitle(enriched.logo) else enrichment.logo ?: enriched.logo,
                 poster = enrichment.poster ?: enriched.poster
             )
         }
 
         if (settings.useBasicInfo) {
             enriched = enriched.copy(
-                name = enrichment.localizedTitle ?: enriched.name,
-                description = enrichment.description ?: enriched.description,
+                name = (if (foreign) enrichment.originalTitle else null) ?: enrichment.localizedTitle ?: enriched.name,
+                description = if (foreign) enrichment.descriptionForOriginalTitle(enriched.description) else enrichment.description ?: enriched.description,
+                tmdbRating = enrichment.rating?.toFloat()?.takeIf { it > 0f } ?: enriched.tmdbRating,
                 genres = if (enrichment.genres.isNotEmpty()) enrichment.genres else enriched.genres,
                 imdbRating = enriched.imdbRating
             )

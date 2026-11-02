@@ -175,6 +175,8 @@ android {
         buildConfigField("String", "OPENROUTER_API_KEY_MASKED", "\"\"")
         buildConfigField("String", "OPENROUTER_API_KEY_MASK", "\"\"")
         buildConfigField("String", "SUBTITLE_TRANSLATION_TARGET", "\"\"")
+        // One-time playback setup for the owner's personal build (see NuvioApplication).
+        buildConfigField("boolean", "PERSONAL_SETUP", "false")
         buildConfigField("String", "TV_LOGIN_WEB_BASE_URL", "\"${localProperties.getProperty("TV_LOGIN_WEB_BASE_URL", "https://nuvio.tv/tv-login")}\"")
         buildConfigField("String", "DEVICE_LOGIN_WEB_BASE_URL", "\"${localProperties.getProperty("DEVICE_LOGIN_WEB_BASE_URL", "https://nuvio.tv/link")}\"")
         buildConfigField("boolean", "DOVI_NATIVE_ENABLED", enableDoviNative.toString())
@@ -258,6 +260,7 @@ android {
             buildConfigField("String", "OPENROUTER_API_KEY_MASKED", buildConfigString(maskedKey))
             buildConfigField("String", "OPENROUTER_API_KEY_MASK", buildConfigString(keyMask))
             buildConfigField("String", "SUBTITLE_TRANSLATION_TARGET", buildConfigString(personalTranslationTarget))
+            buildConfigField("boolean", "PERSONAL_SETUP", (personalOpenRouterKey.isNotBlank()).toString())
 
             // Dev environment (from local.dev.properties)
             buildConfigField("String", "SUPABASE_URL", buildConfigString(resolveProperty(devProperties, localProperties, "NUVIO_SUPABASE_URL")))
@@ -329,6 +332,7 @@ android {
             buildConfigField("String", "OPENROUTER_API_KEY_MASKED", buildConfigString(maskedKey))
             buildConfigField("String", "OPENROUTER_API_KEY_MASK", buildConfigString(keyMask))
             buildConfigField("String", "SUBTITLE_TRANSLATION_TARGET", buildConfigString(personalTranslationTarget))
+            buildConfigField("boolean", "PERSONAL_SETUP", (personalOpenRouterKey.isNotBlank()).toString())
             applicationIdSuffix = ".benchmark"
             matchingFallbacks += "release"
         }
@@ -637,6 +641,8 @@ dependencies {
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
     testImplementation("io.mockk:mockk:1.13.12")
     testImplementation("com.squareup.okhttp3:mockwebserver:5.5.1")
+    // Real org.json for JVM tests; Android only provides it on devices.
+    testImplementation("org.json:json:20240303")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 }

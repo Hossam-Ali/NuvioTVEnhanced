@@ -284,6 +284,10 @@ class PlaybackSettingsViewModel @Inject constructor(
         playerSettingsDataStore.setSubtitleSize(size)
     }
 
+    suspend fun applySubtitleStylePreset(preset: com.nuvio.tv.data.local.SubtitleStylePreset) {
+        playerSettingsDataStore.applySubtitleStylePreset(preset)
+    }
+
     suspend fun setSubtitleVerticalOffset(offset: Int) {
         playerSettingsDataStore.setSubtitleVerticalOffset(offset)
     }

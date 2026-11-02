@@ -50,6 +50,14 @@ data class HeroPreview(
     val runtimeText: String? = null,
     val secondaryHighlightText: String? = null,
     val imdbText: String?,
+    /** The IMDb and TMDB scores behind the rating row, when known. */
+    val imdbRating: Double? = null,
+    val tmdbRating: Double? = null,
+    /** The title whose MDBList ratings the hero shows (the show, for an episode). */
+    val ratingsId: String? = null,
+    val ratingsType: String? = null,
+    /** An episode: its own IMDb score only, never the show's. */
+    val isEpisodePreview: Boolean = false,
     val ageRatingText: String? = null,
     val statusText: String? = null,
     val countryText: String? = null,
@@ -124,7 +132,9 @@ data class HeroCarouselRow(
     val apiType: String? = null,
     val supportsSkip: Boolean = false,
     val hasMore: Boolean = false,
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    /** This row's own card shape from the home editor; null follows the layout setting. */
+    val useLandscapePosters: Boolean? = null
 )
 
 @Immutable
@@ -348,6 +358,12 @@ internal fun buildContinueWatchingItem(
                 imdbText = item.episodeImdbRating
                     ?.takeIf { !isSeries || detailImdbRatingsVisibility.showEpisodeRating(isWatched = item.progress.isCompleted()) }
                     ?.let { String.format("%.1f", it) },
+                imdbRating = item.episodeImdbRating
+                    ?.takeIf { !isSeries || detailImdbRatingsVisibility.showEpisodeRating(isWatched = item.progress.isCompleted()) }
+                    ?.toDouble(),
+                ratingsId = item.progress.contentId,
+                ratingsType = item.progress.contentType,
+                isEpisodePreview = isSeries,
                 genres = item.genres.asStable(),
                 poster = item.progress.poster,
                 backdrop = item.progress.backdrop,
@@ -380,6 +396,12 @@ internal fun buildContinueWatchingItem(
                 imdbText = item.info.imdbRating
                     ?.takeIf { detailImdbRatingsVisibility.showEpisodeRating(isWatched = false) }
                     ?.let { String.format("%.1f", it) },
+                imdbRating = item.info.imdbRating
+                    ?.takeIf { detailImdbRatingsVisibility.showEpisodeRating(isWatched = false) }
+                    ?.toDouble(),
+                ratingsId = item.info.contentId,
+                ratingsType = item.info.contentType,
+                isEpisodePreview = true,
                 genres = item.info.genres.asStable(),
                 poster = item.info.poster,
                 backdrop = item.info.backdrop,
@@ -493,6 +515,10 @@ internal fun buildCatalogItem(
         runtimeText = formatHeroRuntime(item.runtime),
         imdbText = item.imdbRating
             ?.let { String.format("%.1f", it) },
+        imdbRating = item.imdbRating?.toDouble(),
+        tmdbRating = item.tmdbRating?.toDouble(),
+        ratingsId = item.id,
+        ratingsType = item.apiType,
         ageRatingText = item.ageRating,
         statusText = item.status,
         countryText = item.country,

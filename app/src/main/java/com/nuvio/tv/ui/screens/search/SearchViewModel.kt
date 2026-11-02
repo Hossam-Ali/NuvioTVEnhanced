@@ -41,6 +41,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.joinAll
@@ -60,6 +61,9 @@ class SearchViewModel @Inject constructor(
     val posterOptions: com.nuvio.tv.ui.components.posteroptions.PosterOptionsController,
     private val serverCatalog: ServerCatalog,
     private val tmdbSearchSource: TmdbSearchSource,
+    private val tmdbService: com.nuvio.tv.core.tmdb.TmdbService,
+    private val tmdbMetadataService: com.nuvio.tv.core.tmdb.TmdbMetadataService,
+    private val tmdbSettingsDataStore: com.nuvio.tv.data.local.TmdbSettingsDataStore,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -769,6 +773,7 @@ class SearchViewModel @Inject constructor(
                     catalogsMap[key] = result.data
                     pendingCatalogResponses = (pendingCatalogResponses - 1).coerceAtLeast(0)
                     scheduleCatalogRowsUpdate()
+                    nameInOriginalLanguage(key, result.data, generation, query)
                 }
                 is NetworkResult.Error -> {
                     if (!isCurrentSearch(generation, query)) return@collect
@@ -790,6 +795,40 @@ class SearchViewModel @Inject constructor(
                     // No-op; screen shows global loading when empty.
                 }
             }
+        }
+    }
+
+    /**
+     * Some add-ons name every title in their own language (elCinema calls Interstellar "بين النجوم").
+     * Results named in a non-Latin script take their original title when TMDB says the title comes
+     * from another language than the app's, as on the home screen.
+     */
+    private fun nameInOriginalLanguage(key: String, row: com.nuvio.tv.domain.model.CatalogRow, generation: Long, query: String) {
+        val candidates = row.items.take(MAX_RENAMED_PER_ROW).filter { isNonLatinName(it.name) }
+        if (candidates.isEmpty()) return
+        viewModelScope.launch {
+            val settings = tmdbSettingsDataStore.settings.first()
+            if (!settings.enabled) return@launch
+            val appLanguage = settings.language.lowercase().substringBefore('-')
+            val slots = kotlinx.coroutines.sync.Semaphore(4)
+            val renamed = kotlinx.coroutines.coroutineScope {
+                candidates.map { item ->
+                    async(kotlinx.coroutines.Dispatchers.IO) {
+                        slots.acquire()
+                        try {
+                            val tmdbId = runCatching { tmdbService.ensureTmdbId(item.id, item.apiType) }.getOrNull() ?: return@async null
+                            val (language, original) = tmdbMetadataService.fetchOriginalTitle(tmdbId, item.type) ?: return@async null
+                            if (language.lowercase() == appLanguage || original == item.name) null else item.id to original
+                        } finally {
+                            slots.release()
+                        }
+                    }
+                }.mapNotNull { it.await() }.toMap()
+            }
+            if (renamed.isEmpty() || !isCurrentSearch(generation, query)) return@launch
+            val current = catalogsMap[key] ?: return@launch
+            catalogsMap[key] = current.copy(items = current.items.map { item -> renamed[item.id]?.let { item.copy(name = it) } ?: item })
+            scheduleCatalogRowsUpdate()
         }
     }
 
@@ -1266,3 +1305,22 @@ internal fun resolveDiscoverCatalog(
     catalogs.firstOrNull { it.key == preferredKey }
         ?: catalogs.firstOrNull { it.key == currentKey }
         ?: catalogs.firstOrNull()
+
+private const val MAX_RENAMED_PER_ROW = 20
+
+/** True when most of [name]'s letters are outside the Latin script (Arabic, Cyrillic, …). */
+internal fun isNonLatinName(name: String): Boolean {
+    var letters = 0
+    var latin = 0
+    var index = 0
+    while (index < name.length) {
+        val codePoint = name.codePointAt(index)
+        if (Character.isLetter(codePoint)) {
+            letters++
+            if (Character.UnicodeScript.of(codePoint) == Character.UnicodeScript.LATIN) latin++
+        }
+        index += Character.charCount(codePoint)
+    }
+    return letters > 0 && latin * 2 < letters
+}
+

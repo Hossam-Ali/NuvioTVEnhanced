@@ -11,8 +11,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Dns
 import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.filled.Power
+import androidx.compose.material.icons.filled.Timer
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -23,6 +25,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.tv.material3.ExperimentalTvMaterial3Api
+import androidx.compose.ui.unit.dp
 import com.nuvio.tv.R
 import com.nuvio.tv.ui.theme.NuvioTheme
 
@@ -121,6 +124,7 @@ private fun ContentDiscoveryHub(
                 leadingIcon = Icons.Default.Dns,
                 modifier = Modifier.focusRequester(serversFocusRequester)
             )
+            AddonTimeoutRow()
             if (showPlugins) {
                 SettingsActionRow(
                     title = stringResource(R.string.plugin_title),
@@ -139,3 +143,43 @@ private fun ContentDiscoveryHub(
 }
 
 private const val SERVERS_PAGE = "servers"
+
+/** How long add-ons may take to answer before they count as failed. */
+@Composable
+private fun AddonTimeoutRow() {
+    val timeout by com.nuvio.tv.core.network.AddonNetworkPreferences.timeoutSeconds.collectAsState()
+    var showDialog by remember { mutableStateOf(false) }
+    SettingsActionRow(
+        title = stringResource(R.string.settings_addon_timeout),
+        subtitle = stringResource(R.string.settings_addon_timeout_subtitle),
+        value = stringResource(R.string.settings_addon_timeout_value, timeout),
+        onClick = { showDialog = true },
+        leadingIcon = Icons.Default.Timer
+    )
+    if (showDialog) {
+        SettingsSingleChoiceDialog(
+            title = stringResource(R.string.settings_addon_timeout),
+            subtitle = stringResource(R.string.settings_addon_timeout_subtitle),
+            options = com.nuvio.tv.core.network.AddonNetworkPreferences.TIMEOUT_CHOICES.map { seconds ->
+                SettingsPickerOption(
+                    value = seconds,
+                    title = stringResource(R.string.settings_addon_timeout_value, seconds),
+                    description = if (seconds == com.nuvio.tv.core.network.AddonNetworkPreferences.DEFAULT_TIMEOUT_SECONDS) {
+                        stringResource(R.string.settings_addon_timeout_default)
+                    } else {
+                        null
+                    }
+                )
+            },
+            selectedValue = timeout,
+            onOptionSelected = { seconds ->
+                com.nuvio.tv.core.network.AddonNetworkPreferences.setTimeoutSeconds(seconds)
+                showDialog = false
+            },
+            onDismiss = { showDialog = false },
+            width = 420.dp,
+            maxHeight = 480.dp
+        )
+    }
+}
+

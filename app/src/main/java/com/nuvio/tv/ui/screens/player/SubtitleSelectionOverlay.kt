@@ -106,6 +106,11 @@ internal fun SubtitleSelectionOverlay(
     aiTranslationTarget: String? = null,
     /** Spoken language of the playing audio track; its subtitle is the one translated. */
     aiTranslationAudioLanguage: String? = null,
+    /** Subtitles can be made from the audio, offered as "AI from audio" under the target language. */
+    aiTranscriptionAvailable: Boolean = false,
+    /** Subtitles are being made from the audio now. */
+    aiTranscribing: Boolean = false,
+    onTranscribeAudio: () -> Unit = {},
     onInternalTrackSelected: (Int) -> Unit,
     onAddonSubtitleSelected: (Subtitle) -> Unit,
     onDisableSubtitles: () -> Unit,
@@ -118,6 +123,10 @@ internal fun SubtitleSelectionOverlay(
     val builtInLabel = stringResource(R.string.subtitle_built_in)
     val forcedLabel = stringResource(R.string.sub_forced_lang)
     val aiOptionTitle = stringResource(R.string.subtitle_ai_translation_option)
+    val aiTranscriptionTitle = stringResource(R.string.subtitle_ai_transcription_option)
+    val aiTranscriptionSource = stringResource(R.string.subtitle_ai_transcription_option_source)
+    val sessionAiTranscribing = remember(visible) { aiTranscribing }
+    val sessionAiTranscriptionAvailable = remember(visible) { aiTranscriptionAvailable || aiTranscribing }
     val resources = LocalContext.current.resources
     val aiSourceLabel = remember(resources) {
         { source: String -> resources.getString(R.string.subtitle_ai_translation_option_source, source) }
@@ -148,7 +157,8 @@ internal fun SubtitleSelectionOverlay(
             selectedAddonSubtitle = sessionSelectedAddonSubtitle,
             aiTargetKey = sessionAiTargetKey,
             aiSource = sessionAiSource,
-            aiAddonSource = sessionAiAddonSource
+            aiAddonSource = sessionAiAddonSource,
+            aiTranscribing = sessionAiTranscribing
         )
     }
     val languageItems = remember(visible, sessionAddonSubtitles) {
@@ -162,6 +172,7 @@ internal fun SubtitleSelectionOverlay(
             aiTargetKey = sessionAiTargetKey,
             aiSource = sessionAiSource,
             aiAddonSource = sessionAiAddonSource,
+            aiTranscriptionAvailable = sessionAiTranscriptionAvailable,
             noneLabel = noneLabel,
             unknownLabel = unknownLabel
         )
@@ -182,7 +193,8 @@ internal fun SubtitleSelectionOverlay(
             selectedAddonSubtitle = sessionSelectedAddonSubtitle,
             aiTargetKey = sessionAiTargetKey,
             aiSource = sessionAiSource,
-            aiAddonSource = sessionAiAddonSource
+            aiAddonSource = sessionAiAddonSource,
+            aiTranscribing = sessionAiTranscribing
         )
         optionId.takeIf { sessionInitialLanguageKey == sessionSelectedSubtitleLanguageKey }
     }
@@ -199,7 +211,10 @@ internal fun SubtitleSelectionOverlay(
             aiSource = sessionAiSource,
             aiAddonSource = sessionAiAddonSource,
             aiSourceLabel = aiSourceLabel,
-            aiOptionTitle = aiOptionTitle
+            aiOptionTitle = aiOptionTitle,
+            aiTranscription = sessionAiTranscriptionAvailable,
+            aiTranscriptionTitle = aiTranscriptionTitle,
+            aiTranscriptionSource = aiTranscriptionSource
         )
     }
 
@@ -311,6 +326,7 @@ internal fun SubtitleSelectionOverlay(
                 val url = selectedOption.addonSubtitle?.url?.lowercase(java.util.Locale.US).orEmpty()
                 url.contains(".ass") || url.contains(".ssa")
             }
+            SubtitleOptionKind.TRANSCRIPTION -> false
             null -> {
                 val currentInternalTrack = sessionInternalTracks.getOrNull(sessionSelectedInternalIndex)
                 val internalCodec = currentInternalTrack?.codec?.lowercase(java.util.Locale.US).orEmpty()
@@ -607,6 +623,15 @@ internal fun SubtitleSelectionOverlay(
                             onAddonSubtitleSelected(subtitle)
                             revealStyleRail = true
                         },
+                        onTranscriptionSelected = { optionId ->
+                            selectedOptionId = optionId
+                            optionFocusMemory = optionFocusMemory + (selectedLanguageKey to optionId)
+                            styleEntryOptionId = optionId
+                            activeOptionFocusId = optionId
+                            activeRail = OverlayFocusRail.OPTION
+                            onTranscribeAudio()
+                            revealStyleRail = true
+                        },
                         onOptionLongPressed = { optionId ->
                             activeOptionFocusId = optionId
                             activeRail = OverlayFocusRail.OPTION
@@ -741,6 +766,7 @@ private fun SubtitleOptionsRail(
     onMoveRight: () -> Unit,
     onInternalTrackSelected: (String, Int) -> Unit,
     onAddonSubtitleSelected: (String, Subtitle) -> Unit,
+    onTranscriptionSelected: (String) -> Unit,
     onOptionLongPressed: (String) -> Unit
 ) {
     LaunchedEffect(focusToken) {
@@ -825,6 +851,8 @@ private fun SubtitleOptionsRail(
                                             onAddonSubtitleSelected(option.id, subtitle)
                                         }
                                     }
+
+                                    SubtitleOptionKind.TRANSCRIPTION -> onTranscriptionSelected(option.id)
                                 }
                             },
                             onLongClick = { onOptionLongPressed(option.id) }
@@ -1865,10 +1893,12 @@ private data class SubtitleLanguageRailItem(
 
 private enum class SubtitleOptionKind {
     INTERNAL,
-    ADDON
+    ADDON,
+    TRANSCRIPTION
 }
 
 private const val AiTranslationOptionIdPrefix = "ai:"
+private const val AiTranscriptionOptionId = "ai-audio"
 
 /**
  * The subtitle offered as "AI translation": the one being translated when one is selected,
@@ -1922,6 +1952,7 @@ private fun buildSubtitleLanguageRailItems(
     aiTargetKey: String?,
     aiSource: TrackInfo?,
     aiAddonSource: Subtitle?,
+    aiTranscriptionAvailable: Boolean,
     noneLabel: String,
     unknownLabel: String
 ): List<SubtitleLanguageRailItem> {
@@ -1931,6 +1962,9 @@ private fun buildSubtitleLanguageRailItems(
         counts[key] = (counts[key] ?: 0) + 1
     }
     if (aiTargetKey != null && (aiSource != null || aiAddonSource != null)) {
+        counts[aiTargetKey] = (counts[aiTargetKey] ?: 0) + 1
+    }
+    if (aiTargetKey != null && aiTranscriptionAvailable) {
         counts[aiTargetKey] = (counts[aiTargetKey] ?: 0) + 1
     }
     addonSubtitles.forEach { subtitle ->
@@ -2009,7 +2043,10 @@ private fun buildSubtitleOptionRailItems(
     aiSource: TrackInfo?,
     aiAddonSource: Subtitle?,
     aiSourceLabel: (source: String) -> String,
-    aiOptionTitle: String
+    aiOptionTitle: String,
+    aiTranscription: Boolean,
+    aiTranscriptionTitle: String,
+    aiTranscriptionSource: String
 ): List<SubtitleOptionRailItem> {
     if (selectedLanguageKey == SubtitleOffLanguageKey) return emptyList()
 
@@ -2098,7 +2135,19 @@ private fun buildSubtitleOptionRailItems(
         )
         .map { (_, subtitle) -> toAddonItem(subtitle) }
 
-    return aiItems + aiAddonItems + internalItems + streamProvidedItems + addonFetchedItems
+    val aiTranscriptionItems = if (selectedLanguageKey != aiTargetKey || !aiTranscription) emptyList() else
+        listOf(
+            SubtitleOptionRailItem(
+                id = AiTranscriptionOptionId,
+                kind = SubtitleOptionKind.TRANSCRIPTION,
+                title = aiTranscriptionTitle,
+                sourceLabel = aiTranscriptionSource,
+                meta = null,
+                isSelected = selectedOptionId == AiTranscriptionOptionId
+            )
+        )
+
+    return aiItems + aiAddonItems + aiTranscriptionItems + internalItems + streamProvidedItems + addonFetchedItems
 }
 
 private fun selectedSubtitleLanguageKey(
@@ -2107,8 +2156,10 @@ private fun selectedSubtitleLanguageKey(
     selectedAddonSubtitle: Subtitle?,
     aiTargetKey: String?,
     aiSource: TrackInfo?,
-    aiAddonSource: Subtitle?
+    aiAddonSource: Subtitle?,
+    aiTranscribing: Boolean = false
 ): String {
+    if (aiTargetKey != null && aiTranscribing) return aiTargetKey
     if (aiTargetKey != null && selectedAddonSubtitle != null && selectedAddonSubtitle.url == aiAddonSource?.url) return aiTargetKey
     val selectedAddonKey = selectedAddonSubtitle?.let { normalizeOverlayLanguageKey(it.lang) }
     if (selectedAddonKey != null) return selectedAddonKey
@@ -2130,8 +2181,10 @@ private fun selectedSubtitleOptionId(
     selectedAddonSubtitle: Subtitle?,
     aiTargetKey: String?,
     aiSource: TrackInfo?,
-    aiAddonSource: Subtitle?
+    aiAddonSource: Subtitle?,
+    aiTranscribing: Boolean = false
 ): String? {
+    if (aiTargetKey != null && aiTranscribing) return AiTranscriptionOptionId
     selectedAddonSubtitle?.let { subtitle ->
         return if (subtitle.url == aiAddonSource?.url) aiAddonOptionId(subtitle) else addonSubtitleOptionId(subtitle)
     }

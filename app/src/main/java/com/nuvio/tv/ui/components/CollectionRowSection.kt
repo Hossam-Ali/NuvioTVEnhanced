@@ -322,6 +322,7 @@ private fun FolderCard(
                     )
                 }
             } else {
+                AutoCollectionCover(collectionId = collection.id, folderId = folder.id, modifier = Modifier.clip(shape)) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
@@ -331,6 +332,7 @@ private fun FolderCard(
                         style = MaterialTheme.typography.headlineLarge,
                         color = NuvioTheme.colors.TextSecondary
                     )
+                }
                 }
             }
 

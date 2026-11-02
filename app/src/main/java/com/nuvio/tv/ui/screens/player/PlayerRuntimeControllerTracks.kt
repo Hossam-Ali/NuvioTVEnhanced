@@ -605,10 +605,17 @@ internal fun PlayerRuntimeController.maybeRestorePendingAudioSelectionAfterSubti
         -1
     }
 
+    // The same track by id, or by position when the track list is unchanged, keeps the audio as
+    // it was even when tracks carry no language or name.
+    val trackIdIndex = pending.trackId?.takeIf { it.isNotBlank() }
+        ?.let { id -> audioTracks.indexOfFirst { it.trackId == id } } ?: -1
+    val positionIndex = pending.index.takeIf { it in audioTracks.indices && pending.trackCount == audioTracks.size } ?: -1
     val index = when {
         exactNameIndex >= 0 -> exactNameIndex
         nameContainsIndex >= 0 -> nameContainsIndex
-        else -> languageIndex
+        languageIndex >= 0 -> languageIndex
+        trackIdIndex >= 0 -> trackIdIndex
+        else -> positionIndex
     }
 
     pendingAudioSelectionAfterSubtitleRefresh = null

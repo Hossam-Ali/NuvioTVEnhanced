@@ -130,6 +130,8 @@ data class PlayerUiState(
     val subtitleStyle: SubtitleStyleSettings = SubtitleStyleSettings(),
     /** The AI-translated subtitle line drawn over the MPV player, which cannot show it itself. */
     val mpvTranslatedSubtitle: String? = null,
+    /** Subtitles are being made from the audio (AI transcription). */
+    val isAiTranscribing: Boolean = false,
     // Current video is HDR10/HDR10+/HLG/Dolby Vision; selects the HDR subtitle style when enabled
     val isHdrVideo: Boolean = false,
     // Addon subtitles
@@ -328,6 +330,8 @@ sealed class PlayerEvent {
     data class OnSetCenterMixLevelDb(val db: Int) : PlayerEvent()
     data class OnSelectSubtitleTrack(val index: Int) : PlayerEvent()
     data object OnDisableSubtitles : PlayerEvent()
+    /** Make subtitles from the audio with AI, instead of any subtitle. */
+    data object OnTranscribeAudio : PlayerEvent()
     data class OnSelectAddonSubtitle(val subtitle: Subtitle) : PlayerEvent()
     data class OnSetPlaybackSpeed(val speed: Float) : PlayerEvent()
     data object OnToggleControls : PlayerEvent()

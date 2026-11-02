@@ -135,6 +135,15 @@ internal fun subtitleTranslationSettingsItems(enabled: Boolean, preferredSubtitl
         },
         enabled = enabled,
     )
+    SettingsToggleRow(
+        title = stringResource(R.string.subtitle_ai_transcription_title),
+        subtitle = stringResource(R.string.subtitle_ai_transcription_subtitle),
+        checked = settings.transcribeAudio,
+        onToggle = {
+            SubtitleTranslationPreferences.update(context) { it.copy(transcribeAudio = !settings.transcribeAudio) }
+        },
+        enabled = enabled && settings.preferEmbeddedSubtitles,
+    )
     val testingText = stringResource(R.string.subtitle_ai_translation_testing)
     val noKeyText = stringResource(R.string.subtitle_ai_translation_test_no_key)
     SettingsActionRow(

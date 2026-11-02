@@ -136,6 +136,15 @@ internal object SubtitleTranslationService {
         return resolveTargetLanguage(settings)
     }
 
+    /** The OpenRouter key and language for making subtitles from the audio, or null when that is off. */
+    fun transcriptionSetup(): AudioTranscriptionSetup? {
+        val settings = currentSettings() ?: return null
+        if (!settings.enabled || !settings.preferEmbeddedSubtitles || !settings.transcribeAudio) return null
+        val key = settings.openRouterApiKey.takeIf { it.isNotBlank() } ?: return null
+        val target = resolveTargetLanguage(settings) ?: return null
+        return AudioTranscriptionSetup(key, target, http)
+    }
+
     fun shouldPreferEmbeddedSubtitles(): Boolean =
         isConfigured() && currentSettings()?.preferEmbeddedSubtitles == true
 

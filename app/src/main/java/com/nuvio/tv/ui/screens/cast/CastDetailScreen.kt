@@ -418,7 +418,8 @@ private fun HeroSection(
                         placeholder = bgPainter,
                         error = bgPainter,
                         fallback = bgPainter,
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.Crop,
+                        alignment = com.nuvio.tv.ui.screens.stream.PortraitFaceAlignment
                     )
                 } else {
                     Text(

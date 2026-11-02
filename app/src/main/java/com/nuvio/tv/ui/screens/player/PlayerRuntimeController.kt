@@ -133,7 +133,11 @@ class PlayerRuntimeController(
     internal data class PendingAudioSelection(
         val language: String?,
         val name: String?,
-        val streamUrl: String
+        val streamUrl: String,
+        /** The track's id and position, for tracks without a usable language or name. */
+        val trackId: String? = null,
+        val index: Int = -1,
+        val trackCount: Int = 0
     )
 
     internal data class RememberedTrackSelection(
@@ -567,6 +571,10 @@ class PlayerRuntimeController(
     internal var autoSwitchInternalPlayerOnErrorEnabled: Boolean = false
     internal val subtitleTranslationBridge = SubtitleCueTranslationBridge()
     internal var mpvSubtitleTranslationJob: kotlinx.coroutines.Job? = null
+    internal var audioTranscriptionJob: kotlinx.coroutines.Job? = null
+    internal var audioTranscriptionRenderJob: kotlinx.coroutines.Job? = null
+    /** A stream whose audio could not be read; subtitles are not made from it again. */
+    internal var audioTranscriptionUnsupportedUrl: String? = null
     internal var subtitleTranslationNoSourceNoticeStreamUrl: String? = null
     internal var startupEngineFailoverTriggered: Boolean = false
     internal var runtimeInternalPlayerEngineOverride: InternalPlayerEngine? = null

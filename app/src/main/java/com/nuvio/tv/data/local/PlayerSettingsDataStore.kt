@@ -1692,6 +1692,18 @@ class PlayerSettingsDataStore @Inject constructor(
         }
     }
     suspend fun setSubtitleSize(size: Int) { store().edit { it[subtitleSizeKey] = size.coerceIn(50, 200) } }
+    suspend fun applySubtitleStylePreset(preset: SubtitleStylePreset) {
+        store().edit {
+            it[subtitleSizeKey] = preset.size
+            it[subtitleVerticalOffsetKey] = preset.verticalOffset
+            it[subtitleBoldKey] = preset.bold
+            it[subtitleTextColorKey] = preset.textColor
+            it[subtitleBackgroundColorKey] = preset.backgroundColor
+            it[subtitleOutlineEnabledKey] = preset.outlineEnabled
+            it[subtitleOutlineColorKey] = preset.outlineColor
+            it[subtitleOutlineWidthKey] = preset.outlineWidth
+        }
+    }
     suspend fun setSubtitleVerticalOffset(offset: Int) { store().edit { it[subtitleVerticalOffsetKey] = offset.coerceIn(-20, 50) } }
     suspend fun setSubtitleBold(bold: Boolean) { store().edit { it[subtitleBoldKey] = bold } }
     suspend fun setSubtitleTextColor(color: Int) { store().edit { it[subtitleTextColorKey] = color } }

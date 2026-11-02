@@ -1,5 +1,7 @@
 package com.nuvio.tv
 
+import kotlinx.coroutines.launch
+
 import android.app.ActivityManager
 import android.app.Application
 import android.content.Context
@@ -43,6 +45,7 @@ import javax.inject.Inject
 class NuvioApplication : Application(), SingletonImageLoader.Factory {
 
     @Inject lateinit var startupSyncService: StartupSyncService
+    @Inject lateinit var playerSettingsDataStore: com.nuvio.tv.data.local.PlayerSettingsDataStore
     @Inject lateinit var androidTvChannelSyncService: AndroidTvChannelSyncService
     @Inject lateinit var sentrySettingsDataStore: SentrySettingsDataStore
     @Inject lateinit var imagePerformancePreferences: ImagePerformancePreferences
@@ -82,6 +85,11 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
     override fun onCreate() {
         super.onCreate()
         com.nuvio.tv.core.tmdb.TmdbApiKey.attach(this)
+        com.nuvio.tv.core.network.AddonNetworkPreferences.attach(this)
+        com.nuvio.tv.core.poster.PosterRatingsPreferences.attach(this)
+        com.nuvio.tv.core.poster.HomeRowStylePreferences.attach(this)
+        com.nuvio.tv.core.player.AudioPassthroughPreferences.attach(this)
+        applyPersonalSetupOnce()
         SentryInitializer.start(this, sentrySettingsDataStore)
         PluginRuntimeHooks.onApplicationCreate(this)
         androidTvChannelSyncService.start()
@@ -175,4 +183,26 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
             .bitmapFactoryMaxParallelism(4)
             .build()
     }
+
+    /**
+     * The owner's personal build sets up playback once for their TV: the display follows the
+     * video's frame rate, and DTS is decoded by the app because the TV doesn't take it. Changes
+     * made afterwards in settings are kept.
+     */
+    private fun applyPersonalSetupOnce() {
+        if (!BuildConfig.PERSONAL_SETUP) return
+        val prefs = getSharedPreferences("nuvio_personal_setup", MODE_PRIVATE)
+        if (prefs.getBoolean(PERSONAL_SETUP_KEY, false)) return
+        com.nuvio.tv.core.player.AudioPassthroughPreferences.setDisabled(
+            setOf(com.nuvio.tv.core.player.PassthroughFormat.DTS, com.nuvio.tv.core.player.PassthroughFormat.DTS_HD)
+        )
+        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.IO).launch {
+            runCatching {
+                playerSettingsDataStore.setFrameRateMatchingMode(com.nuvio.tv.data.local.FrameRateMatchingMode.START_STOP)
+                prefs.edit().putBoolean(PERSONAL_SETUP_KEY, true).apply()
+            }
+        }
+    }
 }
+
+private const val PERSONAL_SETUP_KEY = "playback_v1"

@@ -129,9 +129,12 @@ fun StreamScreen(
     onSourceSelectionRestoreHandled: () -> Unit = {},
     onBackPress: () -> Unit,
     onStreamSelected: (StreamPlaybackInfo) -> Unit,
-    onAutoPlayResolved: (StreamPlaybackInfo) -> Unit
+    onAutoPlayResolved: (StreamPlaybackInfo) -> Unit,
+    onNavigateToCastDetail: (personId: Int, personName: String) -> Unit = { _, _ -> },
+    castViewModel: StreamCastViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val castPeople by castViewModel.people.collectAsStateWithLifecycle()
     val watchProgress by viewModel.watchProgress.collectAsStateWithLifecycle()
     val resumeProgress = streamResumeProgress(watchProgress, startFromBeginning)
     val resumePositionMs = resumeProgress?.position?.takeIf { it > 0L }
@@ -452,7 +455,9 @@ fun StreamScreen(
                     year = uiState.year,
                     modifier = Modifier
                         .weight(0.4f)
-                        .fillMaxHeight()
+                        .fillMaxHeight(),
+                    castPeople = castPeople,
+                    onCastClick = { person -> person.tmdbId?.let { onNavigateToCastDetail(it, person.name) } }
                 )
 
                 // Right side - Streams container
@@ -651,7 +656,9 @@ private fun LeftContentSection(
     runtime: Int?,
     genres: String?,
     year: String?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    castPeople: List<com.nuvio.tv.domain.model.MetaCastMember> = emptyList(),
+    onCastClick: (com.nuvio.tv.domain.model.MetaCastMember) -> Unit = {}
 ) {
     val context = LocalContext.current
     var logoLoadFailed by remember(logo) { mutableStateOf(false) }
@@ -746,6 +753,10 @@ private fun LeftContentSection(
                         textAlign = TextAlign.Center
                     )
                 }
+            }
+            if (castPeople.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(NuvioTheme.spacing.lg))
+                StreamCastRow(people = castPeople, onPersonClick = onCastClick)
             }
         }
     }

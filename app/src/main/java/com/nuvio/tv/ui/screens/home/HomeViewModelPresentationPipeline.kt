@@ -318,7 +318,7 @@ internal fun HomeViewModel.observeModernHomePresentationPipeline() {
             }
             .distinctUntilChanged()
 
-        combine(uiState, _currentLocaleTag, posterOverlay) { state, localeTag, overlay ->
+        combine(uiState, _currentLocaleTag, posterOverlay, com.nuvio.tv.core.poster.HomeRowStylePreferences.styles) { state, localeTag, overlay, rowStyles ->
                 ModernHomePresentationInput(
                     homeRows = state.homeRows,
                     catalogRows = state.catalogRows,
@@ -329,7 +329,8 @@ internal fun HomeViewModel.observeModernHomePresentationPipeline() {
                     showFullReleaseDate = state.showFullReleaseDate,
                     showImdbRatings = state.homeImdbRatingsVisibility.showRatings,
                     detailImdbRatingsVisibility = state.detailImdbRatingsVisibility,
-                    localeTag = localeTag
+                    localeTag = localeTag,
+                    rowStyles = rowStyles
                 )
             }
             // Compare by row structure only (keys + item counts), not by
@@ -341,6 +342,7 @@ internal fun HomeViewModel.observeModernHomePresentationPipeline() {
                     && old.continueWatchingItems == new.continueWatchingItems
                     && old.upcomingItems == new.upcomingItems
                     && old.useLandscapePosters == new.useLandscapePosters
+                    && old.rowStyles == new.rowStyles
                     && old.showCatalogTypeSuffix == new.showCatalogTypeSuffix
                     && old.showFullReleaseDate == new.showFullReleaseDate
                     && old.showImdbRatings == new.showImdbRatings
@@ -903,6 +905,7 @@ private fun HomeViewModel.updateCatalogItemWithTmdb(itemId: String, enrichment: 
                 } else {
                     enrichment.description ?: merged.description
                 },
+                tmdbRating = enrichment.rating?.toFloat()?.takeIf { it > 0f } ?: merged.tmdbRating,
                 genres = if (enrichment.genres.isNotEmpty()) enrichment.genres else merged.genres
             )
         }

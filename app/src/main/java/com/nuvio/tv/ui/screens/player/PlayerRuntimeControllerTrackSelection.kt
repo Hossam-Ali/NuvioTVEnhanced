@@ -167,6 +167,8 @@ internal fun PlayerRuntimeController.applyAddonSubtitleOverrideByLanguage(
 }
 
 internal fun PlayerRuntimeController.selectSubtitleTrack(trackIndex: Int) {
+    // Any subtitle choice replaces subtitles made from the audio, on both engines.
+    if (isAudioTranscriptionActive()) stopAudioTranscription()
     logSwitchTrace(
         stage = "select-subtitle-track",
         message = "trackIndex=$trackIndex usingMpv=${isUsingMpvEngine()} " +
@@ -263,6 +265,8 @@ internal fun PlayerRuntimeController.rememberInternalSubtitleSelection(trackInde
 }
 
 internal fun PlayerRuntimeController.disableSubtitles() {
+    // Any subtitle choice replaces subtitles made from the audio, on both engines.
+    if (isAudioTranscriptionActive()) stopAudioTranscription()
     resetSubtitleAutoSyncState()
     logSwitchTrace(
         stage = "disable-subtitles",
@@ -440,6 +444,8 @@ internal fun PlayerRuntimeController.toSubtitleConfiguration(subtitle: Subtitle)
 }
 
 internal fun PlayerRuntimeController.selectAddonSubtitle(subtitle: Subtitle) {
+    // Any subtitle choice replaces subtitles made from the audio, on both engines.
+    if (isAudioTranscriptionActive()) stopAudioTranscription()
     logSwitchTrace(
         stage = "select-addon-subtitle",
         message = "usingMpv=${isUsingMpvEngine()} addonId=${subtitle.id} addonLang=${subtitle.lang} addonName=${subtitle.addonName}"
@@ -733,7 +739,10 @@ internal fun PlayerRuntimeController.captureCurrentAudioSelectionForSubtitleRefr
         return PlayerRuntimeController.PendingAudioSelection(
             language = selected.language,
             name = selected.name,
-            streamUrl = currentStreamUrl
+            streamUrl = currentStreamUrl,
+            trackId = selected.trackId,
+            index = state.selectedAudioTrackIndex,
+            trackCount = state.audioTracks.size
         )
     }
 
