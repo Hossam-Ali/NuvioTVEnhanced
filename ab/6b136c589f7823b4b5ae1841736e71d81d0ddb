@@ -1,0 +1,19 @@
+README.md
+  s_99f545eda452aa::t_b5a1a2d4f055c4 9,53-54,57-74,86-90,99,147-149
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "ab6b136c589f7823b4b5ae1841736e71d81d0ddb",
+  "prompts": {},
+  "sessions": {
+    "s_99f545eda452aa": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "s_99f545eda452aa",
+        "model": "unknown"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  }
+}
