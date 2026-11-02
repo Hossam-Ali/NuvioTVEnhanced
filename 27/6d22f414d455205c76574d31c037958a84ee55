@@ -1,0 +1,31 @@
+app/build.gradle.kts
+  s_5c738f430eb33c::t_6cbeccdd90195d 158-159
+app/src/main/java/com/nuvio/tv/NuvioApplication.kt
+  s_5c738f430eb33c::t_cdce88c367b87b 50,197-205,220
+app/src/main/java/com/nuvio/tv/core/poster/PosterRatings.kt
+  s_5c738f430eb33c::t_04c96083581274 147-150
+app/src/main/java/com/nuvio/tv/data/local/MDBListSettingsDataStore.kt
+  s_5c738f430eb33c::t_bd20d2866ba105 52
+app/src/main/java/com/nuvio/tv/data/repository/MDBListRepository.kt
+  s_5c738f430eb33c::t_d5c68759947844 37-54
+app/src/main/java/com/nuvio/tv/domain/model/MDBListSettings.kt
+  s_5c738f430eb33c::t_52eb2de281c3bb 14-15
+app/src/main/java/com/nuvio/tv/ui/screens/home/ModernHomeHero.kt
+  s_5c738f430eb33c::t_32b95dc0269562 372
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "276d22f414d455205c76574d31c037958a84ee55",
+  "prompts": {},
+  "sessions": {
+    "s_5c738f430eb33c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "s_5c738f430eb33c",
+        "model": "unknown"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  }
+}
