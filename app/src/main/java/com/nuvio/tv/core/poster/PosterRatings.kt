@@ -144,6 +144,10 @@ class PosterRatingsRepository @Inject constructor(private val mdbList: MDBListRe
 
     fun cached(id: String, type: String): MDBListRatings? = memory["$type:$id"]
 
+    /** For the home hero: only the providers switched on in the MDBList settings. Not cached, so a change shows at once. */
+    suspend fun enabledRatings(id: String, type: String): MDBListRatings? =
+        runCatching { mdbList.getEnabledRatingsForItem(id, type) }.getOrNull()
+
     suspend fun ratings(id: String, type: String): MDBListRatings? {
         val key = "$type:$id"
         memory[key]?.let { return it }

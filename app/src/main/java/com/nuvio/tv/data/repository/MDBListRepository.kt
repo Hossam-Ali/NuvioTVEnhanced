@@ -34,6 +34,24 @@ class MDBListRepository internal constructor(
     suspend fun getImdbRatingForItem(itemId: String, itemType: String): Double? =
         getAllRatingsForItem(itemId, itemType)?.imdb
 
+    /** The ratings switched on in the MDBList settings for an item, as the details page shows them. */
+    suspend fun getEnabledRatingsForItem(itemId: String, itemType: String): MDBListRatings? {
+        val settings = settingsDataStore.settings.first()
+        val all = getAllRatingsForItem(itemId, itemType) ?: return null
+        return MDBListRatings(
+            trakt = all.trakt.takeIf { settings.showTrakt },
+            imdb = all.imdb.takeIf { settings.showImdb },
+            tmdb = all.tmdb.takeIf { settings.showTmdb },
+            letterboxd = all.letterboxd.takeIf { settings.showLetterboxd },
+            tomatoes = all.tomatoes.takeIf { settings.showTomatoes },
+            audience = all.audience.takeIf { settings.showAudience },
+            metacritic = all.metacritic.takeIf { settings.showMetacritic },
+            mal = all.mal.takeIf { settings.showMal },
+            tomatoesCertified = settings.showTomatoes && all.tomatoesCertified,
+            audienceCertified = settings.showAudience && all.audienceCertified
+        )
+    }
+
     /** Every rating MDBList has for an item, whatever the detail-page provider settings; null without MDBList. */
     suspend fun getAllRatingsForItem(itemId: String, itemType: String): MDBListRatings? {
         val settings = settingsDataStore.settings.first()

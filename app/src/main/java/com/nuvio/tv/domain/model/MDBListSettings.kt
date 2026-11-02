@@ -11,7 +11,8 @@ data class MDBListSettings(
     val showAudience: Boolean = true,
     val showMetacritic: Boolean = true,
     val showMal: Boolean = true,
-    val showOnHero: Boolean = false,
+    // On by default: with an MDBList key the home hero shows IMDb, Rotten Tomatoes and Metacritic.
+    val showOnHero: Boolean = true,
     val ratingOrder: List<String> = DEFAULT_RATING_ORDER
 ) {
     fun hasEnabledProviders(): Boolean =

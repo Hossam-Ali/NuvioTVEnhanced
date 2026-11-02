@@ -47,6 +47,7 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
 
     @Inject lateinit var startupSyncService: StartupSyncService
     @Inject lateinit var playerSettingsDataStore: com.nuvio.tv.data.local.PlayerSettingsDataStore
+    @Inject lateinit var mdbListSettingsDataStore: com.nuvio.tv.data.local.MDBListSettingsDataStore
     @Inject lateinit var androidTvChannelSyncService: AndroidTvChannelSyncService
     @Inject lateinit var sentrySettingsDataStore: SentrySettingsDataStore
     @Inject lateinit var imagePerformancePreferences: ImagePerformancePreferences
@@ -193,6 +194,15 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
     private fun applyPersonalSetupOnce() {
         if (!BuildConfig.PERSONAL_SETUP) return
         val prefs = getSharedPreferences("nuvio_personal_setup", MODE_PRIVATE)
+        // Rotten Tomatoes and Metacritic in the home hero, beside IMDb.
+        if (!prefs.getBoolean(HERO_RATINGS_SETUP_KEY, false)) {
+            kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.IO).launch {
+                runCatching {
+                    mdbListSettingsDataStore.setShowOnHero(true)
+                    prefs.edit().putBoolean(HERO_RATINGS_SETUP_KEY, true).apply()
+                }
+            }
+        }
         if (prefs.getBoolean(PERSONAL_SETUP_KEY, false)) return
         com.nuvio.tv.core.player.AudioPassthroughPreferences.setDisabled(
             setOf(com.nuvio.tv.core.player.PassthroughFormat.DTS, com.nuvio.tv.core.player.PassthroughFormat.DTS_HD)
@@ -207,3 +217,4 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
 }
 
 private const val PERSONAL_SETUP_KEY = "playback_v1"
+private const val HERO_RATINGS_SETUP_KEY = "hero_ratings_v1"

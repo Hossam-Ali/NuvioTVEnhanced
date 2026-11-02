@@ -369,8 +369,7 @@ private fun HeroTitleContent(
     ) {
         val id = preview.ratingsId
         value = if (mdbListShowOnHero && preview.mdbListRatings == null && !id.isNullOrBlank()) {
-            posterRatings.cached(id, preview.ratingsType.orEmpty().ifBlank { "movie" })
-                ?: posterRatings.ratings(id, preview.ratingsType.orEmpty().ifBlank { "movie" })
+            posterRatings.enabledRatings(id, preview.ratingsType.orEmpty().ifBlank { "movie" })
         } else {
             null
         }
