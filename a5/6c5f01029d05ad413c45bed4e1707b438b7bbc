@@ -1,0 +1,19 @@
+README.md
+  s_b1556196078f5f::t_d24217f44c238e 9,26-39,44-47,50-69,76,85-86,101,105-112,123,167-172,195-196
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "a56c5f01029d05ad413c45bed4e1707b438b7bbc",
+  "prompts": {},
+  "sessions": {
+    "s_b1556196078f5f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "s_b1556196078f5f",
+        "model": "unknown"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  }
+}
