@@ -1,0 +1,19 @@
+app/build.gradle.kts
+  s_02c9c0589e24d0::t_9769a886278bb3 158-159
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "73b9e6ecb421372f01f7e045c3a6aabe79e9c3af",
+  "prompts": {},
+  "sessions": {
+    "s_02c9c0589e24d0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "s_02c9c0589e24d0",
+        "model": "unknown"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  }
+}
