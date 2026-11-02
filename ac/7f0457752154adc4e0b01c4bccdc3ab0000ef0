@@ -1,0 +1,91 @@
+app/src/main/java/com/nuvio/tv/MainActivity.kt
+  s_d7652d1daa0f5f::t_d5aa898f42ee7c 865-866,1167-1169,1194-1195,2359
+app/src/main/java/com/nuvio/tv/NewLookTopTabsScaffold.kt
+  s_d7652d1daa0f5f::t_ad3f71cc4a581a 1-242
+app/src/main/java/com/nuvio/tv/NuvioApplication.kt
+  s_d7652d1daa0f5f::t_5c6c3e7fcbee86 94
+app/src/main/java/com/nuvio/tv/core/poster/CardBackdrops.kt
+  s_d7652d1daa0f5f::t_56a4b91c616947 1-68
+app/src/main/java/com/nuvio/tv/core/poster/PosterRatings.kt
+  s_d7652d1daa0f5f::t_a2b386991aaa1f 52-57,65,71,173
+app/src/main/java/com/nuvio/tv/core/ui/NewLookPreferences.kt
+  s_d7652d1daa0f5f::t_a64ff352bcfcef 1-46
+app/src/main/java/com/nuvio/tv/data/local/LayoutPreferenceDataStore.kt
+  s_d7652d1daa0f5f::t_4f91ab5f4cbd29 158-159
+app/src/main/java/com/nuvio/tv/data/local/WatchProgressPreferences.kt
+  s_d7652d1daa0f5f::t_c16a8e384cca1a 495-498,554-557
+app/src/main/java/com/nuvio/tv/ui/components/AutoCollectionCover.kt
+  s_d7652d1daa0f5f::t_b82faaca80b30e 37-38
+app/src/main/java/com/nuvio/tv/ui/components/PosterRatingBadges.kt
+  s_d7652d1daa0f5f::t_b79dc94362b20f 51,62-71,164-165
+app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt
+  s_d7652d1daa0f5f::t_574b471cc6c22d 218,221-223,241,538-542,598,967,1003-1006,1010
+app/src/main/java/com/nuvio/tv/ui/navigation/Screen.kt
+  s_d7652d1daa0f5f::t_6e65e252b55971 30,54-55,69
+app/src/main/java/com/nuvio/tv/ui/screens/detail/MetaDetailsScreen.kt
+  s_d7652d1daa0f5f::t_115b23be1b1ef2 851-860,862-901,903-905,907-918,920-921
+app/src/main/java/com/nuvio/tv/ui/screens/detail/NewLookDetails.kt
+  s_d7652d1daa0f5f::t_407a8227c313e1 1-818
+app/src/main/java/com/nuvio/tv/ui/screens/home/ModernHomeContent.kt
+  s_d7652d1daa0f5f::t_04edb3392f590b 620-621,1159-1171,1204-1209,1371-1377
+app/src/main/java/com/nuvio/tv/ui/screens/home/ModernHomeHero.kt
+  s_d7652d1daa0f5f::t_38c195fe2b340b 16,24-26,68,312-314,341,343,345,353-355,357,368-370,375,379,381,388-393,397,519-520,717-719,721,845-984
+app/src/main/java/com/nuvio/tv/ui/screens/home/ModernHomeModels.kt
+  s_d7652d1daa0f5f::t_dfa8f71cdb5019 76-81,312-313,328,351-353,391-393,474-478
+app/src/main/java/com/nuvio/tv/ui/screens/home/ModernHomeRows.kt
+  s_d7652d1daa0f5f::t_9f5d725696c0d2 45,1128-1131,1138-1163,1182,1184,1204-1205,1208,1210,1232,1234-1235,1237,1414-1418,1465,1615-1619
+app/src/main/java/com/nuvio/tv/ui/screens/home/NewLookHeroResume.kt
+  s_d7652d1daa0f5f::t_c2206d33f53dd6 1-84
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerMetadata.kt
+  s_d7652d1daa0f5f::t_dfab5c4d769b83 3-4,90-95,155-159,161-166
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerSubtitleTranslation.kt
+  s_d7652d1daa0f5f::t_05ceb61e64f196 198,201-202,231-241,269-270,290,293-294,299-302
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt
+  s_d7652d1daa0f5f::t_107df210f3e593 3024-3027
+app/src/main/java/com/nuvio/tv/ui/screens/settings/LayoutHomeSettings.kt
+  s_d7652d1daa0f5f::t_7b5c009f469745 185
+app/src/main/java/com/nuvio/tv/ui/screens/settings/LayoutNewLookSettings.kt
+  s_d7652d1daa0f5f::t_450dd406b0971c 1-54
+app/src/main/java/com/nuvio/tv/ui/screens/settings/LayoutSettingsModel.kt
+  s_d7652d1daa0f5f::t_2f53933cf03eef 43-45
+app/src/main/java/com/nuvio/tv/ui/screens/settings/SettingsSearchIndex.kt
+  s_d7652d1daa0f5f::t_ea3faa3d1049db 57-58
+app/src/main/java/com/nuvio/tv/ui/screens/stream/NewLookStreamSummary.kt
+  s_d7652d1daa0f5f::t_b0d00d7a5c89ba 1-125
+app/src/main/java/com/nuvio/tv/ui/screens/stream/NewLookStreams.kt
+  s_d7652d1daa0f5f::t_f43eb2242f7e85 1-423
+app/src/main/java/com/nuvio/tv/ui/screens/stream/StreamScreen.kt
+  s_d7652d1daa0f5f::t_95df9c96467b52 441-458,460-464
+app/src/main/java/com/nuvio/tv/ui/screens/stream/StreamScreenViewModel.kt
+  s_d7652d1daa0f5f::t_513904c8ba4274 153-156,467-472,475,2166-2168
+app/src/main/java/com/nuvio/tv/ui/util/TextScript.kt
+  s_d7652d1daa0f5f::t_c8351354671fce 1-17
+app/src/main/res/values-ar/strings.xml
+  s_d7652d1daa0f5f::t_8e0d8ddc775e86 3166-3195
+app/src/main/res/values/strings.xml
+  s_d7652d1daa0f5f::t_943b98f58f9a4a 3571-3600
+app/src/test/java/com/nuvio/tv/ui/screens/player/SubtitleTranslationSourceTest.kt
+  s_d7652d1daa0f5f::t_caabce25b151db 93-102
+app/src/test/java/com/nuvio/tv/ui/screens/stream/NewLookStreamSummaryTest.kt
+  s_d7652d1daa0f5f::t_87f0ec0ef175c8 1-94
+app/src/test/java/com/nuvio/tv/ui/util/TextScriptTest.kt
+  s_d7652d1daa0f5f::t_6101492ee9d38d 1-18
+scripts/generate_settings_search_index.py
+  s_d7652d1daa0f5f::t_a9848e59d30117 27
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "ac7f0457752154adc4e0b01c4bccdc3ab0000ef0",
+  "prompts": {},
+  "sessions": {
+    "s_d7652d1daa0f5f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "s_d7652d1daa0f5f",
+        "model": "unknown"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  }
+}
