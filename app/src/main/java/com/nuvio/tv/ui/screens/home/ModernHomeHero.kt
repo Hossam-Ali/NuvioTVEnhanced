@@ -364,12 +364,16 @@ private fun HeroTitleContent(
             com.nuvio.tv.core.poster.PosterRatingsEntryPoint::class.java
         ).posterRatingsRepository()
     }
+    // Asked for whenever the item has no MDBList ratings yet (or none with IMDb), with or without
+    // "Use Ratings on Hero": with an MDBList key the hero always shows its scores.
     val fetchedHeroRatings by androidx.compose.runtime.produceState<com.nuvio.tv.domain.model.MDBListRatings?>(
-        initialValue = null, preview.ratingsId, preview.mdbListRatings, mdbListShowOnHero
+        initialValue = null, preview.ratingsId, preview.mdbListRatings
     ) {
         val id = preview.ratingsId
-        value = if (mdbListShowOnHero && preview.mdbListRatings == null && !id.isNullOrBlank()) {
-            posterRatings.enabledRatings(id, preview.ratingsType.orEmpty().ifBlank { "movie" })
+        value = if (preview.mdbListRatings?.imdb == null && !id.isNullOrBlank()) {
+            posterRatings.enabledRatings(id, preview.ratingsType.orEmpty().ifBlank { "movie" }).also {
+                android.util.Log.d("HeroRatings", "id=$id imdb=${it?.imdb} tomatoes=${it?.tomatoes}")
+            }
         } else {
             null
         }
@@ -492,9 +496,14 @@ private fun HeroTitleContent(
         val hasImdbRatingForLayout = !preview.imdbText.isNullOrBlank()
         // IMDb, Rotten Tomatoes and Metacritic side by side, each only when known; an episode shows
         // its own IMDb score beside the show's critic scores.
-        val mdbListHeroRatings = (preview.mdbListRatings ?: fetchedHeroRatings)?.takeIf { mdbListShowOnHero }
-        val heroImdb = preview.imdbRating?.takeIf { it > 0.0 }
-            ?: mdbListHeroRatings?.imdb?.takeIf { !preview.isEpisodePreview }
+        val mdbListHeroRatings = fetchedHeroRatings ?: preview.mdbListRatings?.takeIf { mdbListShowOnHero }
+        // MDBList follows IMDb's own data; add-on numbers can be stale or wrong, so they only fill in.
+        // An episode keeps its own IMDb score.
+        val heroImdb = if (preview.isEpisodePreview) {
+            preview.imdbRating?.takeIf { it > 0.0 }
+        } else {
+            mdbListHeroRatings?.imdb?.takeIf { it > 0.0 } ?: preview.imdbRating?.takeIf { it > 0.0 }
+        }
         val heroRatings = com.nuvio.tv.domain.model.MDBListRatings(
             imdb = heroImdb,
             tomatoes = mdbListHeroRatings?.tomatoes,

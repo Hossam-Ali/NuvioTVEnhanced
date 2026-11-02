@@ -87,7 +87,11 @@ class MDBListRepository internal constructor(
             fallbackItemId = itemId,
             fallbackItemType = itemType,
             mediaType = mediaType
-        ) ?: return null
+        )
+            // Add-ons with their own ids: the TMDB id the app already found for the title.
+            ?: runCatching { tmdbService.ensureTmdbId(itemId, itemType) }.getOrNull()
+                ?.let { MediaRef("tmdb", it, mediaType) }
+            ?: return null
 
         return ratingsLoader.getRatings(ref.provider, ref.mediaType, ref.id, credential)
     }

@@ -745,7 +745,7 @@ fun ModernHomeContent(
                             imdbRating = enrichedItem.imdbRating?.toDouble(),
                             tmdbRating = enrichedItem.tmdbRating?.toDouble()
                                 ?: activeCarouselItem?.heroPreview?.tmdbRating,
-                            ratingsId = enrichedItem.id,
+                            ratingsId = enrichedItem.imdbId?.takeIf { it.startsWith("tt") } ?: enrichedItem.id,
                             ratingsType = enrichedItem.apiType,
                             ageRatingText = enrichedItem.ageRating,
                             statusText = enrichedItem.status,

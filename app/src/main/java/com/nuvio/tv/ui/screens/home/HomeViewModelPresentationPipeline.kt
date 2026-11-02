@@ -901,7 +901,9 @@ private fun HomeViewModel.updateCatalogItemWithTmdb(itemId: String, enrichment: 
             merged = merged.copy(
                 name = if (isModernLayout) enrichment.originalTitleOr(merged.name) else merged.name,
                 description = if (isModernLayout) {
-                    enrichment.descriptionForOriginalTitle(merged.description)
+                    com.nuvio.tv.core.tmdb.descriptionInTitleScript(
+                        merged.description, enrichment.descriptionForOriginalTitle(merged.description), enrichment.originalTitleOr(merged.name)
+                    )
                 } else {
                     enrichment.description ?: merged.description
                 },
@@ -1021,7 +1023,8 @@ private fun HomeViewModel.updateCatalogItemWithMeta(itemId: String, meta: Meta) 
     fun mergeItem(currentItem: MetaPreview): MetaPreview = currentItem.copy(
         background = meta.backdropUrl ?: currentItem.backdropUrl,
         logo = meta.logo ?: currentItem.logo,
-        description = meta.description ?: currentItem.description,
+        // Another add-on's English description doesn't replace an Arabic show's own Arabic one.
+        description = com.nuvio.tv.core.tmdb.descriptionInTitleScript(currentItem.description, meta.description, currentItem.name),
         imdbRating = meta.imdbRating ?: currentItem.imdbRating,
         genres = if (meta.genres.isNotEmpty()) meta.genres else currentItem.genres,
         runtime = meta.runtime ?: currentItem.runtime,

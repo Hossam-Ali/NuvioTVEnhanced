@@ -1816,7 +1816,18 @@ data class TmdbEnrichment(
     }
 }
 
-private fun firstLetterScript(text: String): Character.UnicodeScript? {
+/**
+ * The description to keep for a title named [title]: [incoming], unless [current] is written in the
+ * title's script and [incoming] isn't (an English description replacing an Arabic show's own).
+ */
+fun descriptionInTitleScript(current: String?, incoming: String?, title: String): String? {
+    val titleScript = firstLetterScript(title)
+    val currentFits = current != null && firstLetterScript(current) == titleScript
+    val incomingFits = incoming != null && firstLetterScript(incoming) == titleScript
+    return if (currentFits && !incomingFits) current else incoming ?: current
+}
+
+internal fun firstLetterScript(text: String): Character.UnicodeScript? {
     var index = 0
     while (index < text.length) {
         val codePoint = text.codePointAt(index)

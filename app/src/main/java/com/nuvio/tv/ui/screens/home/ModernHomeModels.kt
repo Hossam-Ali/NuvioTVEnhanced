@@ -517,7 +517,7 @@ internal fun buildCatalogItem(
             ?.let { String.format("%.1f", it) },
         imdbRating = item.imdbRating?.toDouble(),
         tmdbRating = item.tmdbRating?.toDouble(),
-        ratingsId = item.id,
+        ratingsId = item.imdbId?.takeIf { it.startsWith("tt") } ?: item.id,
         ratingsType = item.apiType,
         ageRatingText = item.ageRating,
         statusText = item.status,

@@ -150,6 +150,14 @@ class TmdbMetadataServiceTest {
     }
 
     @Test
+    fun `a description in the title's script isn't replaced by one in another script`() {
+        assertEquals("وصف عربي", descriptionInTitleScript("وصف عربي", "English text", "تحت السن"))
+        assertEquals("وصف أحدث", descriptionInTitleScript("وصف عربي", "وصف أحدث", "تحت السن"))
+        assertEquals("English overview", descriptionInTitleScript("وصف عربي", "English overview", "Interstellar"))
+        assertEquals("وصف", descriptionInTitleScript("وصف", null, "تحت السن"))
+    }
+
+    @Test
     fun `descriptionForOriginalTitle keeps an addon description written like the original title`() {
         val enrichment = TmdbEnrichment(
             localizedTitle = "Limit", description = "English overview", genres = emptyList(), backdrop = null, logo = null,
