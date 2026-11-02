@@ -1,0 +1,31 @@
+app/src/main/java/com/nuvio/tv/core/tmdb/TmdbMetadataService.kt
+  s_51091575ea620d::t_133e127f0a99af 1819-1830
+app/src/main/java/com/nuvio/tv/data/repository/MDBListRepository.kt
+  s_51091575ea620d::t_bed5e29d6480fd 90-94
+app/src/main/java/com/nuvio/tv/ui/screens/home/HomeViewModelPresentationPipeline.kt
+  s_51091575ea620d::t_c802245b094ee6 904-906,1026-1027
+app/src/main/java/com/nuvio/tv/ui/screens/home/ModernHomeContent.kt
+  s_51091575ea620d::t_a00da75bb05499 748
+app/src/main/java/com/nuvio/tv/ui/screens/home/ModernHomeHero.kt
+  s_51091575ea620d::t_8132484d7e578f 367-368,370,373-376,499-506
+app/src/main/java/com/nuvio/tv/ui/screens/home/ModernHomeModels.kt
+  s_51091575ea620d::t_04d94cb9d46e3c 520
+app/src/test/java/com/nuvio/tv/core/tmdb/TmdbMetadataServiceTest.kt
+  s_51091575ea620d::t_9bcee2f07eb988 152-159
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "98b99c2ff66fa8bd21c0688512aff8ff95249a6b",
+  "prompts": {},
+  "sessions": {
+    "s_51091575ea620d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "s_51091575ea620d",
+        "model": "unknown"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  }
+}
