@@ -1,0 +1,25 @@
+app/src/main/java/com/nuvio/tv/ui/screens/detail/NewLookDetails.kt
+  s_a2c99d0417980c::t_65d54f3df08195 79-80,799-801
+app/src/main/java/com/nuvio/tv/ui/screens/player/PauseOverlay.kt
+  s_a2c99d0417980c::t_bc37406379ded5 3-5,254,268
+app/src/main/java/com/nuvio/tv/ui/util/CastPeople.kt
+  s_a2c99d0417980c::t_9262449ba82ccd 1-16
+app/src/test/java/com/nuvio/tv/ui/util/CastPeopleTest.kt
+  s_a2c99d0417980c::t_91ae6f9c46e4bf 1-35
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "b95bc9721ce2d0312127d509ec61d5e558687f8e",
+  "prompts": {},
+  "sessions": {
+    "s_a2c99d0417980c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "s_a2c99d0417980c",
+        "model": "unknown"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  }
+}
