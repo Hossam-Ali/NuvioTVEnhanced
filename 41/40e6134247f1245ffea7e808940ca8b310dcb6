@@ -1,0 +1,45 @@
+app/src/main/java/com/nuvio/tv/MainActivity.kt
+  s_ab93e8b5507826::t_75856f83ce1215 818-819
+app/src/main/java/com/nuvio/tv/ui/components/StartupLoadingPolicy.kt
+  s_ab93e8b5507826::t_fd81eae423158f 15
+app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt
+  s_ab93e8b5507826::t_9ecbbb708947b3 171,173
+app/src/main/java/com/nuvio/tv/ui/screens/detail/MetaDetailsScreen.kt
+  s_ab93e8b5507826::t_14f3928cd0c992 783-787,789-794,796-797,799-804,806-811,815
+app/src/main/java/com/nuvio/tv/ui/screens/home/HomeScreen.kt
+  s_ab93e8b5507826::t_1d439e9c778a20 354-365
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerSubtitleTranslation.kt
+  s_ab93e8b5507826::t_3191360b1b140c 182-188,192-198,208,211,214,272-273,275,280,300-310,314
+app/src/main/java/com/nuvio/tv/ui/screens/settings/LayoutSettingsModel.kt
+  s_ab93e8b5507826::t_b970c1f6d82f77 42
+app/src/main/java/com/nuvio/tv/ui/screens/settings/SettingsSearchIndex.kt
+  s_ab93e8b5507826::t_821b9b759a2a0c 52-57
+app/src/main/java/com/nuvio/tv/ui/screens/stream/NewLookStreams.kt
+  s_ab93e8b5507826::t_0331bb6aebaf7b 157,282-294,302-311
+app/src/main/java/com/nuvio/tv/ui/screens/stream/StreamScreen.kt
+  s_ab93e8b5507826::t_43dafee9f18d3a 129,400
+app/src/main/res/values-ar/strings.xml
+  s_ab93e8b5507826::t_eed54c8986850d 3182-3189
+app/src/main/res/values/strings.xml
+  s_ab93e8b5507826::t_cb999a782a6902 3587-3590
+app/src/test/java/com/nuvio/tv/ui/screens/player/SubtitleTranslationSourceTest.kt
+  s_ab93e8b5507826::t_9883229a30e246 80-83,87-89,94,99-100,104-109
+scripts/generate_settings_search_index.py
+  s_ab93e8b5507826::t_086f6510313702 26
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "4140e6134247f1245ffea7e808940ca8b310dcb6",
+  "prompts": {},
+  "sessions": {
+    "s_ab93e8b5507826": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "s_ab93e8b5507826",
+        "model": "unknown"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  }
+}
