@@ -1,0 +1,27 @@
+app/src/main/java/com/nuvio/tv/core/poster/CardBackdrops.kt
+  s_1be9ab8f9b0a77::t_324e8ebb964433 3,12,17-21,23-25,28-34,37-38,42,48-57,59-60,63-102,124-127
+app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt
+  s_1be9ab8f9b0a77::t_7f0e50b282e19d 404-427
+app/src/main/java/com/nuvio/tv/ui/screens/detail/MetaDetailsScreen.kt
+  s_1be9ab8f9b0a77::t_d83bf454ce2514 225-242,654-668
+app/src/main/java/com/nuvio/tv/ui/screens/home/ModernHomeContent.kt
+  s_1be9ab8f9b0a77::t_0944fb99e15fa9 1246-1255
+app/src/main/java/com/nuvio/tv/ui/screens/home/ModernHomeRows.kt
+  s_1be9ab8f9b0a77::t_3ef0cf030f21f5 903-927,1171-1175,1177-1184,1186-1188,1190-1191,1221,1454-1455,1650-1656
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "53ac6f88c75720aae8af1f1aeb7c5455bd21c02a",
+  "prompts": {},
+  "sessions": {
+    "s_1be9ab8f9b0a77": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "s_1be9ab8f9b0a77",
+        "model": "unknown"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  }
+}
