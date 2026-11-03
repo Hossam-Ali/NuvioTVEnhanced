@@ -1240,6 +1240,9 @@ fun PlayerScreen(
                         onSubtitleTextMetricsChanged = { subtitleTextMetrics = it },
                         modifier = Modifier.fillMaxSize()
                     )
+                    uiState.mpvTranslatedSubtitle?.let { line ->
+                        MpvTranslatedSubtitle(text = line, style = uiState.effectiveSubtitleStyle)
+                    }
                 } else {
                     viewModel.exoPlayer?.let { player ->
                         ExoPlayerSurface(
@@ -2096,6 +2099,8 @@ fun PlayerScreen(
             isLoadingAddons = uiState.isLoadingAddonSubtitles,
             useLibass = uiState.useLibass,
             isUsingMpv = uiState.internalPlayerEngine == InternalPlayerEngine.MVP_PLAYER,
+            aiTranslationTarget = com.nuvio.tv.core.subtitles.SubtitleTranslationService.translationTargetLanguage(),
+            aiTranslationAudioLanguage = uiState.audioTracks.getOrNull(uiState.selectedAudioTrackIndex)?.language,
             onInternalTrackSelected = { viewModel.onEvent(PlayerEvent.OnSelectSubtitleTrack(it)) },
             onAddonSubtitleSelected = { viewModel.onEvent(PlayerEvent.OnSelectAddonSubtitle(it)) },
             onDisableSubtitles = { viewModel.onEvent(PlayerEvent.OnDisableSubtitles) },
@@ -2154,6 +2159,36 @@ fun PlayerScreen(
                 brightness = uiState.playerControlsBrightness
             )
         }
+    }
+}
+
+/** The AI-translated line over the MPV player, styled from the subtitle settings. */
+@Composable
+private fun MpvTranslatedSubtitle(text: String, style: SubtitleStyleSettings) {
+    androidx.compose.foundation.layout.Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(start = 96.dp, end = 96.dp, bottom = (40 + style.verticalOffset * 6).coerceAtLeast(8).dp),
+        contentAlignment = Alignment.BottomCenter
+    ) {
+        androidx.compose.material3.Text(
+            text = text,
+            color = androidx.compose.ui.graphics.Color(style.textColor),
+            fontSize = (26 * style.size / 100f).sp,
+            fontWeight = if (style.bold) androidx.compose.ui.text.font.FontWeight.Bold else androidx.compose.ui.text.font.FontWeight.Medium,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            style = androidx.compose.ui.text.TextStyle(
+                textDirection = androidx.compose.ui.text.style.TextDirection.Content,
+                shadow = androidx.compose.ui.graphics.Shadow(
+                    color = androidx.compose.ui.graphics.Color.Black,
+                    offset = androidx.compose.ui.geometry.Offset(0f, 2f),
+                    blurRadius = 6f
+                )
+            ),
+            modifier = Modifier
+                .background(androidx.compose.ui.graphics.Color(style.backgroundColor))
+                .padding(horizontal = 8.dp, vertical = 2.dp)
+        )
     }
 }
 

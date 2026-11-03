@@ -657,7 +657,9 @@ internal fun PlayerRuntimeController.initializePlayer(
             if (!afrPreflightGate.isCurrent(afrPreflightToken)) return@launch
 
             // ── Libass Setup (From 0.5.7-beta/Left) ──
-            requestedUseLibassByUser = playerSettings.useLibass
+            // AI translation reads plain cue text, which libass would render itself. Treat it as
+            // libass not requested, so the ASS-track pipeline check does not rebuild the player.
+            requestedUseLibassByUser = playerSettings.useLibass && !isSubtitleTranslationConfigured()
             val useLibass = when {
                 !requestedUseLibassByUser -> false
                 libassPipelineOverrideForCurrentStream != null -> libassPipelineOverrideForCurrentStream == true
@@ -929,6 +931,7 @@ internal fun PlayerRuntimeController.initializePlayer(
                     val pv = exoPlayerView
                     if (pv != null) pv.videoBoundsFraction(videoAspectRatio) else null
                 },
+                subtitleTranslationBridge = subtitleTranslationBridge,
                 gainAudioProcessor = gainAudioProcessor,
                 nightModeAudioProcessor = nightModeAudioProcessor,
                 downmixEnabled = effectiveDownmixEnabled,
@@ -994,6 +997,7 @@ internal fun PlayerRuntimeController.initializePlayer(
                         stripDvRpu = stripDvRpuEnabled,
                         stripHdr10PlusSei = stripHdr10PlusSei
                     ).let { autoSyncExtractorsFactory(it, url, headers) } // AutoSync hook
+                    .let { subtitleTranslationExtractorsFactory(it) }
 
             setLoadingStatus(
                 phase = "building_player",
@@ -1443,6 +1447,7 @@ internal fun PlayerRuntimeController.initializePlayer(
 
                     override fun onTracksChanged(tracks: Tracks) {
                         updateAvailableTracks(tracks)
+                        onSubtitleTranslationTracksChanged(tracks)
                     }
 
                     override fun onVideoSizeChanged(videoSize: androidx.media3.common.VideoSize) {
@@ -2082,7 +2087,8 @@ internal fun PlayerRuntimeController.resetAddonSubtitleStateForNewStream() {
 internal suspend fun PlayerRuntimeController.prepareStreamStartSubtitles(
     playerSettings: PlayerSettings
 ): StartupSubtitlePreparation {
-    requestedUseLibassByUser = playerSettings.useLibass
+    requestedUseLibassByUser = playerSettings.useLibass && !isSubtitleTranslationConfigured()
+    com.nuvio.tv.core.subtitles.SubtitleTranslationUsageStore.startVideo()
     if (libassPipelineDecisionStreamUrl != currentStreamUrl) {
         libassPipelineDecisionStreamUrl = currentStreamUrl
         libassPipelineOverrideForCurrentStream = null
@@ -2174,6 +2180,7 @@ private class SubtitleOffsetRenderersFactory(
     private val isBuiltInSubtitleProvider: () -> Boolean,
     private val isSidecarAddonSubtitleActiveProvider: () -> Boolean = { false },
     private val videoBoundsFractionProvider: () -> RectF?,
+    private val subtitleTranslationBridge: SubtitleCueTranslationBridge,
     private val gainAudioProcessor: GainAudioProcessor,
     private val nightModeAudioProcessor: NightModeAudioProcessor,
     private val downmixEnabled: Boolean,
@@ -2320,12 +2327,18 @@ private class SubtitleOffsetRenderersFactory(
         extensionRendererMode: Int,
         out: ArrayList<Renderer>
     ) {
-        val normalizingOutput = CueNormalizingTextOutput(
-            delegate = SdhFilteringTextOutput(CueTrackingTextOutput(output, onCuesShown), shouldStripSdhProvider),
-            shouldNormalizeCuePositionProvider = shouldNormalizeCuePositionProvider,
-            isBuiltInSubtitleProvider = isBuiltInSubtitleProvider,
-            isSidecarAddonSubtitleActiveProvider = isSidecarAddonSubtitleActiveProvider,
-            videoBoundsFractionProvider = videoBoundsFractionProvider
+        // Translation runs first so the RTL fix and SDH filter below see the translated text.
+        val normalizingOutput = TranslatingTextOutput(
+            delegate = CueNormalizingTextOutput(
+                delegate = SdhFilteringTextOutput(CueTrackingTextOutput(output, onCuesShown), shouldStripSdhProvider),
+                shouldNormalizeCuePositionProvider = shouldNormalizeCuePositionProvider,
+                isBuiltInSubtitleProvider = isBuiltInSubtitleProvider,
+                isSidecarAddonSubtitleActiveProvider = isSidecarAddonSubtitleActiveProvider,
+                videoBoundsFractionProvider = videoBoundsFractionProvider
+            ),
+            bridge = subtitleTranslationBridge,
+            shouldTranslateProvider = { !isSidecarAddonSubtitleActiveProvider() },
+            outputLooper = outputLooper,
         )
         val startIndex = out.size
         super.buildTextRenderers(context, normalizingOutput, outputLooper, extensionRendererMode, out)

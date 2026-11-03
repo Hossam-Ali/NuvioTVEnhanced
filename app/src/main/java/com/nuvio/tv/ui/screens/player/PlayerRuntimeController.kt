@@ -445,6 +445,8 @@ class PlayerRuntimeController(
     internal var sidecarGenerationCounter: Long = 0L // AutoSync hook
     internal var activeSidecarGeneration: Long = 0L // AutoSync hook
     internal var activeSidecarSubtitleKey: String? = null
+    /** Language of the add-on subtitle shown on the sidecar path, for AI translation. */
+    internal var activeSidecarSubtitleLanguage: String? = null
     internal var sidecarTimedCues: List<androidx.media3.extractor.text.CuesWithTiming> = emptyList()
         set(value) {
             field = value
@@ -550,6 +552,12 @@ class PlayerRuntimeController(
     internal var pendingAudioSelectionAfterSubtitleRefresh: PendingAudioSelection? = null
     internal var rememberedTrackPreference: TrackPreference? = null
     internal var persistedTrackPreference: TrackPreference? = null
+    /**
+     * True when [persistedTrackPreference] holds the selection captured from this playback before
+     * a player rebuild, rather than one saved for this title earlier. AI translation does not
+     * override such a selection: the user made it moments ago.
+     */
+    internal var persistedTrackPreferenceFromThisPlayback: Boolean = false
     internal var pendingEngineSwitchTrackPreference: PendingEngineSwitchTrackPreference? = null
     internal var explicitSubtitleSelectionForEngineSwitch: ExplicitSubtitleSelectionForEngineSwitch? = null
     internal var effectiveSubtitleSelectionForEngineSwitch: ExplicitSubtitleSelectionForEngineSwitch? = null
@@ -562,6 +570,9 @@ class PlayerRuntimeController(
     internal var hasScannedTextTracksOnce: Boolean = false
     internal var streamReuseLastLinkEnabled: Boolean = false
     internal var autoSwitchInternalPlayerOnErrorEnabled: Boolean = false
+    internal val subtitleTranslationBridge = SubtitleCueTranslationBridge()
+    internal var mpvSubtitleTranslationJob: kotlinx.coroutines.Job? = null
+    internal var subtitleTranslationNoSourceNoticeStreamUrl: String? = null
     internal var startupEngineFailoverTriggered: Boolean = false
     internal var runtimeInternalPlayerEngineOverride: InternalPlayerEngine? = null
     internal var resolvedAutoPlayerEngine: InternalPlayerEngine? = null
@@ -764,6 +775,7 @@ class PlayerRuntimeController(
         // causing the resume seek to be silently lost when ExoPlayer's STATE_READY
         // fired before the DB read completed.
         observeSubtitleSettings()
+        observeSubtitleTranslation()
         if (contentType.equals("cloud", ignoreCase = true)) {
             initializeCloudPlaybackSequence()
         } else {

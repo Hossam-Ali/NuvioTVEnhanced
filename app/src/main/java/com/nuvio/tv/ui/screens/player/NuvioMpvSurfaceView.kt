@@ -239,6 +239,12 @@ class NuvioMpvSurfaceView @JvmOverloads constructor(
         return mpv.getPropertyString("sub-text")
     }
 
+    /** Hides mpv's own subtitle drawing while keeping the track active, so sub-text still updates. */
+    fun setSubtitleTextHidden(hidden: Boolean) {
+        if (!initialized) return
+        runCatching { mpv.setPropertyBoolean("sub-visibility", !hidden) }
+    }
+
     fun currentPositionMs(): Long {
         if (!initialized) return 0L
         val seconds = mpv.getPropertyDouble("time-pos/full")

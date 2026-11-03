@@ -1055,7 +1055,28 @@ internal fun PlayerRuntimeController.applyPersistedTrackPreference(
         }
     }
 
-    when (val subtitleSelection = pending.subtitle) {
+    var subtitleToRestore = pending.subtitle
+    // A pick carried over an engine switch or a player rebuild was made in this playback, so it
+    // is kept; only a selection remembered from earlier viewing gives way to the AI translation.
+    val rememberedDecision = if (subtitleToRestore != null && !usingSwitchPending && !persistedTrackPreferenceFromThisPlayback &&
+        subtitleChoiceVideoKey !in SessionSubtitleChoices
+    ) {
+        rememberedSubtitleDecision(subtitleToRestore, subtitleTracks)
+    } else {
+        RememberedSubtitleDecision.Keep
+    }
+    if (rememberedDecision != RememberedSubtitleDecision.Keep) {
+        if (rememberedDecision == RememberedSubtitleDecision.Replace) {
+            Log.d(PlayerRuntimeController.TAG, "TRACK_PREF restore: remembered subtitle replaced by the AI-translated embedded track")
+            updatedPending = updatedPending.copy(subtitle = null)
+            autoSubtitleSelected = false
+            isUserExplicitSubtitleSelection = false
+            subtitleAddonRestoredByPersistedPreference = false
+            pendingRestoredAddonSubtitle = null
+        }
+        subtitleToRestore = null
+    }
+    when (val subtitleSelection = subtitleToRestore) {
         null -> Unit
         PlayerRuntimeController.RememberedSubtitleSelection.Disabled -> {
             val alreadyDisabled = subtitleTracks.none { it.isSelected }
@@ -1515,7 +1536,7 @@ internal fun selectedAudioLanguageTarget(track: TrackInfo): String? {
     }?.code
 }
 
-private fun addonSubtitleIsForced(subtitle: Subtitle): Boolean {
+internal fun addonSubtitleIsForced(subtitle: Subtitle): Boolean {
     return listOf(subtitle.id, subtitle.url, subtitle.addonName).any {
         it.contains("forced", ignoreCase = true)
     }
@@ -1706,10 +1727,25 @@ internal fun PlayerRuntimeController.tryAutoSelectPreferredSubtitleFromAvailable
         }
         val isPrimarySatisfied = primaryTarget != null && currentSelectedLang != null &&
             PlayerSubtitleUtils.matchesLanguageCode(currentSelectedLang, primaryTarget)
+        // An embedded track picked for AI translation is the intended choice, not a fallback.
+        if (state.selectedAddonSubtitle == null && state.selectedSubtitleTrackIndex >= 0 &&
+            com.nuvio.tv.core.subtitles.SubtitleTranslationService.shouldPreferEmbeddedSubtitles()
+        ) {
+            return
+        }
         val hasBetterAddonMatch = !isPrimarySatisfied && primaryTarget != null &&
             state.addonSubtitles.any { PlayerSubtitleUtils.matchesLanguageCode(it.lang, primaryTarget) }
 
         if (!hasBetterAddonMatch) return
+    }
+    // "Always translate with AI": the embedded track is translated into the translation target,
+    // whatever the preferred subtitle language is (even "none").
+    if (tryAutoSelectEmbeddedSubtitleForTranslation(
+            state.subtitleTracks,
+            com.nuvio.tv.core.subtitles.SubtitleTranslationService.translationTargetLanguage() ?: primaryTarget
+        )
+    ) {
+        return
     }
     val selectedAudioTrack = selectedAudioTrackForSubtitleMatching(state)
     val useForcedSubtitles = state.subtitleStyle.useForcedSubtitles
