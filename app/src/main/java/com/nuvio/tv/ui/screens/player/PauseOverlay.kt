@@ -1,5 +1,8 @@
 package com.nuvio.tv.ui.screens.player
 
+import com.nuvio.tv.ui.util.actorsOnly
+import com.nuvio.tv.ui.util.distinctPeople
+
 import com.nuvio.tv.ui.theme.NuvioTheme
 
 import androidx.compose.foundation.layout.Arrangement
@@ -248,7 +251,7 @@ private fun PauseMetadataView(
                 )
             }
 
-            if (cast.isNotEmpty()) {
+            if (cast.actorsOnly().isNotEmpty()) {
                 Spacer(modifier = Modifier.height(20.dp))
 
                 Text(
@@ -262,7 +265,7 @@ private fun PauseMetadataView(
                 LazyRow(
                     horizontalArrangement = Arrangement.spacedBy(14.dp),
                     content = {
-                        items(cast.take(8)) { member ->
+                        items(cast.actorsOnly().distinctPeople().take(8)) { member ->
                             CastChip(member = member, onClick = { onCastSelected(member) })
                         }
                     }

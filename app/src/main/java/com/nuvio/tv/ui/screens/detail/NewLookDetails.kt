@@ -76,6 +76,8 @@ import com.nuvio.tv.domain.model.WatchProgress
 import com.nuvio.tv.ui.components.MDBListRatingsRow
 import com.nuvio.tv.ui.theme.NuvioTheme
 import com.nuvio.tv.ui.util.contentTextDirection
+import com.nuvio.tv.ui.util.actorsOnly
+import com.nuvio.tv.ui.util.distinctPeople
 import com.nuvio.tv.ui.util.localizedGenreLabel
 
 internal val NewLookFocusedText = Color(0xFF0A0C10)
@@ -794,17 +796,9 @@ private fun NewLookPosterCard(item: MetaPreview, onClick: () -> Unit) {
     }
 }
 
-/** Lead credits first (creator, else director, else writer), then the actors. */
-internal fun newLookCastOrder(members: List<MetaCastMember>): List<MetaCastMember> {
-    fun hasRole(member: MetaCastMember, role: String) = member.character?.trim().equals(role, ignoreCase = true)
-    val leads = listOf("Creator", "Director", "Writer")
-        .map { role -> members.filter { hasRole(it, role) } }
-        .firstOrNull { it.isNotEmpty() }
-        .orEmpty()
-        .take(2)
-    val actors = members.filterNot { member -> listOf("Creator", "Director", "Writer").any { hasRole(member, it) } }
-    return leads + actors
-}
+/** The cast list on the title page: actors only, each once. */
+internal fun newLookCastOrder(members: List<MetaCastMember>): List<MetaCastMember> =
+    members.actorsOnly().distinctPeople()
 
 @Composable
 private fun newLookRoleLabel(character: String?): String? {
