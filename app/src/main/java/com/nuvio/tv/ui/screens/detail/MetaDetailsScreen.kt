@@ -222,6 +222,24 @@ fun MetaDetailsScreen(
         runtime: Int?,
         contentLanguage: String?
     ) -> Unit = { _, _, _, _, _, _, _, _, _, _, _, _, _, _ -> }
+,
+    /** The page's main Play/Resume button: plays straight away with the source last used. */
+    onResumePlayClick: (
+        videoId: String,
+        contentType: String,
+        contentId: String,
+        title: String,
+        poster: String?,
+        backdrop: String?,
+        logo: String?,
+        season: Int?,
+        episode: Int?,
+        episodeName: String?,
+        genres: String?,
+        year: String?,
+        runtime: Int?,
+        contentLanguage: String?
+    ) -> Unit = onPlayClick
 ) {
     val playbackAvailability = LocalPlaybackAvailability.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -633,7 +651,21 @@ fun MetaDetailsScreen(
                             cast = newLookCast,
                             onPlay = {
                                 val video = if (isSeries) playOnLoadVideo else null
-                                if (video != null) playEpisode(video) else playTitle(meta.id)
+                                if (video != null) {
+                                    onResumePlayClick(
+                                        video.id, meta.apiType, meta.id, meta.name,
+                                        video.thumbnail ?: meta.poster, meta.backdropUrl, meta.logo,
+                                        video.season, video.episode, video.title, null, null,
+                                        video.runtime, meta.resolveContentLanguage()
+                                    )
+                                } else {
+                                    onResumePlayClick(
+                                        meta.id, meta.apiType, meta.id, meta.name,
+                                        meta.poster, meta.backdropUrl, meta.logo,
+                                        null, null, null, genresString, yearString,
+                                        null, meta.resolveContentLanguage()
+                                    )
+                                }
                             },
                             onPlayLongPress = {
                                 val video = if (isSeries) playOnLoadVideo else null

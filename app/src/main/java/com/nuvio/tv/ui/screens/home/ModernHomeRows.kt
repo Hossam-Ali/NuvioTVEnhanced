@@ -900,6 +900,31 @@ internal fun ModernRowSection(
                 }
         }
 
+        if (useLandscapePosters) {
+            // Wide art for this row's poster-only titles is looked up as soon as the row appears,
+            // so the cards already have it when they scroll into view.
+            val prefetchContext = LocalContext.current
+            LaunchedEffect(row.key, row.items.list.size) {
+                val cardBackdrops = dagger.hilt.android.EntryPointAccessors.fromApplication(
+                    prefetchContext.applicationContext,
+                    com.nuvio.tv.core.poster.CardBackdropEntryPoint::class.java
+                ).cardBackdropRepository()
+                val titles = row.items.list.asSequence()
+                    .take(ROW_ART_PREFETCH_COUNT)
+                    .mapNotNull { item ->
+                        val meta = item.metaPreview ?: return@mapNotNull null
+                        if (item.payload is ModernPayload.CollectionFolder || !meta.landscapePoster.isNullOrBlank()) {
+                            return@mapNotNull null
+                        }
+                        val ownBackdrop = (item.heroPreview.frozenBackdropUrl ?: item.heroPreview.backdrop)
+                            ?.takeIf { !it.isPlaceholder() && !it.isSameArtAs(item.heroPreview.poster, meta.poster) }
+                        if (ownBackdrop != null) null else meta.id to meta.apiType
+                    }
+                    .toList()
+                cardBackdrops.prefetch(titles)
+            }
+        }
+
         CompositionLocalProvider(LocalBringIntoViewSpec provides horizontalBringIntoViewSpec) {
             val usesPlaceholderShimmer = row.showsPlaceholderShimmer()
             val placeholderShimmerOffsetState = if (usesPlaceholderShimmer) {
@@ -1143,24 +1168,27 @@ private fun ModernCarouselCard(
             com.nuvio.tv.core.poster.CardBackdropEntryPoint::class.java
         ).cardBackdropRepository()
     }
-    // Some add-ons fill the background field with the poster itself; a tall picture that loads
-    // on a landscape card is treated the same as no background.
+    // Wide art for a landscape card whose add-on has none of its own. A background that is just the
+    // poster again counts as none, and so does one that loads tall.
+    val titleId = item.metaPreview?.id
+    val canLookUpArt = useLandscapeOverlayTreatment && !isCollectionFolder && titleId != null &&
+        item.metaPreview?.landscapePoster.isNullOrBlank()
     var artIsPortrait by remember(item.key) { mutableStateOf(false) }
-    val backdropLookupId = item.metaPreview?.id?.takeIf {
-        useLandscapeOverlayTreatment && !isCollectionFolder &&
-            (effectiveBackdropUrl == null || artIsPortrait) &&
-            item.metaPreview?.landscapePoster.isNullOrBlank()
+    val ownBackdrop = effectiveBackdropUrl?.takeIf { !it.isSameArtAs(item.heroPreview.poster, item.metaPreview?.poster) }
+    val savedArt = remember(titleId) { titleId?.let(cardBackdrops::known) }
+    val needsArtLookup = canLookUpArt && savedArt == null && (ownBackdrop == null || artIsPortrait)
+    val lookedUpArt by produceState(initialValue = savedArt, titleId, needsArtLookup) {
+        val id = titleId ?: return@produceState
+        if (!needsArtLookup) return@produceState
+        value = cardBackdrops.backdrop(id, item.metaPreview?.apiType ?: "movie")
+            ?.let { com.nuvio.tv.core.poster.CardArt.Wide(it) } ?: com.nuvio.tv.core.poster.CardArt.None
     }
-    val lookedUpBackdrop by produceState(initialValue = backdropLookupId?.let(cardBackdrops::cached), backdropLookupId) {
-        val id = backdropLookupId ?: return@produceState
-        if (value != null) return@produceState
-        // Cards passed while scrolling aren't looked up, only those that stay on screen.
-        kotlinx.coroutines.delay(CARD_BACKDROP_LOOKUP_DELAY_MS)
-        value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-            cardBackdrops.backdrop(id, item.metaPreview?.apiType ?: "movie")
-        }
+    val cardBackdropUrl = when (val art = lookedUpArt) {
+        is com.nuvio.tv.core.poster.CardArt.Wide -> art.url
+        else -> ownBackdrop
     }
-    val cardBackdropUrl = if (artIsPortrait) lookedUpBackdrop ?: effectiveBackdropUrl else effectiveBackdropUrl ?: lookedUpBackdrop
+    // While a first lookup runs, the card stays empty rather than showing the poster and swapping.
+    val holdForArtLookup = canLookUpArt && lookedUpArt == null && ownBackdrop == null
     val effectiveIgnoreLandscapePoster = alwaysShowLandscapeClearlogo
     val useLandscapeAsExpanded = focusedPosterBackdropExpandEnabled && isBackdropExpanded &&
         !alwaysShowLandscapeClearlogo &&
@@ -1190,6 +1218,7 @@ private fun ModernCarouselCard(
         item.imageUrl ?: item.heroPreview.poster ?: item.heroPreview.backdrop
     }
     val imageUrl = when {
+        holdForArtLookup && !(focusedPosterBackdropExpandEnabled && isBackdropExpanded) -> null
         payload == null -> baseImageUrl
         !payload.focusGifEnabled -> baseImageUrl
         else -> baseImageUrl
@@ -1422,6 +1451,8 @@ private fun ModernCarouselCard(
                                 }
                             }
                         )
+                    } else if (holdForArtLookup) {
+                        // The card's own colour until its wide picture is known.
                     } else if (isCollectionFolder && !payload?.coverEmoji.isNullOrBlank()) {
                         Box(
                             modifier = Modifier.fillMaxSize(),
@@ -1616,4 +1647,10 @@ private class AnimatedWidthNode(var width: State<Dp>) : LayoutModifierNode, Modi
 /** Slightly above centre: keeps faces and title art in a poster cropped to a wide card. */
 private val CardArtAlignment = androidx.compose.ui.BiasAlignment(0f, -0.35f)
 
-private const val CARD_BACKDROP_LOOKUP_DELAY_MS = 250L
+
+/** Whether this background URL is just one of the poster URLs again. */
+internal fun String.isSameArtAs(vararg posters: String?): Boolean =
+    posters.any { poster -> !poster.isNullOrBlank() && poster.trim() == trim() }
+
+/** How many titles of a row get their wide art looked up ahead of scrolling. */
+private const val ROW_ART_PREFETCH_COUNT = 24

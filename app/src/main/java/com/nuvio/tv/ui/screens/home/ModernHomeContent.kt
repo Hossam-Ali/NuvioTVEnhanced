@@ -1243,7 +1243,16 @@ fun ModernHomeContent(
                 onNavigateToDetail = onNavigateToDetail,
                 onNavigateToFolderDetail = onNavigateToFolderDetail,
                 onLoadMoreCatalog = onLoadMoreCatalog,
-                onContinueWatchingClick = onContinueWatchingClick,
+                // A Continue Watching card opens the title's page; only the hero's Resume button
+                // plays straight away.
+                onContinueWatchingClick = { item ->
+                    when (item) {
+                        is ContinueWatchingItem.InProgress ->
+                            onNavigateToDetail(item.progress.contentId, item.progress.contentType, "")
+                        is ContinueWatchingItem.NextUp ->
+                            onNavigateToDetail(item.info.contentId, item.info.contentType, "")
+                    }
+                },
                 onContinueWatchingOptions = onContinueWatchingOptionsLambda,
                 onRequestLazyCatalogLoad = stableOnRequestLazyCatalogLoad,
                 onBackdropInteraction = onBackdropInteractionLambda,
