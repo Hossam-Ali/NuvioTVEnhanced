@@ -30,7 +30,6 @@ import com.nuvio.tv.domain.model.ExperienceMode
 import com.nuvio.tv.data.mediaserver.ServerCatalog
 import com.nuvio.tv.ui.screens.CatalogSeeAllScreen
 import com.nuvio.tv.ui.screens.ExperienceModeSelectionScreen
-import com.nuvio.tv.ui.screens.LayoutSelectionScreen
 import com.nuvio.tv.ui.screens.detail.MetaDetailsScreen
 import com.nuvio.tv.ui.screens.home.HomeScreen
 import com.nuvio.tv.ui.screens.addon.AddonManagerScreen
@@ -169,24 +168,9 @@ private fun PlaybackNavHost(
     ) {
         composable(Screen.ExperienceModeSelection.route) {
             ExperienceModeSelectionScreen(
-                onContinue = { mode ->
-                    val destination = if (mode == ExperienceMode.ESSENTIAL) {
-                        Screen.Home.route
-                    } else {
-                        Screen.LayoutSelection.route
-                    }
-                    navController.navigate(destination) {
-                        popUpTo(Screen.ExperienceModeSelection.route) { inclusive = true }
-                    }
-                }
-            )
-        }
-
-        composable(Screen.LayoutSelection.route) {
-            LayoutSelectionScreen(
-                onContinue = {
+                onContinue = { _ ->
                     navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.LayoutSelection.route) { inclusive = true }
+                        popUpTo(Screen.ExperienceModeSelection.route) { inclusive = true }
                     }
                 }
             )

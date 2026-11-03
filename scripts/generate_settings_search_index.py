@@ -23,6 +23,7 @@ FILE_PAGES = {
     "AmbientModeSettings.kt": ("APPEARANCE", None),
     "LayoutHomeSettings.kt": ("LAYOUT", None),
     "LayoutCardSettings.kt": ("LAYOUT", None),
+    "LayoutDetailSettings.kt": ("LAYOUT", None),
     "LayoutPosterRatingsSettings.kt": ("LAYOUT", None),
     "LayoutNewLookSettings.kt": ("LAYOUT", None),
     "HomeEditor.kt": ("LAYOUT", None),

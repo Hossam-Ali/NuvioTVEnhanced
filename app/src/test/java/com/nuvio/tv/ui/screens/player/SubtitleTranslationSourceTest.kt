@@ -77,35 +77,36 @@ class SubtitleTranslationSourceTest {
     }
 
     @Test
-    fun `without video tracks, an arabic add-on comes first, then english, then any other`() {
-        assertEquals("ar", (choice(emptyList(), listOf(sub("en", "eng"), sub("ar", "ara"))) as AutoSubtitleChoice.Addon).subtitle.id)
-        assertEquals("en", (choice(emptyList(), listOf(sub("fr", "fre"), sub("en", "eng"))) as AutoSubtitleChoice.Addon).subtitle.id)
-        assertEquals("fr", (choice(listOf(track(1, "eng", codec = "hdmv/pgs")), listOf(sub("fr", "fre"))) as AutoSubtitleChoice.Addon).subtitle.id)
-    }
-
-    @Test
-    fun `with no subtitle at all, the audio is transcribed when possible`() {
+    fun `without a usable video track, the audio is transcribed, even with add-on subtitles`() {
         assertEquals(AutoSubtitleChoice.Transcribe, choice(emptyList(), emptyList()))
-        assertNull(choice(emptyList(), emptyList(), canTranscribe = false))
+        assertEquals(AutoSubtitleChoice.Transcribe, choice(emptyList(), listOf(sub("ar", "ara"), sub("en", "eng"))))
         assertEquals(AutoSubtitleChoice.Transcribe, choice(listOf(track(1, "eng", codec = "hdmv/pgs")), listOf(sub("en-forced", "eng"))))
     }
 
     @Test
-    fun `audio already in arabic gets no translated or transcribed subtitles`() {
+    fun `add-ons are used only when the audio can't be read`() {
+        assertEquals("ar", (choice(emptyList(), listOf(sub("en", "eng"), sub("ar", "ara")), canTranscribe = false) as AutoSubtitleChoice.Addon).subtitle.id)
+        assertEquals("en", (choice(emptyList(), listOf(sub("fr", "fre"), sub("en", "eng")), canTranscribe = false) as AutoSubtitleChoice.Addon).subtitle.id)
+        assertNull(choice(emptyList(), emptyList(), canTranscribe = false))
+    }
+
+    @Test
+    fun `audio already in arabic gets no subtitles at all`() {
         fun inArabic(tracks: List<TrackInfo>, subs: List<Subtitle>) =
             autoSubtitleChoice(tracks, subs, "ar", audioInTargetLanguage = true)
         assertNull(inArabic(emptyList(), emptyList()))
         assertNull(inArabic(listOf(track(1, "eng")), listOf(sub("en", "eng"))))
-        assertEquals(2, (inArabic(listOf(track(2, "ara")), emptyList()) as AutoSubtitleChoice.Embedded).track.index)
-        assertEquals("ar", (inArabic(emptyList(), listOf(sub("ar", "ara"))) as AutoSubtitleChoice.Addon).subtitle.id)
+        assertNull(inArabic(listOf(track(2, "ara")), emptyList()))
+        assertNull(inArabic(emptyList(), listOf(sub("ar", "ara"))))
     }
 
     @Test
-    fun `the add-on list only matters when the video has no track to use`() {
-        assertTrue(autoSubtitleChoiceNeedsAddons(emptyList(), "ar"))
-        assertTrue(autoSubtitleChoiceNeedsAddons(listOf(track(1, "eng", codec = "hdmv/pgs")), "ar"))
-        assertFalse(autoSubtitleChoiceNeedsAddons(listOf(track(1, "eng")), "ar"))
-        assertFalse(autoSubtitleChoiceNeedsAddons(listOf(track(1, "ara", codec = "hdmv/pgs")), "ar"))
+    fun `the add-on list only matters when the video has no track and the audio can't be read`() {
+        assertFalse(autoSubtitleChoiceNeedsAddons(emptyList(), "ar"))
+        assertTrue(autoSubtitleChoiceNeedsAddons(emptyList(), "ar", canTranscribe = false))
+        assertTrue(autoSubtitleChoiceNeedsAddons(listOf(track(1, "eng", codec = "hdmv/pgs")), "ar", canTranscribe = false))
+        assertFalse(autoSubtitleChoiceNeedsAddons(listOf(track(1, "eng")), "ar", canTranscribe = false))
+        assertFalse(autoSubtitleChoiceNeedsAddons(listOf(track(1, "ara", codec = "hdmv/pgs")), "ar", canTranscribe = false))
     }
 
     @Test

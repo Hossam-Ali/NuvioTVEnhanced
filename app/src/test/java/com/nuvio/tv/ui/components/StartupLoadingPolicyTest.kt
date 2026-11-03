@@ -12,7 +12,6 @@ class StartupLoadingPolicyTest {
         assertFalse(show(StartupDestination.ProfileSelection))
         assertTrue(show(StartupDestination.Loading))
         assertFalse(show(startupDestinationForRoute(Screen.ExperienceModeSelection.route)))
-        assertFalse(show(startupDestinationForRoute(Screen.LayoutSelection.route)))
         assertTrue(show(startupDestinationForRoute(Screen.Home.route)))
         assertFalse(show(StartupDestination.Home, complete = true))
     }

@@ -154,7 +154,7 @@ internal fun NewLookStreamContent(
                     val status = when {
                         uiState.isLoading && streams.isEmpty() -> stringResource(R.string.new_look_finding_sources)
                         uiState.isLoading -> stringResource(R.string.new_look_sources_found_more, streams.size)
-                        else -> stringResource(R.string.new_look_sources_found, streams.size)
+                        else -> androidx.compose.ui.res.pluralStringResource(R.plurals.new_look_sources_count, streams.size, streams.size)
                     }
                     Text(text = status, fontSize = 13.sp, color = NuvioTheme.colors.TextSecondary)
                 }
@@ -279,6 +279,19 @@ private fun NewLookStreamInfo(uiState: StreamScreenUiState, resumeText: String?,
             uiState.genres?.split(" • ", ",")?.map { it.trim() }?.filter { it.isNotBlank() }?.take(2)?.forEach { NewLookChipText(text = it) }
         }
         if (uiState.isEpisode && !uiState.poster.isNullOrBlank()) {
+            // The episode still when there is one; a tall poster in its place gives way to the
+            // show's wide backdrop, so the frame is filled with a whole picture.
+            var posterIsTall by remember(uiState.poster) { mutableStateOf(false) }
+            val imageUrl = if (posterIsTall) uiState.backdrop ?: uiState.poster else uiState.poster
+            val context = androidx.compose.ui.platform.LocalContext.current
+            val density = androidx.compose.ui.platform.LocalDensity.current
+            val request = remember(context, imageUrl, density) {
+                coil3.request.ImageRequest.Builder(context)
+                    .data(imageUrl)
+                    .size(with(density) { 320.dp.roundToPx() }, with(density) { 180.dp.roundToPx() })
+                    .scale(coil3.size.Scale.FILL)
+                    .build()
+            }
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -286,7 +299,16 @@ private fun NewLookStreamInfo(uiState: StreamScreenUiState, resumeText: String?,
                     .clip(RoundedCornerShape(12.dp))
                     .background(NewLookChip)
             ) {
-                NewLookThumbnail(url = uiState.poster, width = 240.dp, height = 135.dp)
+                AsyncImage(
+                    model = request,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    onSuccess = { state ->
+                        val size = state.painter.intrinsicSize
+                        if (!posterIsTall && size.height > size.width && !uiState.backdrop.isNullOrBlank()) posterIsTall = true
+                    },
+                    modifier = Modifier.fillMaxSize()
+                )
             }
         }
         resumeText?.let {

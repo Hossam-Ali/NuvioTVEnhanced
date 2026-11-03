@@ -28,7 +28,6 @@ internal enum class LayoutSection(
     POSTER_CARD(R.string.layout_section_card_style, R.string.layout_section_card_style_desc, Icons.Default.RoundedCorner),
     CARD_DEPTH(R.string.settings_card_depth_title, R.string.layout_section_card_depth_desc, Icons.Default.ViewInAr),
     CUSTOM_POSTERS(R.string.layout_custom_poster_title, R.string.layout_section_custom_poster_desc, Icons.Default.PhotoLibrary),
-    DETAIL_PAGE(R.string.layout_section_detail, R.string.layout_section_detail_desc, Icons.Default.Description),
     STREAMS(R.string.layout_section_streams, R.string.layout_section_streams_desc, Icons.AutoMirrored.Filled.ViewList)
 }
 
@@ -40,9 +39,7 @@ internal fun visibleLayoutSections(
         listOf(LayoutSection.HOME_LAYOUT)
     } else {
         LayoutSection.entries.filter { section ->
-            // The title page settings were for the previous page design.
-            section != LayoutSection.DETAIL_PAGE &&
-                (section != LayoutSection.FOCUSED_POSTER || focusedPosterHasOptions)
+            section != LayoutSection.FOCUSED_POSTER || focusedPosterHasOptions
         }
     }
 

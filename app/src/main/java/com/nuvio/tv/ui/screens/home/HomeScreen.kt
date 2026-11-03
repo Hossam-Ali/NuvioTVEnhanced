@@ -210,19 +210,6 @@ fun HomeScreen(
         }
     }
 
-    val posterCardStyle = remember(
-        uiState.posterCardWidthDp,
-        uiState.posterCardCornerRadiusDp
-    ) {
-        val computedHeightDp = (uiState.posterCardWidthDp * 1.5f).roundToInt()
-        PosterCardStyle(
-            width = uiState.posterCardWidthDp.dp,
-            height = computedHeightDp.dp,
-            cornerRadius = uiState.posterCardCornerRadiusDp.dp,
-            focusedBorderWidth = PosterCardDefaults.Style.focusedBorderWidth,
-            focusedScale = PosterCardDefaults.Style.focusedScale
-        )
-    }
 
     val noAddonsError = stringResource(R.string.home_empty_no_sources_title)
     val noCatalogAddonsError = stringResource(R.string.home_error_no_catalog_addons)
@@ -364,50 +351,18 @@ fun HomeScreen(
                                 )
                         }
                     ) {
-                        when (uiState.homeLayout) {
-                            HomeLayout.CLASSIC -> ClassicHomeRoute(
-                                viewModel = viewModel,
-                                uiState = uiState,
-                                posterCardStyle = posterCardStyle,
-                                onNavigateToDetail = onNavigateToDetailStable,
-                                onContinueWatchingClick = onContinueWatchingClickStable,
-                                onContinueWatchingStartFromBeginning = onContinueWatchingStartFromBeginningStable,
-                                onContinueWatchingPlayManually = onContinueWatchingPlayManuallyStable,
-                                showContinueWatchingManualPlayOption = effectiveAutoplayEnabled,
-                                onNavigateToCatalogSeeAll = onNavigateToCatalogSeeAllStable,
-                                onNavigateToFolderDetail = onNavigateToFolderDetailStable,
-                                isCatalogItemWatched = isCatalogItemWatched,
-                                onCatalogItemLongPress = onCatalogItemLongPress
-                            )
-
-                            HomeLayout.GRID -> GridHomeRoute(
-                                viewModel = viewModel,
-                                uiState = uiState,
-                                posterCardStyle = posterCardStyle,
-                                onNavigateToDetail = onNavigateToDetailStable,
-                                onContinueWatchingClick = onContinueWatchingClickStable,
-                                onContinueWatchingStartFromBeginning = onContinueWatchingStartFromBeginningStable,
-                                onContinueWatchingPlayManually = onContinueWatchingPlayManuallyStable,
-                                showContinueWatchingManualPlayOption = effectiveAutoplayEnabled,
-                                onNavigateToCatalogSeeAll = onNavigateToCatalogSeeAllStable,
-                                onNavigateToFolderDetail = onNavigateToFolderDetailStable,
-                                isCatalogItemWatched = isCatalogItemWatched,
-                                onCatalogItemLongPress = onCatalogItemLongPress
-                            )
-
-                            HomeLayout.MODERN -> ModernHomeRoute(
-                                viewModel = viewModel,
-                                uiState = uiState,
-                                onNavigateToDetail = onNavigateToDetailStable,
-                                onContinueWatchingClick = onContinueWatchingClickStable,
-                                onContinueWatchingStartFromBeginning = onContinueWatchingStartFromBeginningStable,
-                                onContinueWatchingPlayManually = onContinueWatchingPlayManuallyStable,
-                                showContinueWatchingManualPlayOption = effectiveAutoplayEnabled,
-                                onNavigateToFolderDetail = onNavigateToFolderDetailStable,
-                                isCatalogItemWatched = isCatalogItemWatched,
-                                onCatalogItemLongPress = onCatalogItemLongPress
-                            )
-                        }
+                        ModernHomeRoute(
+                            viewModel = viewModel,
+                            uiState = uiState,
+                            onNavigateToDetail = onNavigateToDetailStable,
+                            onContinueWatchingClick = onContinueWatchingClickStable,
+                            onContinueWatchingStartFromBeginning = onContinueWatchingStartFromBeginningStable,
+                            onContinueWatchingPlayManually = onContinueWatchingPlayManuallyStable,
+                            showContinueWatchingManualPlayOption = effectiveAutoplayEnabled,
+                            onNavigateToFolderDetail = onNavigateToFolderDetailStable,
+                            isCatalogItemWatched = isCatalogItemWatched,
+                            onCatalogItemLongPress = onCatalogItemLongPress
+                        )
                     }
                 }
             }
@@ -518,114 +473,6 @@ fun HomeScreen(
             onDismiss = viewModel::cancelPosterListPickerRemoval
         )
     }
-}
-
-@Composable
-private fun ClassicHomeRoute(
-    viewModel: HomeViewModel,
-    uiState: HomeUiState,
-    posterCardStyle: PosterCardStyle,
-    onNavigateToDetail: (String, String, String) -> Unit,
-    onContinueWatchingClick: (ContinueWatchingItem) -> Unit,
-    onContinueWatchingStartFromBeginning: (ContinueWatchingItem) -> Unit,
-    onContinueWatchingPlayManually: (ContinueWatchingItem) -> Unit,
-    showContinueWatchingManualPlayOption: Boolean,
-    onNavigateToCatalogSeeAll: (String, String, String) -> Unit,
-    onNavigateToFolderDetail: (String, String) -> Unit = { _, _ -> },
-    isCatalogItemWatched: (MetaPreview) -> Boolean,
-    onCatalogItemLongPress: (MetaPreview, String) -> Unit
-) {
-    val focusState by viewModel.focusState.collectAsStateWithLifecycle()
-    val scrollToTopTrigger by viewModel.scrollToTopTrigger.collectAsStateWithLifecycle()
-    ClassicHomeContent(
-        uiState = uiState,
-        posterCardStyle = posterCardStyle,
-        focusState = focusState,
-        scrollToTopTrigger = scrollToTopTrigger,
-        trailerPreviewUrls = viewModel.trailerPreviewUrls,
-        trailerPreviewAudioUrls = viewModel.trailerPreviewAudioUrls,
-        onNavigateToDetail = onNavigateToDetail,
-        onContinueWatchingClick = onContinueWatchingClick,
-        onContinueWatchingStartFromBeginning = onContinueWatchingStartFromBeginning,
-        onContinueWatchingPlayManually = onContinueWatchingPlayManually,
-        showContinueWatchingManualPlayOption = showContinueWatchingManualPlayOption,
-        onNavigateToCatalogSeeAll = onNavigateToCatalogSeeAll,
-        onNavigateToFolderDetail = onNavigateToFolderDetail,
-        onRemoveContinueWatching = { contentId, season, episode, isNextUp ->
-            viewModel.onEvent(HomeEvent.OnRemoveContinueWatching(contentId, season, episode, isNextUp))
-        },
-        isCatalogItemWatched = isCatalogItemWatched,
-        onCatalogItemLongPress = onCatalogItemLongPress,
-        onRequestTrailerPreview = { item ->
-            viewModel.requestTrailerPreview(item)
-        },
-        onItemFocus = { item ->
-            viewModel.onItemFocus(item)
-        },
-        onSaveFocusState = { vi, vo, rk, ikm, m, ma, ri, ii ->
-            viewModel.saveFocusState(vi, vo, rk, ikm, m, ma, ri, ii)
-            // Authoritative: this is the row that actually held focus when Home went away.
-            viewModel.setLiveFocusedRowKey(rk)
-        },
-        onFocusedRowKeyChanged = remember(viewModel) {
-            { key: String? -> viewModel.setLiveFocusedRowKey(key) }
-        },
-        onRequestLazyCatalogLoad = remember(viewModel) {
-            { catalogKey: String -> viewModel.requestLazyCatalogLoad(catalogKey) }
-        }
-    )
-}
-
-@Composable
-private fun GridHomeRoute(
-    viewModel: HomeViewModel,
-    uiState: HomeUiState,
-    posterCardStyle: PosterCardStyle,
-    onNavigateToDetail: (String, String, String) -> Unit,
-    onContinueWatchingClick: (ContinueWatchingItem) -> Unit,
-    onContinueWatchingStartFromBeginning: (ContinueWatchingItem) -> Unit,
-    onContinueWatchingPlayManually: (ContinueWatchingItem) -> Unit,
-    showContinueWatchingManualPlayOption: Boolean,
-    onNavigateToCatalogSeeAll: (String, String, String) -> Unit,
-    onNavigateToFolderDetail: (String, String) -> Unit = { _, _ -> },
-    isCatalogItemWatched: (MetaPreview) -> Boolean,
-    onCatalogItemLongPress: (MetaPreview, String) -> Unit
-) {
-    val gridFocusState by viewModel.gridFocusState.collectAsStateWithLifecycle()
-    val scrollToTopTrigger by viewModel.scrollToTopTrigger.collectAsStateWithLifecycle()
-    GridHomeContent(
-        onFocusedRowKeyChanged = remember(viewModel) {
-            { key: String? -> viewModel.setLiveFocusedRowKey(key) }
-        },
-        uiState = uiState,
-        posterCardStyle = posterCardStyle,
-        gridFocusState = gridFocusState,
-        scrollToTopTrigger = scrollToTopTrigger,
-        onNavigateToDetail = onNavigateToDetail,
-        onContinueWatchingClick = onContinueWatchingClick,
-        onContinueWatchingStartFromBeginning = onContinueWatchingStartFromBeginning,
-        onContinueWatchingPlayManually = onContinueWatchingPlayManually,
-        showContinueWatchingManualPlayOption = showContinueWatchingManualPlayOption,
-        onNavigateToCatalogSeeAll = onNavigateToCatalogSeeAll,
-        onNavigateToFolderDetail = onNavigateToFolderDetail,
-        onRemoveContinueWatching = remember(viewModel) {
-            { contentId, season, episode, isNextUp ->
-                viewModel.onEvent(HomeEvent.OnRemoveContinueWatching(contentId, season, episode, isNextUp))
-            }
-        },
-        isCatalogItemWatched = isCatalogItemWatched,
-        onCatalogItemLongPress = onCatalogItemLongPress,
-        onItemFocus = remember(viewModel) {
-            { item ->
-                viewModel.onItemFocus(item)
-            }
-        },
-        onSaveGridFocusState = remember(viewModel) {
-            { vi, vo, key ->
-                viewModel.saveGridFocusState(vi, vo, focusedItemKey = key)
-            }
-        }
-    )
 }
 
 @Composable

@@ -185,7 +185,6 @@ private fun LayoutSectionContent(
             onConfigureViaPhone = viewModel::startCustomPosterQrMode,
             focusRequester = customPosterQrFocusRequester
         )
-        LayoutSection.DETAIL_PAGE -> LayoutDetailPageSection(uiState, onEvent)
         LayoutSection.STREAMS -> LayoutStreamsSection(
             streamBadgeUiState = streamBadgeUiState,
             onShowFileSizeBadgesChange = viewModel::setShowFileSizeBadges,

@@ -12,7 +12,7 @@ enum class StartupDestination {
 
 fun startupDestinationForRoute(route: String?): StartupDestination = when (route) {
     null -> StartupDestination.Loading
-    Screen.ExperienceModeSelection.route, Screen.LayoutSelection.route -> StartupDestination.Setup
+    Screen.ExperienceModeSelection.route -> StartupDestination.Setup
     Screen.Home.route -> StartupDestination.Home
     else -> StartupDestination.Content
 }

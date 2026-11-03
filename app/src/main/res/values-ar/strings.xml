@@ -3179,7 +3179,14 @@
     <string name="new_look_runtime_m">%1$d د</string>
     <string name="new_look_choose_source">اختر مصدرًا</string>
     <string name="new_look_finding_sources">جارٍ البحث عن مصادر…</string>
-    <string name="new_look_sources_found">المصادر: %1$d</string>
+    <plurals name="new_look_sources_count">
+        <item quantity="zero">لا توجد مصادر</item>
+        <item quantity="one">مصدر واحد</item>
+        <item quantity="two">مصدران</item>
+        <item quantity="few">%1$d مصادر</item>
+        <item quantity="many">%1$d مصدرًا</item>
+        <item quantity="other">%1$d مصدر</item>
+    </plurals>
     <string name="new_look_sources_found_more">تم العثور على %1$d، جارٍ البحث عن المزيد…</string>
     <string name="new_look_no_sources">لم يتم العثور على مصادر</string>
     <string name="new_look_try_again">حاول مرة أخرى</string>

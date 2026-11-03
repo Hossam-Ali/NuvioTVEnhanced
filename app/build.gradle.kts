@@ -585,10 +585,6 @@ dependencies {
     // Local nextlib-mediainfo fork (static FFmpeg; no libav*.so in final AAR)
     implementation(files("libs/nextlib-mediainfo-local.aar"))
     implementation("io.github.abdallahmehiz:mpv-android-lib:0.1.12")
-    implementation("dev.chrisbanes.haze:haze-android:1.7.2") {
-        exclude(group = "org.jetbrains.compose.ui")
-        exclude(group = "org.jetbrains.compose.foundation")
-    }
 
     implementation(libs.gson)
 

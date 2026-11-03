@@ -3584,7 +3584,10 @@
     <string name="new_look_runtime_m">%1$dm</string>
     <string name="new_look_choose_source">Choose a source</string>
     <string name="new_look_finding_sources">Finding sources…</string>
-    <string name="new_look_sources_found">%1$d sources</string>
+    <plurals name="new_look_sources_count">
+        <item quantity="one">%1$d source</item>
+        <item quantity="other">%1$d sources</item>
+    </plurals>
     <string name="new_look_sources_found_more">%1$d found, looking for more…</string>
     <string name="new_look_no_sources">No sources found</string>
     <string name="new_look_try_again">Try again</string>
