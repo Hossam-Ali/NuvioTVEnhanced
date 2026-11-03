@@ -1,0 +1,33 @@
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerAspectScaleUtils.kt
+  s_7838329b066514::t_d5526c8551c0d0 58,61-62,63-69,80-83
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeController.kt
+  s_7838329b066514::t_4ef3e8c5dfcd45 555-560
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerLifecycle.kt
+  s_7838329b066514::t_c73167d8c9c22e 28,40
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerScrobble.kt
+  s_7838329b066514::t_de4a64c87bd87f 66
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerSubtitleTranslation.kt
+  s_7838329b066514::t_40bdc0b7a1dafe 216-233
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerTrackSelection.kt
+  s_7838329b066514::t_642ab7f8692d1b 225,644
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerTracks.kt
+  s_7838329b066514::t_06e30ce0ec6b0a 1059-1063
+app/src/test/java/com/nuvio/tv/ui/screens/player/LibassOverlayGeometryTest.kt
+  s_7838329b066514::t_2dd344b4b34598 13,21,29,37,45,51-52
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "c5ac5445a8602cae9e142ae3d421e320eaa7ce4e",
+  "prompts": {},
+  "sessions": {
+    "s_7838329b066514": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "s_7838329b066514",
+        "model": "unknown"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  }
+}
