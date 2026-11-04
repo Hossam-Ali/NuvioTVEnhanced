@@ -1711,6 +1711,26 @@ private suspend fun HomeViewModel.enrichVisibleContinueWatchingItems(
 
 internal fun sortContinueWatchingItems(
     items: List<ContinueWatchingItem>,
+    mode: ContinueWatchingSortMode,
+    nowMs: Long = System.currentTimeMillis()
+): List<ContinueWatchingItem> {
+    // An episode that came out in the last two days goes first, newest first, in every sort mode.
+    val (freshReleases, others) = items.partition { it.isFreshRelease(nowMs) }
+    val freshFirst = freshReleases.sortedByDescending { (it as ContinueWatchingItem.NextUp).info.releaseTimestamp ?: 0L }
+    return freshFirst + sortContinueWatchingItemsByMode(others, mode)
+}
+
+/** A next-up episode that aired within [FRESH_RELEASE_WINDOW_MS], after the show was last watched. */
+internal fun ContinueWatchingItem.isFreshRelease(nowMs: Long = System.currentTimeMillis()): Boolean {
+    val info = (this as? ContinueWatchingItem.NextUp)?.info ?: return false
+    val released = info.releaseTimestamp ?: return false
+    return info.hasAired && info.isReleaseAlert && released <= nowMs && nowMs - released < FRESH_RELEASE_WINDOW_MS
+}
+
+internal const val FRESH_RELEASE_WINDOW_MS = 2L * 24 * 60 * 60 * 1000
+
+private fun sortContinueWatchingItemsByMode(
+    items: List<ContinueWatchingItem>,
     mode: ContinueWatchingSortMode
 ): List<ContinueWatchingItem> {
     return when (mode) {

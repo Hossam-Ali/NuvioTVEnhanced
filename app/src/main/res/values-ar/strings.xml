@@ -3200,6 +3200,14 @@
     <string name="new_look_play_episode">تشغيل م%1$d ح%2$d</string>
     <string name="new_look_hide_side_bar">إخفاء الشريط الجانبي</string>
     <string name="new_look_hide_side_bar_subtitle">تظهر الأيقونات الجانبية فقط عند الضغط على اليسار أو الرجوع</string>
+    <string name="new_episode_notice_badge">جديد</string>
+    <string name="new_episode_notice_one">حلقة جديدة: %1$s · م%2$d ح%3$d</string>
+    <string name="new_episode_notice_many">حلقات جديدة في متابعة المشاهدة: %1$d</string>
+    <string name="intro_mark_button">تحديد المقدمة</string>
+    <string name="intro_mark_start">تم تحديد بداية المقدمة عند %1$s. اضغط تحديد المقدمة مرة أخرى عند نهايتها.</string>
+    <string name="intro_mark_saved">تم حفظ المقدمة لهذا المسلسل (%1$s إلى %2$s). سيظهر زر تخطي المقدمة في كل الحلقات.</string>
+    <string name="intro_mark_invalid">هذه المدة قصيرة أو طويلة جدًا لمقدمة. حدّد بدايتها مرة أخرى.</string>
+    <string name="intro_mark_series_only">يمكن تحديد المقدمة في حلقات المسلسلات فقط.</string>
     <string name="subtitle_ai_translation_no_source">ترجمة الذكاء الاصطناعي: لا توجد ترجمة لهذا الفيديو</string>
     <string name="subtitle_ai_translation_option">ترجمة بالذكاء الاصطناعي</string>
     <string name="subtitle_ai_translation_option_source">من %1$s</string>

@@ -79,10 +79,13 @@ class CardBackdropRepository @Inject constructor(
         }
     }
 
-    /** Looks titles up ahead of time, so their cards don't change picture as they scroll in. */
-    fun prefetch(titles: List<Pair<String, String>>) {
+    /**
+     * Looks titles up ahead of time, so their cards don't change picture as they scroll in.
+     * [onFound] gets each wide picture found, to download it ahead too.
+     */
+    fun prefetch(titles: List<Pair<String, String>>, onFound: (String) -> Unit = {}) {
         titles.forEach { (id, apiType) ->
-            if (known[id] == null && inFlight[id] == null) scope.launch { backdrop(id, apiType) }
+            if (known[id] == null) scope.launch { backdrop(id, apiType)?.let(onFound) }
         }
     }
 

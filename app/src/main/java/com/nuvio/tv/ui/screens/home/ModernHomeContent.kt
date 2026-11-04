@@ -1173,6 +1173,13 @@ fun ModernHomeContent(
                 modifier = heroMetadataModifier
             )
 
+            NewEpisodeNotice(
+                items = uiState.continueWatchingItems,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 28.dp, end = 40.dp)
+            )
+
             val latestOnFocusedRowKeyChanged by rememberUpdatedState(onFocusedRowKeyChanged)
             val onActiveRowKeyChangeLambda = remember {
                 { key: String? ->

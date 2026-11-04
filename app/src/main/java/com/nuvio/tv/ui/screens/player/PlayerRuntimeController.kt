@@ -680,6 +680,8 @@ class PlayerRuntimeController(
             }
         }
     internal var pendingResumeProgress: WatchProgress? = null
+    /** Where the viewer marked an intro's start, until they mark its end. */
+    internal var pendingIntroStartMs: Long? = null
     internal var hasRetriedCurrentStreamAfter416: Boolean = false
     internal var isReleasingPlayer: Boolean = false
     internal var cachedDecoderPriority: Int = 1

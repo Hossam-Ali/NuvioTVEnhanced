@@ -1,5 +1,7 @@
 package com.nuvio.tv.ui.screens.player
 
+import com.nuvio.tv.data.repository.segmentCategory
+
 import android.util.Log
 import com.nuvio.tv.core.player.OpenSubtitlesHasher
 import androidx.media3.common.C
@@ -646,6 +648,10 @@ internal fun PlayerRuntimeController.fetchSkipIntervals(id: String?, season: Int
         return
     }
 
+    // An intro the viewer marked for this show applies at once, whatever the skip services know
+    // (many shows have no id they can look up).
+    recomputeMergedSkipIntervals()
+
     val metaImdbId = contentType?.let { type ->
         metaRepository.getCachedMeta(type, id)?.imdbId
             ?: metaRepository.getCachedMeta(type, effectiveId.substringBefore(':'))?.imdbId
@@ -711,7 +717,10 @@ private fun PlayerRuntimeController.setApiSkipIntervals(api: List<SkipInterval>)
 /** Recompute the merged skipIntervals from chapters (priority) + API (gap-fill). */
 internal fun PlayerRuntimeController.recomputeMergedSkipIntervals() {
     val isMovie = contentType.equals("movie", ignoreCase = true)
-    val merged = mergeSkipIntervals(apiSkipIntervals, chapterSkipIntervals, isMovie = isMovie)
+    val fromSources = mergeSkipIntervals(apiSkipIntervals, chapterSkipIntervals, isMovie = isMovie)
+    // An intro the viewer marked for this show fills in when no source has one.
+    val learnedIntro = if (fromSources.none { segmentCategory(it.type) == "opening" }) learnedIntroInterval() else null
+    val merged = if (learnedIntro != null) fromSources + learnedIntro else fromSources
     if (merged == skipIntervals) return
     skipIntervals = merged
 }

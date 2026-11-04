@@ -22180,9 +22180,6 @@ HSPLcom/nuvio/tv/ui/navigation/Screen$FolderDetail;-><init>()V
 Lcom/nuvio/tv/ui/navigation/Screen$Home;
 HSPLcom/nuvio/tv/ui/navigation/Screen$Home;-><clinit>()V
 HSPLcom/nuvio/tv/ui/navigation/Screen$Home;-><init>()V
-Lcom/nuvio/tv/ui/navigation/Screen$LayoutSelection;
-HSPLcom/nuvio/tv/ui/navigation/Screen$LayoutSelection;-><clinit>()V
-HSPLcom/nuvio/tv/ui/navigation/Screen$LayoutSelection;-><init>()V
 Lcom/nuvio/tv/ui/navigation/Screen$LayoutSettings;
 HSPLcom/nuvio/tv/ui/navigation/Screen$LayoutSettings;-><clinit>()V
 HSPLcom/nuvio/tv/ui/navigation/Screen$LayoutSettings;-><init>()V

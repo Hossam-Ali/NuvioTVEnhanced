@@ -3601,6 +3601,14 @@
     <string name="new_look_play_episode">Play S%1$d E%2$d</string>
     <string name="new_look_hide_side_bar">Hide the side bar</string>
     <string name="new_look_hide_side_bar_subtitle">Show the side icons only when you press left or Back</string>
+    <string name="new_episode_notice_badge">NEW</string>
+    <string name="new_episode_notice_one">New episode out: %1$s · S%2$d E%3$d</string>
+    <string name="new_episode_notice_many">%1$d new episodes are out in Continue Watching</string>
+    <string name="intro_mark_button">Mark the intro</string>
+    <string name="intro_mark_start">Intro start marked at %1$s. Press Mark the intro again where it ends.</string>
+    <string name="intro_mark_saved">Intro saved for this show (%1$s to %2$s). Skip intro will show on every episode.</string>
+    <string name="intro_mark_invalid">That\'s too short or too long for an intro. Mark its start again.</string>
+    <string name="intro_mark_series_only">Intros can be marked on series episodes.</string>
     <string name="subtitle_ai_translation_no_source">AI subtitles: this video has no subtitles</string>
     <string name="subtitle_ai_translation_option">AI translation</string>
     <string name="subtitle_ai_translation_option_source">From %1$s</string>

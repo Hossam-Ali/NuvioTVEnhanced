@@ -49,7 +49,7 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
     @Inject lateinit var startupSyncService: StartupSyncService
     @Inject lateinit var playerSettingsDataStore: com.nuvio.tv.data.local.PlayerSettingsDataStore
     @Inject lateinit var mdbListSettingsDataStore: com.nuvio.tv.data.local.MDBListSettingsDataStore
-    @Inject lateinit var androidTvChannelSyncService: AndroidTvChannelSyncService
+    @Inject lateinit var androidTvChannelSyncService: dagger.Lazy<AndroidTvChannelSyncService>
     @Inject lateinit var sentrySettingsDataStore: SentrySettingsDataStore
     @Inject lateinit var imagePerformancePreferences: ImagePerformancePreferences
     @Inject lateinit var simklAnimeIdPreferenceHolder: SimklAnimeIdPreferenceHolder
@@ -99,7 +99,12 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
         applyPersonalSetupOnce()
         SentryInitializer.start(this, sentrySettingsDataStore)
         PluginRuntimeHooks.onApplicationCreate(this)
-        androidTvChannelSyncService.start()
+        // The Android TV home-screen channel isn't needed for the first screen: set it up a few
+        // seconds later so app start doesn't build it.
+        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(
+            { androidTvChannelSyncService.get().start() },
+            CHANNEL_SYNC_START_DELAY_MS
+        )
         serverUserStateProjection.start()
         // Load locale synchronously so it's available before Activity.attachBaseContext.
         // SharedPreferences reads are fast (cached in memory after first access).
@@ -232,3 +237,4 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
 
 private const val PERSONAL_SETUP_KEY = "playback_v1"
 private const val HERO_RATINGS_SETUP_KEY = "hero_ratings_v1"
+private const val CHANNEL_SYNC_START_DELAY_MS = 4_000L

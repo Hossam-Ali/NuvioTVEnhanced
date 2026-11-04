@@ -54,6 +54,7 @@ import com.nuvio.tv.ui.screens.settings.TrackingSettingsScreen
 import com.nuvio.tv.ui.screens.settings.TmdbSettingsScreen
 import com.nuvio.tv.ui.screens.stream.StreamScreen
 import com.nuvio.tv.ui.screens.home.ContinueWatchingItem
+import kotlinx.coroutines.launch
 import com.nuvio.tv.ui.screens.account.AuthQrSignInScreen
 import com.nuvio.tv.ui.screens.cast.CastDetailScreen
 import com.nuvio.tv.ui.screens.profile.ProfileSelectionMode
@@ -86,6 +87,7 @@ private fun PlaybackNavHost(
 ) {
     val playbackAvailability = LocalPlaybackAvailability.current
     val context = LocalContext.current
+    val resumeScope = androidx.compose.runtime.rememberCoroutineScope()
     fun isStreamToPlayer(from: String, to: String): Boolean {
         return from.startsWith("stream/") && to.startsWith("player/")
     }
@@ -247,7 +249,30 @@ private fun PlaybackNavHost(
                         Toast.makeText(context, R.string.playback_unavailable_message, Toast.LENGTH_SHORT).show()
                         return@onContinueWatchingClick
                     }
-                    navController.navigate(createContinueWatchingRoute(item))
+                    // Straight to the player with the saved source when there is one.
+                    resumeScope.launch {
+                        val target = when (item) {
+                            is ContinueWatchingItem.InProgress -> ResumeTarget(
+                                videoId = item.progress.videoId,
+                                contentType = item.progress.contentType,
+                                title = item.progress.name,
+                                poster = item.progress.poster,
+                                backdrop = item.progress.backdrop,
+                                logo = item.progress.logo,
+                                season = item.progress.season,
+                                episode = item.progress.episode,
+                                episodeName = item.progress.episodeTitle,
+                                contentId = item.progress.contentId,
+                                contentName = item.progress.name,
+                                contentLanguage = item.contentLanguage,
+                                returnToDetailOnBack = true,
+                                returnToHomeOnBack = true
+                            )
+                            is ContinueWatchingItem.NextUp -> null
+                        }
+                        val direct = target?.let { runCatching { directResumeRoute(context, it) }.getOrNull() }
+                        navController.navigate(direct ?: createContinueWatchingRoute(item))
+                    }
                 },
                 onContinueWatchingStartFromBeginning = onContinueWatchingStartFromBeginning@{ item ->
                     if (!playbackAvailability.canStream(item)) {
@@ -405,27 +430,54 @@ private fun PlaybackNavHost(
                 },
                 // Resume plays the source last used for this episode or film straight away.
                 onResumePlayClick = { videoId, contentType, contentId, title, poster, backdrop, logo, season, episode, episodeName, genres, year, runtime, contentLanguage ->
-                    navController.navigate(
-                        Screen.Stream.createRoute(
-                            videoId = videoId,
-                            contentType = contentType,
-                            title = title,
-                            poster = poster,
-                            backdrop = backdrop,
-                            logo = logo,
-                            season = season,
-                            episode = episode,
-                            episodeName = episodeName,
-                            genres = genres,
-                            year = year,
-                            contentId = contentId,
-                            contentName = title,
-                            runtime = runtime,
-                            returnToDetailOnBack = contentType.equals("series", ignoreCase = true),
-                            contentLanguage = contentLanguage,
-                            resumeLastSource = true
+                    resumeScope.launch {
+                        val direct = runCatching {
+                            directResumeRoute(
+                                context,
+                                ResumeTarget(
+                                    videoId = videoId,
+                                    contentType = contentType,
+                                    title = title,
+                                    poster = poster,
+                                    backdrop = backdrop,
+                                    logo = logo,
+                                    season = season,
+                                    episode = episode,
+                                    episodeName = episodeName,
+                                    contentId = contentId,
+                                    contentName = title,
+                                    contentLanguage = contentLanguage,
+                                    returnToDetailOnBack = contentType.equals("series", ignoreCase = true),
+                                    returnToHomeOnBack = false
+                                )
+                            )
+                        }.getOrNull()
+                        if (direct != null) {
+                            navController.navigate(direct)
+                            return@launch
+                        }
+                        navController.navigate(
+                            Screen.Stream.createRoute(
+                                videoId = videoId,
+                                contentType = contentType,
+                                title = title,
+                                poster = poster,
+                                backdrop = backdrop,
+                                logo = logo,
+                                season = season,
+                                episode = episode,
+                                episodeName = episodeName,
+                                genres = genres,
+                                year = year,
+                                contentId = contentId,
+                                contentName = title,
+                                runtime = runtime,
+                                returnToDetailOnBack = contentType.equals("series", ignoreCase = true),
+                                contentLanguage = contentLanguage,
+                                resumeLastSource = true
+                            )
                         )
-                    )
+                    }
                 },
                 onPlayManuallyClick = { videoId, contentType, contentId, title, poster, backdrop, logo, season, episode, episodeName, genres, year, runtime, contentLanguage ->
                     navController.navigate(

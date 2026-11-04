@@ -408,8 +408,9 @@ internal fun PlayerRuntimeController.evaluatePostPlayOverlayVisibility(positionM
 
     // Preload: start fetching sources for next episode before the button appears.
     if (preloadNextEpisodeSourcesSetting && !nextEpisodePreloadTriggered && state.nextEpisode != null) {
-        val preloadLeadMs = maxOf(streamAutoPlayTimeoutSecondsSetting.toLong() * 1_000L, 10_000L)
-            .coerceAtMost(30_000L)
+        // Early enough that the next episode's sources are in hand when its card appears; the
+        // search results stay cached for 15 minutes.
+        val preloadLeadMs = maxOf(streamAutoPlayTimeoutSecondsSetting.toLong() * 1_000L, NEXT_EPISODE_PRELOAD_LEAD_MS)
         val shouldPreloadByCard = PlayerNextEpisodeRules.shouldShowNextEpisodeCard(
             positionMs = positionMs + preloadLeadMs,
             durationMs = effectiveDuration,
@@ -640,3 +641,6 @@ internal suspend fun PlayerRuntimeController.enrichEpisodesPanelFromTmdb(id: Str
     }
 }
 
+
+/** How long before the next-episode card its sources are looked up. */
+private const val NEXT_EPISODE_PRELOAD_LEAD_MS = 3 * 60 * 1_000L

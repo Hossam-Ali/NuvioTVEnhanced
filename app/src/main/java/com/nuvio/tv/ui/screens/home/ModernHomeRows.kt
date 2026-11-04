@@ -900,29 +900,48 @@ internal fun ModernRowSection(
                 }
         }
 
-        if (useLandscapePosters) {
-            // Wide art for this row's poster-only titles is looked up as soon as the row appears,
-            // so the cards already have it when they scroll into view.
-            val prefetchContext = LocalContext.current
-            LaunchedEffect(row.key, row.items.list.size) {
-                val cardBackdrops = dagger.hilt.android.EntryPointAccessors.fromApplication(
-                    prefetchContext.applicationContext,
-                    com.nuvio.tv.core.poster.CardBackdropEntryPoint::class.java
-                ).cardBackdropRepository()
-                val titles = row.items.list.asSequence()
-                    .take(ROW_ART_PREFETCH_COUNT)
-                    .mapNotNull { item ->
-                        val meta = item.metaPreview ?: return@mapNotNull null
-                        if (item.payload is ModernPayload.CollectionFolder || !meta.landscapePoster.isNullOrBlank()) {
-                            return@mapNotNull null
-                        }
-                        val ownBackdrop = (item.heroPreview.frozenBackdropUrl ?: item.heroPreview.backdrop)
-                            ?.takeIf { !it.isPlaceholder() && !it.isSameArtAs(item.heroPreview.poster, meta.poster) }
-                        if (ownBackdrop != null) null else meta.id to meta.apiType
-                    }
-                    .toList()
-                cardBackdrops.prefetch(titles)
+        // A row's pictures are fetched as soon as the row appears, so its cards already have them
+        // when they scroll into view: on wide cards, the wide art of poster-only titles is looked
+        // up first, and every picture is downloaded ahead into the image cache.
+        val prefetchContext = LocalContext.current
+        LaunchedEffect(row.key, row.items.list.size, useLandscapePosters) {
+            val appContext = prefetchContext.applicationContext
+            val imageLoader = coil3.SingletonImageLoader.get(appContext)
+            // Only the download matters (the disk cache keeps the original); decoding to a tiny
+            // size keeps this nearly free on the CPU.
+            val download: (String) -> Unit = { url ->
+                imageLoader.enqueue(
+                    ImageRequest.Builder(appContext)
+                        .data(url)
+                        .size(PREFETCH_DECODE_SIZE_PX, PREFETCH_DECODE_SIZE_PX)
+                        .memoryCachePolicy(CachePolicy.DISABLED)
+                        .build()
+                )
             }
+            val cardBackdrops = dagger.hilt.android.EntryPointAccessors.fromApplication(
+                appContext,
+                com.nuvio.tv.core.poster.CardBackdropEntryPoint::class.java
+            ).cardBackdropRepository()
+            val toLookUp = mutableListOf<Pair<String, String>>()
+            row.items.list.asSequence().take(ROW_ART_PREFETCH_COUNT).forEachIndexed { index, item ->
+                if (item.payload is ModernPayload.CollectionFolder) return@forEachIndexed
+                val downloadThis: (String) -> Unit = { if (index < ROW_IMAGE_PREFETCH_COUNT) download(it) }
+                val meta = item.metaPreview
+                if (!useLandscapePosters) {
+                    item.imageUrl?.takeIf { !it.isPlaceholder() }?.let(downloadThis)
+                    return@forEachIndexed
+                }
+                val landscape = meta?.landscapePoster?.takeIf { it.isNotBlank() }
+                val ownBackdrop = (item.heroPreview.frozenBackdropUrl ?: item.heroPreview.backdrop)
+                    ?.takeIf { !it.isPlaceholder() && !it.isSameArtAs(item.heroPreview.poster, meta?.poster) }
+                val saved = meta?.id?.let(cardBackdrops::known) as? com.nuvio.tv.core.poster.CardArt.Wide
+                val url = landscape ?: saved?.url ?: ownBackdrop
+                when {
+                    url != null -> downloadThis(url)
+                    meta != null -> toLookUp += meta.id to meta.apiType
+                }
+            }
+            cardBackdrops.prefetch(toLookUp, onFound = download)
         }
 
         CompositionLocalProvider(LocalBringIntoViewSpec provides horizontalBringIntoViewSpec) {
@@ -1654,3 +1673,6 @@ internal fun String.isSameArtAs(vararg posters: String?): Boolean =
 
 /** How many titles of a row get their wide art looked up ahead of scrolling. */
 private const val ROW_ART_PREFETCH_COUNT = 24
+/** How many of a row's pictures are downloaded ahead of scrolling. */
+private const val ROW_IMAGE_PREFETCH_COUNT = 12
+private const val PREFETCH_DECODE_SIZE_PX = 64

@@ -2088,6 +2088,7 @@ fun PlayerRuntimeController.onEvent(
             )
             switchToInternalPlayerEngine(InternalPlayerEngine.MVP_PLAYER, reason = "user-error-dialog-switch-to-mpv")
         }
+        PlayerEvent.OnMarkIntro -> markIntro()
         PlayerEvent.OnShowStreamInfo -> {
             val info = buildStreamInfoData()
             _uiState.update {
