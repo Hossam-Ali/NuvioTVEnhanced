@@ -720,7 +720,7 @@ internal fun PlayerRuntimeController.recomputeMergedSkipIntervals() {
     val fromSources = mergeSkipIntervals(apiSkipIntervals, chapterSkipIntervals, isMovie = isMovie)
     // An intro the viewer marked for this show fills in when no source has one.
     val learnedIntro = if (fromSources.none { segmentCategory(it.type) == "opening" }) learnedIntroInterval() else null
-    val merged = if (learnedIntro != null) fromSources + learnedIntro else fromSources
+    val merged = smoothSkipIntervals(if (learnedIntro != null) fromSources + learnedIntro else fromSources)
     if (merged == skipIntervals) return
     skipIntervals = merged
 }
