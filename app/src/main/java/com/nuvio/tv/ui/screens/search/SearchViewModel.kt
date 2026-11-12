@@ -102,6 +102,7 @@ class SearchViewModel @Inject constructor(
     private var lastCompletedRequestKey: String? = null
     private var hasRenderedFirstCatalog = false
     private var pendingCatalogResponses = 0
+    private var lastNonEmptyQuery: String = ""
     private var revealBatchAfterNextDiscoverFetch = false
     private var hideUnreleasedContent = false
 
@@ -264,6 +265,20 @@ class SearchViewModel @Inject constructor(
     }
 
     private fun onQueryChanged(query: String) {
+        // Skip if query is exactly the same (no change at all)
+        if (query == _uiState.value.query) {
+            return
+        }
+        
+        // Detect if this is a recomposition artifact: transitioning to empty from the current
+        // non-empty query. This happens when focus changes and Compose recomposes the text field.
+        val isRecompositionArtifact = query.isEmpty() && query != _uiState.value.query && _uiState.value.query == lastNonEmptyQuery
+        
+        // Track non-empty queries for recomposition detection
+        if (query.isNotEmpty()) {
+            lastNonEmptyQuery = query
+        }
+
         _uiState.update {
             val trimmedInput = query.trim()
             // Narrow the strip to what still matches before anything is fetched, so a letter
@@ -279,8 +294,27 @@ class SearchViewModel @Inject constructor(
                 // Keep whatever is on screen while a keystroke waits to run. Clearing here flashed
                 // the no-results state on every letter, because on a remote each letter outlasts the
                 // debounce. The screen renders skeleton rows for this window instead.
-                catalogRows = if (trimmedInput.length < MIN_SEARCH_QUERY_LENGTH) emptyList() else it.catalogRows
+                // For recomposition artifacts (empty query during focus change), preserve catalogRows.
+                catalogRows = when {
+                    isRecompositionArtifact -> it.catalogRows
+                    trimmedInput.length < MIN_SEARCH_QUERY_LENGTH -> emptyList()
+                    else -> it.catalogRows
+                }
             )
+        }
+
+        // Skip fetches for recomposition artifacts to avoid unnecessary network calls. A focus
+        // change can blank the field for a moment and then put the text back, so the clear only
+        // takes effect (recent searches back, suggestions gone) once the field stays empty.
+        if (isRecompositionArtifact) {
+            liveSearchJob?.cancel()
+            liveSearchJob = viewModelScope.launch {
+                kotlinx.coroutines.delay(CLEARED_QUERY_SETTLE_MS)
+                cancelSearchRun()
+                performSearch(query)
+                fetchSuggestions("")
+            }
+            return
         }
 
         // Drop in-flight requests for the previous keystroke before scheduling the next run.
@@ -1307,6 +1341,9 @@ internal fun resolveDiscoverCatalog(
         ?: catalogs.firstOrNull()
 
 private const val MAX_RENAMED_PER_ROW = 20
+
+/** How long the field has to stay empty before a clear counts, see [SearchViewModel.onQueryChanged]. */
+private const val CLEARED_QUERY_SETTLE_MS = 500L
 
 /** True when most of [name]'s letters are outside the Latin script (Arabic, Cyrillic, …). */
 internal fun isNonLatinName(name: String): Boolean {

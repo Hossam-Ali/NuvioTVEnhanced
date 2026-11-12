@@ -68,6 +68,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.firstOrNull
 import com.nuvio.tv.ui.components.ImdbRatingSourceLabel
 import com.nuvio.tv.ui.components.TrailerPlayer
+import com.nuvio.tv.ui.components.AutoScrollingText
 import androidx.compose.ui.res.stringResource
 
 private data class ModernHeroSecondaryMeta(
@@ -312,6 +313,7 @@ internal fun HeroTitleBlock(
     footer: @Composable (preview: HeroPreview, description: String?) -> Unit = { _, _ -> },
     /** True when [footer] shows something: the description is shortened to make room. */
     hasFooter: (HeroPreview) -> Boolean = { false },
+    descriptionAutoScrollEnabled: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     // The providers read hero state that is rewritten on every focus move, often with an equal
@@ -352,7 +354,8 @@ internal fun HeroTitleBlock(
             mdbListRatingOrder = mdbListRatingOrder,
             trailerPlaying = trailerPlaying,
             descriptionMaxLines = if (hasFooter(displayPreview)) 2 else 4,
-            description = heroDescription
+            description = heroDescription,
+            descriptionAutoScrollEnabled = descriptionAutoScrollEnabled
         )
         footer(displayPreview, heroDescription)
     }
@@ -367,7 +370,8 @@ private fun HeroTitleContent(
     mdbListRatingOrder: List<String> = com.nuvio.tv.domain.model.MDBListSettings.DEFAULT_RATING_ORDER,
     trailerPlaying: () -> Boolean = { false },
     descriptionMaxLines: Int = 4,
-    description: String? = previewProvider()?.description
+    description: String? = previewProvider()?.description,
+    descriptionAutoScrollEnabled: Boolean = false
 ) {
     val preview = previewProvider() ?: return
     // Ratings MDBList hasn't attached to the row item yet are asked for here (batched and cached).
@@ -715,10 +719,13 @@ private fun HeroTitleContent(
         }
 
         heroDescription?.takeIf { it.isNotBlank() }?.let { description ->
-            HeroAutoScrollDescription(
-                description = description,
+            AutoScrollingText(
+                text = description,
                 style = scaledDescriptionStyle.copy(textDirection = description.contentTextDirection()),
-                visibleLines = descriptionMaxLines,
+                color = NuvioTheme.colors.TextPrimary,
+                maxLines = descriptionMaxLines,
+                autoScrollEnabled = descriptionAutoScrollEnabled,
+                paused = trailerPlaying,
                 modifier = Modifier.graphicsLayer { alpha = metaAlpha }
             )
         }
@@ -931,54 +938,3 @@ private val SOURCE_CREDIT_LINE = Regex("(?im)^\\s*(catalog(ue)?\\s+source|source
 /** Drops lines like "Catalogue source: elCinema.com" that some add-ons append to descriptions. */
 internal fun withoutSourceCredit(text: String): String =
     text.replace(SOURCE_CREDIT_LINE, "").trim().replace(Regex("\\n{3,}"), "\n\n")
-
-private const val DESCRIPTION_SCROLL_START_DELAY_MS = 3_000L
-private const val DESCRIPTION_SCROLL_HOLD_MS = 2_500L
-private const val DESCRIPTION_SCROLL_MS_PER_PX = 28
-
-/**
- * A description that shows [visibleLines] lines and, when there's more, slowly scrolls up to the
- * end once focus has rested on the title for a few seconds, then back to the start, and repeats.
- */
-@Composable
-private fun HeroAutoScrollDescription(
-    description: String,
-    style: androidx.compose.ui.text.TextStyle,
-    visibleLines: Int,
-    modifier: Modifier = Modifier
-) {
-    val density = LocalDensity.current
-    val scrollState = androidx.compose.foundation.rememberScrollState()
-    val boxHeight = remember(style, visibleLines, density) {
-        with(density) { (style.lineHeight.toPx() * visibleLines).toDp() }
-    }
-    LaunchedEffect(description, visibleLines) {
-        scrollState.scrollTo(0)
-        while (true) {
-            delay(DESCRIPTION_SCROLL_START_DELAY_MS)
-            val distance = scrollState.maxValue
-            if (distance <= 0) return@LaunchedEffect
-            scrollState.animateScrollTo(
-                distance,
-                androidx.compose.animation.core.tween(
-                    durationMillis = distance * DESCRIPTION_SCROLL_MS_PER_PX,
-                    easing = androidx.compose.animation.core.LinearEasing
-                )
-            )
-            delay(DESCRIPTION_SCROLL_HOLD_MS)
-            scrollState.animateScrollTo(0, androidx.compose.animation.core.tween(durationMillis = 600))
-        }
-    }
-    Box(
-        modifier = modifier
-            .heightIn(max = boxHeight)
-            .clipToBounds()
-    ) {
-        Text(
-            text = description,
-            style = style,
-            color = NuvioTheme.colors.TextPrimary,
-            modifier = Modifier.verticalScroll(scrollState, enabled = false)
-        )
-    }
-}

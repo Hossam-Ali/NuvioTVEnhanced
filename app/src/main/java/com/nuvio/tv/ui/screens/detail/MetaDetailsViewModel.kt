@@ -35,6 +35,8 @@ import com.nuvio.tv.domain.model.TmdbSettings
 import com.nuvio.tv.domain.model.TraktCommentReview
 import com.nuvio.tv.domain.model.Video
 import com.nuvio.tv.domain.model.WatchProgress
+import com.nuvio.tv.domain.model.isSeriesLikeType
+import com.nuvio.tv.domain.model.isWatchedAsOneItem
 import com.nuvio.tv.domain.repository.LibraryRepository
 import com.nuvio.tv.domain.repository.MetaRepository
 import com.nuvio.tv.domain.repository.WatchProgressRepository
@@ -618,7 +620,7 @@ class MetaDetailsViewModel @Inject constructor(
 
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     private fun observeMovieWatched() {
-        if (itemType.lowercase() != "movie") return
+        if (isSeriesLikeType(itemType)) return
         viewModelScope.launch {
             _effectiveContentId.flatMapLatest { cid ->
                 _uiState.map { it.meta?.imdbId?.takeIf { id -> id != cid && id.isNotBlank() } }
@@ -2251,16 +2253,8 @@ class MetaDetailsViewModel @Inject constructor(
         return meta.videos.firstOrNull { it.id == defaultVideoId && it.available != false }
     }
 
-    private fun shouldResumeProgress(progress: WatchProgress): Boolean {
-        if (progress.isCompleted()) return false
-        if (progress.progressPercentage >= 0.02f) return true
-
-        val hasStartedPlayback = progress.position > 0L ||
-            progress.progressPercent?.let { it > 0f } == true
-        return hasStartedPlayback &&
-            progress.source != WatchProgress.SOURCE_TRAKT_HISTORY &&
-            progress.source != WatchProgress.SOURCE_TRAKT_SHOW_PROGRESS
-    }
+    // Same rule the player uses to resume, so Resume never restarts from 0
+    private fun shouldResumeProgress(progress: WatchProgress): Boolean = progress.isInProgress()
 
     private fun toggleLibrary() {
         if (
@@ -2516,7 +2510,7 @@ class MetaDetailsViewModel @Inject constructor(
 
     private fun toggleMovieWatched() {
         val meta = _uiState.value.meta ?: return
-        if (meta.apiType != "movie") return
+        if (!meta.isWatchedAsOneItem()) return
         if (_uiState.value.isMovieWatchedPending) return
 
         viewModelScope.launch {

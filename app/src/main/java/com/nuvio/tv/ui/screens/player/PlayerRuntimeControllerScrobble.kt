@@ -64,6 +64,7 @@ internal fun PlayerRuntimeController.preparePlaybackBeforeStart(
                 )
                 persistedTrackPreference = loaded
                 persistedTrackPreferenceFromThisPlayback = false
+                loadedTrackPreference = loaded
             } ?: Log.d(PlayerRuntimeController.TAG, "TRACK_PREF load: skipped (contentId is null)")
             // Subtitle delay is keyed per-videoId, so it is loaded separately
             // from the track selection above. This happens before
