@@ -834,8 +834,8 @@ class SearchViewModel @Inject constructor(
 
     /**
      * Some add-ons name every title in their own language (elCinema calls Interstellar "بين النجوم").
-     * Results named in a non-Latin script take their original title when TMDB says the title comes
-     * from another language than the app's, as on the home screen.
+     * Results named in a non-Latin script take their original title when it is written in another
+     * script (see [renamedToOriginalTitle]), as on the home screen.
      */
     private fun nameInOriginalLanguage(key: String, row: com.nuvio.tv.domain.model.CatalogRow, generation: Long, query: String) {
         val candidates = row.items.take(MAX_RENAMED_PER_ROW).filter { isNonLatinName(it.name) }
@@ -843,7 +843,6 @@ class SearchViewModel @Inject constructor(
         viewModelScope.launch {
             val settings = tmdbSettingsDataStore.settings.first()
             if (!settings.enabled) return@launch
-            val appLanguage = settings.language.lowercase().substringBefore('-')
             val slots = kotlinx.coroutines.sync.Semaphore(4)
             val renamed = kotlinx.coroutines.coroutineScope {
                 candidates.map { item ->
@@ -851,8 +850,8 @@ class SearchViewModel @Inject constructor(
                         slots.acquire()
                         try {
                             val tmdbId = runCatching { tmdbService.ensureTmdbId(item.id, item.apiType) }.getOrNull() ?: return@async null
-                            val (language, original) = tmdbMetadataService.fetchOriginalTitle(tmdbId, item.type) ?: return@async null
-                            if (language.lowercase() == appLanguage || original == item.name) null else item.id to original
+                            val (_, original) = tmdbMetadataService.fetchOriginalTitle(tmdbId, item.type) ?: return@async null
+                            renamedToOriginalTitle(item.name, original)?.let { item.id to it }
                         } finally {
                             slots.release()
                         }
@@ -1344,6 +1343,18 @@ private const val MAX_RENAMED_PER_ROW = 20
 
 /** How long the field has to stay empty before a clear counts, see [SearchViewModel.onQueryChanged]. */
 private const val CLEARED_QUERY_SETTLE_MS = 500L
+
+/**
+ * The original title to show for a title its add-on named [name], or null to keep [name]. A name in
+ * a non-Latin script gives way to [originalTitle] when that is written in another script, whatever
+ * the app language: elCinema's "أم أخرى" becomes "Other Mommy" and "بين النجوم" becomes
+ * "Interstellar", while an Arabic film named in Arabic keeps the add-on's name.
+ */
+internal fun renamedToOriginalTitle(name: String, originalTitle: String): String? {
+    if (!isNonLatinName(name) || originalTitle.isBlank() || originalTitle == name) return null
+    if (com.nuvio.tv.core.tmdb.firstLetterScript(originalTitle) == com.nuvio.tv.core.tmdb.firstLetterScript(name)) return null
+    return originalTitle
+}
 
 /** True when most of [name]'s letters are outside the Latin script (Arabic, Cyrillic, …). */
 internal fun isNonLatinName(name: String): Boolean {

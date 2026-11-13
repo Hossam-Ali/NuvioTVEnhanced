@@ -27,6 +27,7 @@ internal fun HomeViewModel.onFocusedRowChangedForMdbBatch(rowKey: String?) {
 }
 
 internal fun HomeViewModel.onCatalogRowItemsChanged(rowKey: String) {
+    nameCatalogRowInOriginalLanguage(rowKey)
     if (!isMdbBatchPrefetchEnabled()) return
 
     viewModelScope.launch(Dispatchers.IO) {

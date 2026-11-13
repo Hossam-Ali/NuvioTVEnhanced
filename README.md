@@ -7,6 +7,7 @@
   <p>
     An unofficial fork of <a href="https://github.com/NuvioMedia/NuvioTV">Nuvio TV</a> for Android TV and Google TV,
     with AI subtitles in any language, a redesigned look, a home screen you can shape, and an up-to-date build.
+    Based on Nuvio TV 1.1.0.
   </p>
 
 [Download the latest release](https://github.com/Hossam-Ali/NuvioTVEnhanced/releases/latest) · [Upstream Nuvio TV](https://github.com/NuvioMedia/NuvioTV) · [Report an issue](https://github.com/Hossam-Ali/NuvioTVEnhanced/issues)
@@ -52,7 +53,8 @@ it listens to the audio and writes them. No searching, no syncing, no wrong-vers
   shows what you spent this month and on the video you're watching.
 - **Only when you need them.** A video already spoken in your language isn't translated or
   transcribed; its own subtitle in your language is still shown if it has one.
-- **Style presets.** Classic, Cinema, Bold, Yellow, Boxed, Large or Small in one step, then fine-tune.
+- **Style presets.** Classic, Cinema, Bold, Yellow, Boxed, Large or Small in one step, then fine-tune
+  fonts, background and shadow in Nuvio's appearance editor beside them.
 
 ### A redesigned look
 
@@ -69,7 +71,8 @@ it listens to the audio and writes them. No searching, no syncing, no wrong-vers
   the top, in **Settings → Appearance → Layout**.
 - **Real artwork on wide cards.** Cards whose add-on only has a poster get the title's wide picture
   from TMDB or the add-on, instead of a poster squeezed into a wide frame.
-- **Long descriptions scroll by themselves** on the home screen when you rest on a title.
+- **Long descriptions scroll by themselves** on the home screen when you rest on a title, on by
+  default (turn it off in **Settings → Appearance → Layout**).
 - **English and Arabic**, laid out right to left in Arabic.
 
 ### A home screen you shape
@@ -86,6 +89,10 @@ it listens to the audio and writes them. No searching, no syncing, no wrong-vers
   description on the home screen, Continue Watching, episode names, details, filmography, search
   and the pause screen, instead of a translated title over the original artwork. An episode whose
   only summary is in English shows the show's own description instead.
+- **Add-ons that translate every title** (such as ArabCinemeta) no longer rename your rows: an
+  English show they call "كروس" appears as "Cross" on the home screen and in search, whatever your
+  app language. Titles are looked up once and kept on the device, so rows show the right names
+  from the start on later visits.
 - **Upcoming episodes aren't blank.** An episode that hasn't aired shows the show's rating and
   description in the hero.
 - **Cast on the source list.** See who's in a title before choosing a version, and open any actor's
@@ -147,6 +154,8 @@ Searching by original title and by actor uses TMDB: add your free TMDB key in
 - Resuming no longer jumps back a few minutes when the app closed before your position reached
   your account: the newer position on the TV is kept.
 - The subtitle button stays in the player when the only subtitles are ones made from the audio.
+- Clearing the search field brings back your recent searches again, instead of leaving the last
+  results on screen.
 
 ### Up to date
 

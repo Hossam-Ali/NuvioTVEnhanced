@@ -122,6 +122,8 @@ internal fun HomeViewModel.observeTmdbSettingsPipeline() {
                     _lastEnrichedPreview.value = null
                     clearEnrichmentFailures()
                 }
+                // Rows that arrived before the settings did are named now.
+                nameCatalogRowsInOriginalLanguage()
                 scheduleUpdateCatalogRows()
             }
     }

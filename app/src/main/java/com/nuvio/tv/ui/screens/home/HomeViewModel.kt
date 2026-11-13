@@ -89,6 +89,7 @@ class HomeViewModel @Inject constructor(
     internal val profileManager: com.nuvio.tv.core.profile.ProfileManager,
     internal val tvRecommendationManager: TvRecommendationManager,
     internal val serverCatalog: ServerCatalog,
+    internal val originalTitleStore: com.nuvio.tv.core.tmdb.OriginalTitleStore,
     internal val metaPreviewEnricher: MetaPreviewEnricher = MetaPreviewEnricher(
         tmdbService,
         tmdbMetadataService,
