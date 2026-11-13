@@ -1,0 +1,43 @@
+app/src/test/java/com/nuvio/tv/ui/screens/home/OriginalCatalogNameTest.kt
+  s_c7f847fc05dfc2::t_7d37432e5de227 1-3,5-12,14-16,20-22,25-27,33,35-38,40-43,50-51
+  s_c7f847fc05dfc2::t_a2912d168e1ee7 4,13,17-19,23-24,28-32,34,39,44-49
+app/src/main/java/com/nuvio/tv/ui/screens/home/HomeViewModelOriginalTitles.kt
+  s_c7f847fc05dfc2::t_c82f82c5719dd2 1-69
+  s_c7f847fc05dfc2::t_4c1a20efb1ec6a 70-75
+app/src/main/java/com/nuvio/tv/core/tmdb/OriginalTitleStore.kt
+  s_c7f847fc05dfc2::t_09f92e661c36f3 10-13
+  s_c7f847fc05dfc2::t_817857ad05e1f8 1-9,14-38,44-95
+  s_c7f847fc05dfc2::t_46b18d5383bee8 39-43
+README.md
+  s_c7f847fc05dfc2::t_e2d2bdced30513 10,56-57,74-75,92-95,157-158
+app/src/main/java/com/nuvio/tv/ui/screens/home/HomeViewModel.kt
+  s_c7f847fc05dfc2::t_338c0266b6ae21 92
+app/src/main/java/com/nuvio/tv/ui/screens/home/HomeViewModelCatalogPipeline.kt
+  s_c7f847fc05dfc2::t_a3175e35d2ba7d 125-126
+app/src/main/java/com/nuvio/tv/ui/screens/home/HomeViewModelMdbListBatchPrefetch.kt
+  s_c7f847fc05dfc2::t_9cdaff68113981 30
+app/src/main/java/com/nuvio/tv/ui/screens/search/SearchViewModel.kt
+  s_c7f847fc05dfc2::t_84d286c89a0feb 837-838,853-854,1347-1358
+app/src/test/java/com/nuvio/tv/ui/screens/home/HomeEnrichmentRepositoryBoundaryTest.kt
+  s_c7f847fc05dfc2::t_385bed24d36440 204-205
+app/src/test/java/com/nuvio/tv/ui/screens/home/HomeEnrichmentRetryTest.kt
+  s_c7f847fc05dfc2::t_ea1538475c7d09 476-477
+app/src/test/java/com/nuvio/tv/ui/screens/home/HomePosterWatchedTest.kt
+  s_c7f847fc05dfc2::t_52ab953fa158e9 137-138
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7748c14f3275318c860a6893742e1985e40676d8",
+  "prompts": {},
+  "sessions": {
+    "s_c7f847fc05dfc2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "666ff6ef-bff7-49b1-894d-8c6f8060c75e",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  }
+}
