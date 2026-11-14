@@ -1,0 +1,161 @@
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt
+  s_a9d3cd02d4456a::t_6661d97a4bedae 2132
+  s_a9d3cd02d4456a::t_350290a0db1741 2131
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerTrackSelection.kt
+  s_7838329b066514::t_642ab7f8692d1b 225,644
+app/src/test/java/com/nuvio/tv/core/subtitles/SubtitleTranslatorTest.kt
+  s_ca27b844cd47f7::t_d8172c81a08070 123,132-143
+  s_a9d3cd02d4456a::t_0738dd5841bbab 1-122,124-131,144-264,284-292
+  s_3354ef395e4049::t_129faf85388e44 265-283
+app/src/main/java/com/nuvio/tv/ui/screens/settings/SubtitleTranslationSettingsItems.kt
+  s_3354ef395e4049::t_2a2a191032a906 51,154-167,310-313
+  s_ca27b844cd47f7::t_b4671e365d807d 46,103-112,190-195
+  s_a9d3cd02d4456a::t_bfc02e098d2d1d 1-45,47-50,52-102,113-153,168-189,196-309,314-318
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeController.kt
+  s_a9d3cd02d4456a::t_4a590860ca9189 587-589,794
+  s_a99091c4b1b82b::t_8b1af28ecd7e98 456-457
+  s_7838329b066514::t_4ef3e8c5dfcd45 569-574
+app/src/main/java/com/nuvio/tv/core/subtitles/SubtitleTranslationDiskCache.kt
+  s_a9d3cd02d4456a::t_ab1a7d44a4486d 1-47
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerSidecarSubtitleTranslation.kt
+  s_a99091c4b1b82b::t_0659e93401a9f4 1-11,14-38,40-42,46-66
+  s_73a006aa7ef22d::t_58b3979aa62f2e 12-13,39,43-45
+app/src/main/res/values-ar/strings.xml
+  s_ca27b844cd47f7::t_f98e04f520c8e6 3041
+  s_a99091c4b1b82b::t_8e9ab161bb0d1d 3062
+  s_a9d3cd02d4456a::t_f0a2123d8e9ea4 3031-3040,3042-3046,3051-3061,3063-3065
+  s_3354ef395e4049::t_e8b09a61e36dd6 3047-3050
+app/src/test/java/com/nuvio/tv/ui/screens/player/SubtitleTranslationSourceTest.kt
+  s_082baa1b97c8e3::t_68b418b881c013 17,19,24-32
+  s_a99091c4b1b82b::t_d7587c95cf08a0 1-5,7-12,16,18,20-23,33-34,62
+  s_8751b0673dcfa3::t_1ecc5ef61faa59 6,13-15,35-61
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerTracks.kt
+  s_a9d3cd02d4456a::t_d73b36e03ecaf7 1058,1070-1079,1735-1740,1746-1754
+  s_8751b0673dcfa3::t_90d9f644b44ec0 1061-1069
+  s_7838329b066514::t_06e30ce0ec6b0a 1059-1060
+  s_a99091c4b1b82b::t_82d3eb6d387c8e 1544
+app/src/main/java/com/nuvio/tv/core/subtitles/SubtitleTranslationUsageStore.kt
+  s_3354ef395e4049::t_1b3b5d9d6dc173 1-89
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerLifecycle.kt
+  s_7838329b066514::t_c73167d8c9c22e 28,40
+app/src/main/res/values/strings.xml
+  s_a99091c4b1b82b::t_0aeb2360a515e1 3499
+  s_ca27b844cd47f7::t_e85b84d798ad63 3478
+  s_3354ef395e4049::t_441c1c0643c175 3484-3487
+  s_a9d3cd02d4456a::t_b9c05a1d1be4e3 3468-3477,3479-3483,3488-3498,3500-3502
+app/src/test/java/com/nuvio/tv/core/subtitles/SubtitleTranslationSettingsTest.kt
+  s_ca27b844cd47f7::t_ac4fdb3e698eb4 32
+  s_a9d3cd02d4456a::t_f5eb9457de3b27 1-31,33-35
+app/src/main/java/com/nuvio/tv/ui/screens/player/SubtitleTranslationPipeline.kt
+  s_a9d3cd02d4456a::t_516374c0d503ae 1-281
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerSidecarSubtitles.kt
+  s_a99091c4b1b82b::t_fcfb8276845326 101,133,174,236-237,276
+app/src/main/java/com/nuvio/tv/core/subtitles/SubtitleTranslationPreferences.kt
+  s_a9d3cd02d4456a::t_400ffb110a24b6 1-85,87-147
+  s_ca27b844cd47f7::t_49dfcbcea93a90 86
+app/src/main/java/com/nuvio/tv/core/subtitles/SubtitleTranslationService.kt
+  s_a9d3cd02d4456a::t_fe9abab5548bd9 1-116,118-160,165-288
+  s_3354ef395e4049::t_3f72b0b7fb56f5 117,161-164
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerScrobble.kt
+  s_7838329b066514::t_de4a64c87bd87f 67
+app/src/main/java/com/nuvio/tv/core/subtitles/SubtitleTranslationSecretStore.kt
+  s_a9d3cd02d4456a::t_aa3cc3584911a0 1-62
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerInitialization.kt
+  s_a9d3cd02d4456a::t_8bb386dd095cac 661-663,935,1002,1452,2097,2191,2340-2342,2347-2354
+  s_3354ef395e4049::t_408fb750a4205f 2098
+app/src/main/java/com/nuvio/tv/core/subtitles/SubtitleTranslator.kt
+  s_ca27b844cd47f7::t_33f937f6f3e6ec 26-27,30,344-346,349
+  s_3354ef395e4049::t_350ccbf203440a 183-195,203,315-319,321,373
+  s_a9d3cd02d4456a::t_eb47bbf104d7f8 1-25,28-29,31-182,196-202,204-314,320,322-343,347-348,350-372,374-389
+app/src/main/java/com/nuvio/tv/ui/screens/settings/PlaybackSubtitleSettings.kt
+  s_a9d3cd02d4456a::t_28c0e1c8810c57 66-73
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerSubtitleTranslation.kt
+  s_a99091c4b1b82b::t_45177dd94ee117 28-32,119,122-126,129,203,227,240-241,255
+  s_a9d3cd02d4456a::t_70ff9579f5acd6 1-27,33-92,106-110,113-114,168-177,181,187,189-190,197,211-213,220-226,265-266
+  s_082baa1b97c8e3::t_a4ed385707793f 93-105,111-112,115-117,127-128,130-132
+  s_7838329b066514::t_40bdc0b7a1dafe 267-285
+  s_8751b0673dcfa3::t_2259ac12f22d05 120-121,134-167,178-180,182-186,188,191-196,198-202,204-210,214-219,228-239,242-254,256-264
+app/src/main/java/com/nuvio/tv/ui/screens/player/SubtitleSelectionOverlay.kt
+  s_a9d3cd02d4456a::t_cb4adb8c17efa2 52,107-110,122-126,137,150-151,164-165,184-185,199-201,203-204,542-544,1938-1940,1944-1946,1948-1950,1953,1961-1963,1965,1989-1990,2001-2002,2074-2076,2078-2079,2121-2122,2127-2137,2140,2174-2175,2183-2188,2197-2198,2206-2207,2209-2210
+  s_a99091c4b1b82b::t_c2339bebba0380 142-143,152-153,166,186-187,202,1967-1970,1991,2000,2077,2096,2139,2141-2156,2168,2176-2177,2179,2199-2200,2203
+  s_8751b0673dcfa3::t_ac71cecdf474b4 138-141,144-145,1941-1943,1947,1951-1952,1954-1960,1964,1966
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerObservers.kt
+  s_8751b0673dcfa3::t_53f6b9d83df956 184-185
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "fa4a16a1f85e8aba691409031302dba27b267b32",
+  "prompts": {},
+  "humans": {
+    "h_b46d7b9083e084": {
+      "author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_082baa1b97c8e3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "s_082baa1b97c8e3",
+        "model": "unknown"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    },
+    "s_3354ef395e4049": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "s_3354ef395e4049",
+        "model": "unknown"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    },
+    "s_73a006aa7ef22d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "s_73a006aa7ef22d",
+        "model": "unknown"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    },
+    "s_7838329b066514": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "s_7838329b066514",
+        "model": "unknown"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    },
+    "s_8751b0673dcfa3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "s_8751b0673dcfa3",
+        "model": "unknown"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    },
+    "s_a99091c4b1b82b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "s_a99091c4b1b82b",
+        "model": "unknown"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    },
+    "s_a9d3cd02d4456a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "s_a9d3cd02d4456a",
+        "model": "unknown"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    },
+    "s_ca27b844cd47f7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "s_ca27b844cd47f7",
+        "model": "unknown"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  }
+}
