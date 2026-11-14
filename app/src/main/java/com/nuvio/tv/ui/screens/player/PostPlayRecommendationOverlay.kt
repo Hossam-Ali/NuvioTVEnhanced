@@ -259,7 +259,8 @@ fun PostPlayRecommendationOverlay(
                     model = displayedRecommendation.backdrop ?: displayedRecommendation.poster,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
-                    alignment = Alignment.Center,
+                    // A poster standing in for a missing backdrop keeps its top, where faces and the title are.
+                    alignment = if (displayedRecommendation.backdrop == null) androidx.compose.ui.BiasAlignment(0f, -0.45f) else Alignment.Center,
                     modifier = Modifier.fillMaxSize()
                 )
             }

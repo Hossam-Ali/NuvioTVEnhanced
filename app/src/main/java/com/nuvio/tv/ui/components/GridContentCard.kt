@@ -208,11 +208,9 @@ fun GridContentCard(
                 val bgPainter = remember(bgCardColor) { androidx.compose.ui.graphics.painter.ColorPainter(bgCardColor) }
                 val alwaysBackdropWithLogo = LocalAlwaysBackdropWithLogo.current
                 val effectiveLandscapePoster = if (globalLandscape && alwaysBackdropWithLogo) null else item.landscapePoster
-                val effectiveImageUrl = if (globalLandscape) {
-                    effectiveLandscapePoster ?: item.background ?: item.poster
-                } else {
-                    item.poster
-                }
+                // Wide cards get real wide art, or keep the top of a poster (see rememberWideCardArt).
+                val wideArt = if (globalLandscape) rememberWideCardArt(item, effectiveLandscapePoster) else null
+                val effectiveImageUrl = wideArt?.url ?: item.poster
                 val revalidationKey = com.nuvio.tv.core.image.rememberImageRevalidationKey(effectiveImageUrl)
                 val imageModel = remember(effectiveImageUrl, requestWidthPx, requestHeightPx, revalidationKey) {
                     val builder = ImageRequest.Builder(context)
@@ -239,6 +237,7 @@ fun GridContentCard(
                         contentDescription = item.name,
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop,
+                        alignment = wideArt?.alignment ?: Alignment.Center,
                         placeholder = bgPainter,
                         error = bgPainter,
                         fallback = bgPainter

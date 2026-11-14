@@ -241,7 +241,12 @@ internal fun formatNewLookRuntime(minutes: Int): String {
 }
 
 @Composable
-internal fun NewLookThumbnail(url: String?, width: Dp, height: Dp) {
+internal fun NewLookThumbnail(
+    url: String?,
+    width: Dp,
+    height: Dp,
+    alignment: androidx.compose.ui.Alignment = androidx.compose.ui.Alignment.Center
+) {
     if (url.isNullOrBlank()) return
     val context = LocalContext.current
     val density = LocalDensity.current
@@ -256,6 +261,7 @@ internal fun NewLookThumbnail(url: String?, width: Dp, height: Dp) {
         model = request,
         contentDescription = null,
         contentScale = ContentScale.Crop,
+        alignment = alignment,
         modifier = Modifier.fillMaxSize()
     )
 }

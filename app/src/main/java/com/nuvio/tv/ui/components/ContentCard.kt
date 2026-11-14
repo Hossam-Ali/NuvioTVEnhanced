@@ -34,6 +34,7 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
@@ -257,8 +258,12 @@ fun ContentCard(
             !alwaysBackdropWithLogo &&
             !item.landscapePoster.isNullOrBlank()
 
-        val imageUrl = if (globalLandscape) {
-            effectiveLandscapePoster ?: item.background ?: item.poster
+        // A wide card whose item has no wide art of its own (search results from add-ons, people)
+        // gets the title's wide picture, or keeps the top of a poster or photo (see rememberWideCardArt).
+        val wideArt = if (globalLandscape) rememberWideCardArt(item, effectiveLandscapePoster) else null
+
+        val imageUrl = if (wideArt != null) {
+            wideArt.url
         } else if (useLandscapeAsExpanded) {
             item.landscapePoster
         } else if (effectiveExpandEnabled && isBackdropExpanded) {
@@ -410,7 +415,8 @@ fun ContentCard(
                         placeholder = backgroundPainter,
                         error = backgroundPainter,
                         fallback = backgroundPainter,
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.Crop,
+                        alignment = wideArt?.alignment ?: Alignment.Center
                     )
                 } else {
                     MonochromePosterPlaceholder(contentDescription = item.name)

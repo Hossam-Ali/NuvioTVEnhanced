@@ -247,7 +247,13 @@ internal fun NewLookCastItem(member: MetaCastMember, onClick: () -> Unit, modifi
                 if (member.photo.isNullOrBlank()) {
                     Text(text = member.name.take(1), fontSize = 15.sp, fontWeight = FontWeight.Bold)
                 } else {
-                    NewLookThumbnail(url = member.photo, width = 40.dp, height = 40.dp)
+                    NewLookThumbnail(
+                        url = member.photo,
+                        width = 40.dp,
+                        height = 40.dp,
+                        // Headshots are tall: keep the face rather than the middle of the photo.
+                        alignment = com.nuvio.tv.ui.screens.stream.PortraitFaceAlignment
+                    )
                 }
             }
             Column(modifier = Modifier.weight(1f)) {
