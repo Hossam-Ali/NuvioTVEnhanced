@@ -7,7 +7,7 @@
   <p>
     An unofficial fork of <a href="https://github.com/NuvioMedia/NuvioTV">Nuvio TV</a> for Android TV and Google TV,
     with AI subtitles in any language, a redesigned look, a home screen you can shape, and an up-to-date build.
-    Based on Nuvio TV 1.1.0.
+    Based on Nuvio TV 1.2.0-beta.1.
   </p>
 
 [Download the latest release](https://github.com/Hossam-Ali/NuvioTVEnhanced/releases/latest) · [Upstream Nuvio TV](https://github.com/NuvioMedia/NuvioTV) · [Report an issue](https://github.com/Hossam-Ali/NuvioTVEnhanced/issues)
@@ -80,10 +80,16 @@ it listens to the audio and writes them. No searching, no syncing, no wrong-vers
 
 - **Visual home editor.** Move, hide and restyle your rows with a live preview beside them, including
   posters or landscape cards per row.
-- **Recently added.** Pick the rows you care about (Arabic movies, English series, even rows you
-  hide) and a row right under Continue Watching shows their newest titles by release date.
+- **Recently added.** Pick the rows or collections you care about (Arabic movies, English series,
+  even rows you hide) and a row right under Continue Watching shows what they released today or
+  yesterday, newest first. It hides itself on days with nothing new.
+- **Newest first.** Sort any row by release date instead of its add-on's order.
+- **New episode badges.** A show in Continue Watching whose next episode just came out is marked on
+  its cards in your rows.
 - **Hide duplicate titles.** Each title shows once, in the first row that has it, on the home
   screen, in collection folders and in search.
+- **Continue Watching opens the title's page** by default (change it with On Select); the Resume
+  button under the hero always plays straight away.
 - **Share your setup.** Scan a QR code to save your whole home setup (layout, rows, collections,
   styles and rating badges) from your phone, or send one to the TV; or import one from a link.
 - **Ratings at a glance.** With an MDBList key, the hero shows IMDb and Rotten Tomatoes scores
