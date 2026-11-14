@@ -1,0 +1,32 @@
+app/src/test/java/com/nuvio/tv/core/network/RealtimeSocketFactoryTest.kt
+  s_c7f847fc05dfc2::t_21d4b917013583 5,7,12,19-20,22,24-25,27,34-36,43,46-47,56-57,64-68
+  s_c7f847fc05dfc2::t_9a2f8c95355337 69-70
+app/src/main/java/com/nuvio/tv/core/network/RealtimeSocketFactory.kt
+  s_c7f847fc05dfc2::t_f63396598baa39 5,8-11,13,22-25,28-30,35-36,38,41-48,52-67
+app/src/main/java/com/nuvio/tv/core/party/PartyChannel.kt
+  s_c7f847fc05dfc2::t_aa157ebb0331cb 59
+gradle/libs.versions.toml
+  s_c7f847fc05dfc2::t_4b8f59c2f1a5df 2,10,19,25,28-30,35-40,42-44
+gradle/wrapper/gradle-wrapper.properties
+  s_c7f847fc05dfc2::t_fe35831c5dd07a 3,5-6
+gradlew
+  s_c7f847fc05dfc2::t_7c2a55c1239237 4,23,32,60,213
+gradlew.bat
+  s_c7f847fc05dfc2::t_3ebb228848f715 22,26-54,75-79,81-82,90-94,96-97,104-107,109-112
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "daf3037710622ea7b49bdbf16470e360e0d5b3b2",
+  "prompts": {},
+  "sessions": {
+    "s_c7f847fc05dfc2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "666ff6ef-bff7-49b1-894d-8c6f8060c75e",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  }
+}
