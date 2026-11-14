@@ -1,0 +1,21 @@
+.github/workflows/ci.yml
+  s_c7f847fc05dfc2::t_f2b143e09f3a46 27,34,38,48
+gradle.properties
+  s_c7f847fc05dfc2::t_0ee2dde5f20793 24-29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b6a04d41fd13d2f4a9ce2a87a57f212c278bbefc",
+  "prompts": {},
+  "sessions": {
+    "s_c7f847fc05dfc2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "666ff6ef-bff7-49b1-894d-8c6f8060c75e",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  }
+}
