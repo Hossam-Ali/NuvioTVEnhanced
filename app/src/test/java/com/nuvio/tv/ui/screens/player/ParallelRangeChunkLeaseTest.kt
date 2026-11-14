@@ -217,15 +217,24 @@ class ParallelRangeChunkLeaseTest {
     }
 
     private fun assertAllMemoryReturned() {
-        val end = System.nanoTime() + TimeUnit.SECONDS.toNanos(10)
+        // Fetch threads still finishing a chunk give their memory back on their own time, which
+        // on a busy CI runner took longer than 10 s once. A real leak never frees, so a longer
+        // wait still catches it, and the message tells the two apart.
+        val started = System.nanoTime()
+        val end = started + TimeUnit.SECONDS.toNanos(30)
         while (System.nanoTime() < end) {
             teardownSessions()
             drainPool()
             if (memory.freed.get() == memory.allocated.get()) break
             Thread.sleep(10)
         }
+        val waitedMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started)
         assertEquals("chunk memory freed twice or never allocated here", 0, memory.badFrees.get())
-        assertEquals("every chunk freed exactly once", memory.allocated.get(), memory.freed.get())
+        assertEquals(
+            "every chunk freed exactly once (allocated ${memory.allocated.get()}, freed ${memory.freed.get()} after ${waitedMs} ms)",
+            memory.allocated.get(),
+            memory.freed.get()
+        )
     }
 
     @Test
