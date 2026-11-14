@@ -3144,6 +3144,12 @@
     <string name="home_editor_collection">مجموعة</string>
     <string name="home_editor_hidden">مخفي</string>
     <string name="home_recently_added">أضيف حديثًا</string>
+    <string name="home_recently_added_settings_sub">أحدث عناوين الصفوف التي تختارها في محرر الرئيسية، أسفل «متابعة المشاهدة». اختر المدة التي يشملها.</string>
+    <string name="home_recently_added_period">مدة «أضيف حديثًا»</string>
+    <string name="home_recently_added_period_1">آخر يوم</string>
+    <string name="home_recently_added_period_7">آخر 7 أيام</string>
+    <string name="home_recently_added_period_14">آخر 14 يومًا</string>
+    <string name="home_recently_added_period_30">آخر 30 يومًا</string>
     <string name="home_editor_action_newest_first">ترتيب الأحدث أولًا</string>
     <string name="home_editor_action_addon_order">الإبقاء على ترتيب الإضافة</string>
     <string name="home_editor_newest_first">الأحدث أولًا</string>
@@ -3152,8 +3158,8 @@
     <string name="home_hide_duplicates_sub">عرض كل عنوان مرة واحدة في الشاشة الرئيسية، في أول صف يحتويه</string>
     <string name="home_editor_action_recently_added_add">إضافة إلى «أضيف حديثًا»</string>
     <string name="home_editor_action_recently_added_remove">إزالة من «أضيف حديثًا»</string>
-    <string name="home_editor_action_recently_added_desc">تظهر عناوينه الصادرة خلال الأسبوع الماضي في صف «أضيف حديثًا»، حتى لو كان الصف مخفيًا</string>
-    <string name="home_editor_recently_added_sub">العناوين التي صدرت خلال الأسبوع الماضي في الصفوف التي تختارها، أسفل «متابعة المشاهدة». اضغط OK على أي صف بالأسفل لإضافته.</string>
+    <string name="home_editor_action_recently_added_desc">تظهر أحدث عناوينه في صف «أضيف حديثًا»، حتى لو كان الصف مخفيًا</string>
+    <string name="home_editor_recently_added_sub">أحدث العناوين من الصفوف التي تختارها، أسفل «متابعة المشاهدة». اضغط OK لاختيار المدة، واضغط OK على أي صف بالأسفل لإضافته.</string>
     <string name="home_editor_recently_added_count">الصفوف المختارة: %1$d</string>
     <string name="home_editor_preview">معاينة</string>
     <string name="home_editor_preview_hero">مميز</string>

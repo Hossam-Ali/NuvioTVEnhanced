@@ -53,6 +53,11 @@ internal data class SettingsSearchEntry(
     val page: SettingsCategory,
     val playbackSection: PlaybackSection?,
     val integration: SettingsSearchIntegration?,
+    /**
+     * The row to select when the setting itself lives in a dialog (the subtitle appearance
+     * editor's font or shadow): the row that opens that dialog. Null selects the setting's own row.
+     */
+    @param:StringRes val focusTitleRes: Int? = null,
 )
 
 internal data class SettingsSearchResult(val entry: SettingsSearchEntry, val title: String, val subtitle: String?)
@@ -135,7 +140,9 @@ internal fun SettingsSearchContent(
                             title = result.title,
                             subtitle = settingsSearchLocation(result.entry),
                             onClick = {
-                                SettingsFocusTarget.aimAt(result.title)
+                                SettingsFocusTarget.aimAt(
+                                    result.entry.focusTitleRes?.let(context::getString) ?: result.title
+                                )
                                 onOpen(result.entry)
                             },
                             searchTargetable = false

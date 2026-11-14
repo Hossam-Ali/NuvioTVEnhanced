@@ -135,4 +135,25 @@ class RecentlyAddedTest {
         val entries = recentlyAddedEntries(listOf(row), setOf(row.legacyKey()), today, dateOf = { tmdb[it.id] })
         assertEquals(listOf("tt1"), entries.map { it.item.id })
     }
+
+    @Test
+    fun `the chosen period decides how far back the row looks`() {
+        val row = row(
+            "period", ContentType.MOVIE,
+            title("today", released = "2026-11-13"),
+            title("ten-days", released = "2026-11-03"),
+            title("twenty-days", released = "2026-10-24")
+        )
+        fun shown(days: Long) = recentlyAddedEntries(listOf(row), setOf(row.legacyKey()), today, maxAgeDays = days).map { it.item.id }
+        assertEquals(listOf("today"), shown(1))
+        assertEquals(listOf("today"), shown(7))
+        assertEquals(listOf("today", "ten-days"), shown(14))
+        assertEquals(listOf("today", "ten-days", "twenty-days"), shown(30))
+    }
+
+    @Test
+    fun `an unknown period falls back to a week`() {
+        assertEquals(7, com.nuvio.tv.core.poster.RecentlyAddedPreferences.normalizePeriod(5))
+        assertEquals(30, com.nuvio.tv.core.poster.RecentlyAddedPreferences.normalizePeriod(30))
+    }
 }

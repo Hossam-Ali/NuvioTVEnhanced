@@ -3603,6 +3603,12 @@
     <string name="home_editor_collection">Collection</string>
     <string name="home_editor_hidden">Hidden</string>
     <string name="home_recently_added">Recently added</string>
+    <string name="home_recently_added_settings_sub">The newest titles of the rows you pick in the home editor, under Continue Watching. Choose how far back it looks.</string>
+    <string name="home_recently_added_period">Recently added period</string>
+    <string name="home_recently_added_period_1">Last day</string>
+    <string name="home_recently_added_period_7">Last 7 days</string>
+    <string name="home_recently_added_period_14">Last 14 days</string>
+    <string name="home_recently_added_period_30">Last 30 days</string>
     <string name="home_editor_action_newest_first">Sort newest first</string>
     <string name="home_editor_action_addon_order">Keep the add-on\'s order</string>
     <string name="home_editor_newest_first">Newest first</string>
@@ -3611,8 +3617,8 @@
     <string name="home_hide_duplicates_sub">Show each title once on the home screen, in the first row that has it</string>
     <string name="home_editor_action_recently_added_add">Add to Recently added</string>
     <string name="home_editor_action_recently_added_remove">Remove from Recently added</string>
-    <string name="home_editor_action_recently_added_desc">Its titles out in the last week join the Recently added row, even if the row is hidden</string>
-    <string name="home_editor_recently_added_sub">Titles out in the last week in the rows you pick, under Continue Watching. Press OK on a row below to add it.</string>
+    <string name="home_editor_action_recently_added_desc">Its newest titles join the Recently added row, even if the row is hidden</string>
+    <string name="home_editor_recently_added_sub">The newest titles from the rows you pick, under Continue Watching. Press OK to choose the period; press OK on a row below to add it.</string>
     <string name="home_editor_recently_added_count">%1$d rows picked</string>
     <string name="home_editor_preview">Preview</string>
     <string name="home_editor_preview_hero">Featured</string>

@@ -194,6 +194,21 @@ internal fun LayoutHomeContentSection(
         checked = hideDuplicates,
         onToggle = { com.nuvio.tv.core.poster.HideDuplicateTitlesPreference.set(!hideDuplicates) }
     )
+    // "Recently added" lives on the Modern and Classic homes; its rows are picked in the home
+    // editor, its period here too so settings search can reach it.
+    if (uiState.selectedLayout != HomeLayout.GRID) {
+        val recentlyAddedPeriod by com.nuvio.tv.core.poster.RecentlyAddedPreferences.periodDays.collectAsState()
+        var showRecentlyAddedPeriod by remember { mutableStateOf(false) }
+        SettingsActionRow(
+            title = stringResource(R.string.home_recently_added),
+            subtitle = stringResource(R.string.home_recently_added_settings_sub),
+            value = recentlyAddedPeriodLabel(recentlyAddedPeriod),
+            onClick = { showRecentlyAddedPeriod = true }
+        )
+        if (showRecentlyAddedPeriod) {
+            RecentlyAddedPeriodDialog(current = recentlyAddedPeriod, onDismiss = { showRecentlyAddedPeriod = false })
+        }
+    }
 }
 
 @Composable

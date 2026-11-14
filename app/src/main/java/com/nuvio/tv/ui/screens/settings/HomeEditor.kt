@@ -109,6 +109,8 @@ private fun HomeEditor(uiState: LayoutSettingsUiState, onEvent: (LayoutSettingsE
     val recentlyAddedKeys by com.nuvio.tv.core.poster.RecentlyAddedPreferences.rowKeys.collectAsState()
     val hideDuplicates by com.nuvio.tv.core.poster.HideDuplicateTitlesPreference.enabled.collectAsState()
     val newestFirstKeys by com.nuvio.tv.core.poster.NewestFirstRowsPreferences.rowKeys.collectAsState()
+    val recentlyAddedPeriod by com.nuvio.tv.core.poster.RecentlyAddedPreferences.periodDays.collectAsState()
+    var showPeriodPicker by remember { mutableStateOf(false) }
     var focusedKey by remember { mutableStateOf<String?>(null) }
     var movingKey by remember { mutableStateOf<String?>(null) }
     var actionItem by remember { mutableStateOf<CatalogOrderItem?>(null) }
@@ -172,19 +174,14 @@ private fun HomeEditor(uiState: LayoutSettingsUiState, onEvent: (LayoutSettingsE
                 if (hasRecentlyAdded) {
                     item(key = "recently_added") {
                         val picked = order.items.count { it.key in recentlyAddedKeys }
-                        Column(modifier = Modifier.padding(vertical = NuvioTheme.spacing.xs)) {
-                            Text(
-                                text = stringResource(R.string.home_recently_added) +
-                                    if (picked > 0) " · " + stringResource(R.string.home_editor_recently_added_count, picked) else "",
-                                style = MaterialTheme.typography.titleSmall,
-                                color = NuvioTheme.colors.TextPrimary
-                            )
-                            Text(
-                                text = stringResource(R.string.home_editor_recently_added_sub),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = NuvioTheme.colors.TextTertiary
-                            )
-                        }
+                        // The row's period: OK opens the choice of 1, 7, 14 or 30 days.
+                        SettingsActionRow(
+                            title = stringResource(R.string.home_recently_added) +
+                                if (picked > 0) " · " + stringResource(R.string.home_editor_recently_added_count, picked) else "",
+                            subtitle = stringResource(R.string.home_editor_recently_added_sub),
+                            value = recentlyAddedPeriodLabel(recentlyAddedPeriod),
+                            onClick = { showPeriodPicker = true }
+                        )
                     }
                 }
                 if (order.followAddonsOrder) {
@@ -233,6 +230,10 @@ private fun HomeEditor(uiState: LayoutSettingsUiState, onEvent: (LayoutSettingsE
             focusedKey = focusedKey,
             isModern = isModern
         )
+    }
+
+    if (showPeriodPicker) {
+        RecentlyAddedPeriodDialog(current = recentlyAddedPeriod, onDismiss = { showPeriodPicker = false })
     }
 
     actionItem?.let { item ->
@@ -494,3 +495,31 @@ private fun PreviewRow(title: String, landscape: Boolean, highlighted: Boolean, 
         }
     }
 }
+
+/** The choice of 1, 7, 14 or 30 days for "Recently added". */
+@Composable
+internal fun RecentlyAddedPeriodDialog(current: Int, onDismiss: () -> Unit) {
+    SettingsSingleChoiceDialog(
+        title = stringResource(R.string.home_recently_added_period),
+        options = com.nuvio.tv.core.poster.RecentlyAddedPreferences.PERIOD_CHOICES.map { days ->
+            SettingsPickerOption(days, recentlyAddedPeriodLabel(days))
+        },
+        selectedValue = current,
+        onOptionSelected = { days ->
+            com.nuvio.tv.core.poster.RecentlyAddedPreferences.setPeriodDays(days)
+            onDismiss()
+        },
+        onDismiss = onDismiss
+    )
+}
+
+/** "Last 7 days" and the like, for a "Recently added" period. */
+@Composable
+internal fun recentlyAddedPeriodLabel(days: Int): String = stringResource(
+    when (days) {
+        1 -> R.string.home_recently_added_period_1
+        14 -> R.string.home_recently_added_period_14
+        30 -> R.string.home_recently_added_period_30
+        else -> R.string.home_recently_added_period_7
+    }
+)

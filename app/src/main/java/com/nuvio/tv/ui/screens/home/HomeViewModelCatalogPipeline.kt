@@ -789,6 +789,7 @@ internal suspend fun HomeViewModel.updateCatalogRowsPipeline() {
                 fullRowsFiltered + hiddenRows,
                 recentlyAddedKeys,
                 LocalDate.now(),
+                maxAgeDays = com.nuvio.tv.core.poster.RecentlyAddedPreferences.periodDays.value.toLong(),
                 dateOf = { item -> releaseDateStore.known(item.id) ?: item.exactReleaseDate() }
             )
         }
