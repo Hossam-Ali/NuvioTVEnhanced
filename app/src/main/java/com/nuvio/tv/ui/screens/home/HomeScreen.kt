@@ -157,7 +157,19 @@ fun HomeScreen(
     }
 
     val onNavigateToDetailStable = remember(onNavigateToDetail) { onNavigateToDetail }
-    val onContinueWatchingClickStable = remember(onContinueWatchingClick) { onContinueWatchingClick }
+    val latestContinueWatchingClickAction = androidx.compose.runtime.rememberUpdatedState(uiState.continueWatchingClickAction)
+    val onContinueWatchingClickStable = remember(onContinueWatchingClick, onNavigateToDetail) {
+        { item: ContinueWatchingItem ->
+            if (latestContinueWatchingClickAction.value.opensDetails(item)) {
+                when (item) {
+                    is ContinueWatchingItem.InProgress -> onNavigateToDetail(item.progress.contentId, item.progress.contentType, "")
+                    is ContinueWatchingItem.NextUp -> onNavigateToDetail(item.info.contentId, item.info.contentType, "")
+                }
+            } else {
+                onContinueWatchingClick(item)
+            }
+        }
+    }
     val onContinueWatchingStartFromBeginningStable = remember(onContinueWatchingStartFromBeginning) { onContinueWatchingStartFromBeginning }
     val onContinueWatchingPlayManuallyStable = remember(onContinueWatchingPlayManually) { onContinueWatchingPlayManually }
     val onNavigateToCatalogSeeAllStable = remember(onNavigateToCatalogSeeAll) { onNavigateToCatalogSeeAll }
@@ -352,7 +364,9 @@ fun HomeScreen(
                             viewModel = viewModel,
                             uiState = uiState,
                             onNavigateToDetail = onNavigateToDetailStable,
-                            onContinueWatchingClick = onContinueWatchingClickStable,
+                            // The Modern home applies "On Select" to its cards itself; the hero's
+                            // Resume button always plays.
+                            onContinueWatchingClick = onContinueWatchingClick,
                             onContinueWatchingStartFromBeginning = onContinueWatchingStartFromBeginningStable,
                             onContinueWatchingPlayManually = onContinueWatchingPlayManuallyStable,
                             showContinueWatchingManualPlayOption = effectiveAutoplayEnabled,

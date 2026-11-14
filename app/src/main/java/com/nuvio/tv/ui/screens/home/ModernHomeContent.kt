@@ -1256,14 +1256,18 @@ fun ModernHomeContent(
                 onNavigateToDetail = onNavigateToDetail,
                 onNavigateToFolderDetail = onNavigateToFolderDetail,
                 onLoadMoreCatalog = onLoadMoreCatalog,
-                // A Continue Watching card opens the title's page; only the hero's Resume button
-                // plays straight away.
+                // A Continue Watching card does what "On Select" says (the title's page by default
+                // here); the hero's Resume button always plays straight away.
                 onContinueWatchingClick = { item ->
-                    when (item) {
-                        is ContinueWatchingItem.InProgress ->
-                            onNavigateToDetail(item.progress.contentId, item.progress.contentType, "")
-                        is ContinueWatchingItem.NextUp ->
-                            onNavigateToDetail(item.info.contentId, item.info.contentType, "")
+                    if (uiState.continueWatchingClickAction.opensDetails(item)) {
+                        when (item) {
+                            is ContinueWatchingItem.InProgress ->
+                                onNavigateToDetail(item.progress.contentId, item.progress.contentType, "")
+                            is ContinueWatchingItem.NextUp ->
+                                onNavigateToDetail(item.info.contentId, item.info.contentType, "")
+                        }
+                    } else {
+                        onContinueWatchingClick(item)
                     }
                 },
                 onContinueWatchingOptions = onContinueWatchingOptionsLambda,
