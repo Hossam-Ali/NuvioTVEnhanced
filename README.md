@@ -60,7 +60,8 @@ it listens to the audio and writes them. No searching, no syncing, no wrong-vers
 
 - **Everything about a title on one screen.** Info, buttons and cast on one side; seasons and
   episodes on the other, each with its length, IMDb score, a short summary and how far you got.
-  Hold OK on an episode to mark it watched.
+  Hold OK on an episode to mark it watched. "More like this" shows each picture whole, with the
+  title under it.
 - **A source list you can read.** The best source sits on top with a big Play button, and every
   source is written as quality, HDR, audio, size and add-on instead of a raw file name. Quick
   filters for 4K, 1080p, 720p and lower, or smallest first.
@@ -79,16 +80,20 @@ it listens to the audio and writes them. No searching, no syncing, no wrong-vers
 
 - **Visual home editor.** Move, hide and restyle your rows with a live preview beside them, including
   posters or landscape cards per row.
+- **Recently added.** Pick the rows you care about (Arabic movies, English series, even rows you
+  hide) and a row right under Continue Watching shows their newest titles by release date.
+- **Hide duplicate titles.** Each title shows once, in the first row that has it, on the home
+  screen, in collection folders and in search.
 - **Share your setup.** Scan a QR code to save your whole home setup (layout, rows, collections,
   styles and rating badges) from your phone, or send one to the TV; or import one from a link.
 - **Ratings at a glance.** With an MDBList key, the hero shows IMDb and Rotten Tomatoes scores
   straight from MDBList, which follows IMDb's own data. Optional rating badges sit on posters, with
   icon packs to change their look.
 - **Automatic collection covers** made from a folder's first posters.
-- **Titles in their own language.** A show from abroad keeps its original title, logo and
-  description on the home screen, Continue Watching, episode names, details, filmography, search
-  and the pause screen, instead of a translated title over the original artwork. An episode whose
-  only summary is in English shows the show's own description instead.
+- **Titles and descriptions in your language.** A title made in your favourite subtitle language
+  keeps its own title, logo and description (an Arabic series reads in Arabic); every other title
+  reads in English, a Korean drama included. This holds on the home screen, Continue Watching,
+  episode names, details, search and the pause screen.
 - **Add-ons that translate every title** (such as ArabCinemeta) no longer rename your rows: an
   English show they call "كروس" appears as "Cross" on the home screen and in search, whatever your
   app language. Titles are looked up once and kept on the device, so rows show the right names
@@ -127,8 +132,8 @@ Searching by original title and by actor uses TMDB: add your free TMDB key in
   Sources, Tracking and System. Related pages sit together as tabs, such as
   Theme and Layout under Appearance.
 - **Subtitles have their own section**, with languages, style, AI translation and sync in one place.
-- **Search your settings.** Type a word, in English or Arabic, and jump straight to the setting,
-  across more than 300 options.
+- **Search your settings.** Type a word, in English or Arabic, and jump straight to the setting
+  itself, focused and ready to change, across more than 300 options.
 - **Snappier.** Moving down the list no longer rebuilds every section you pass; a section opens
   when you stop on it or press OK.
 
@@ -139,6 +144,9 @@ Searching by original title and by actor uses TMDB: add your free TMDB key in
   claim a format they can't play.
 - **Add-on timeout** you can set, for slow source add-ons.
 - **Your audio stays.** The audio track you're listening to is kept when subtitles reload.
+- **Trailers when you rest on a title**, after a delay you choose (Autoplay Trailer and Trailer
+  Delay in **Settings → Appearance → Layout**).
+- **Cast with photos on the pause screen**, taken from TMDB when the add-on only lists names.
 
 ### Fixes
 
@@ -156,13 +164,16 @@ Searching by original title and by actor uses TMDB: add your free TMDB key in
 - The subtitle button stays in the player when the only subtitles are ones made from the audio.
 - Clearing the search field brings back your recent searches again, instead of leaving the last
   results on screen.
+- Network test results can be selected and read, instead of the list jumping past them.
+- With trailer controls showing on a title's page, keys the trailer doesn't use reach the page
+  again instead of being swallowed.
 
 ### Up to date
 
 |                                     | Upstream                | Enhanced           |
 | ----------------------------------- | ----------------------- | ------------------ |
-| Gradle                              | 8.13                    | 9.8.2              |
-| Android Gradle plugin               | 8.13.2                  | 9.4.1              |
+| Gradle                              | 8.13                    | 9.9.1              |
+| Android Gradle plugin               | 8.13.2                  | 9.5.1              |
 | Compile SDK                         | 36                      | 37                 |
 | Compose                             | 1.11.2                  | 1.12.1             |
 | Kotlin                              | 2.3.0                   | 2.4.21             |
@@ -171,6 +182,7 @@ Searching by original title and by actor uses TMDB: add your free TMDB key in
 | Coroutines / Lifecycle / Navigation | 1.8 / 2.8 / 2.8         | 1.11 / 2.11 / 2.10 |
 | TV Material / TV Foundation         | 1.1.0-rc01 / 1.0.0-rc01 | 1.1.0 / 1.0.0      |
 | OkHttp / Retrofit                   | 4.12 / 2.9              | 5.5 / 3.0          |
+| Supabase / Ktor                     | 3.2 / 3.1               | 3.9 / 3.6          |
 
 The build uses the Gradle plugin's built-in Kotlin support. The video player core (Nuvio's custom
 Media3 build in `app/libs`) is unchanged.

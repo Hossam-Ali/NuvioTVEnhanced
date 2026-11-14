@@ -155,8 +155,8 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         minSdk = 24
         targetSdk = 36
-        versionCode = 1082
-        versionName = "1.1.0-enhanced.1"
+        versionCode = 1083
+        versionName = "1.1.0-enhanced.2"
 
         buildConfigField("String", "PARENTAL_GUIDE_API_URL", "\"${localProperties.getProperty("PARENTAL_GUIDE_API_URL", "")}\"")
         buildConfigField("String", "INTRODB_API_URL", "\"${localProperties.getProperty("INTRODB_API_URL", "")}\"")
@@ -364,6 +364,8 @@ android {
     kotlin {
         compilerOptions {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+            // Experimental coroutine and Coil APIs the app relies on, opted into once here.
+            optIn.addAll("kotlinx.coroutines.ExperimentalCoroutinesApi", "coil3.annotation.ExperimentalCoilApi")
         }
     }
     buildFeatures {
