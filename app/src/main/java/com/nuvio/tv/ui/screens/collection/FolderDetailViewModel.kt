@@ -453,7 +453,7 @@ class FolderDetailViewModel @Inject constructor(
         val useShimmer = state.homeLayout == HomeLayout.MODERN || state.homeLayout == HomeLayout.CLASSIC
 
         // Build rows including placeholder shimmer rows for tabs still loading (Modern/Classic)
-        val allRows = if (useShimmer) {
+        val builtRows = if (useShimmer) {
             sourceTabs.map { tab ->
                 if (tab.catalogRow != null) {
                     tab.catalogRow
@@ -500,6 +500,12 @@ class FolderDetailViewModel @Inject constructor(
             }.filterNotNull()
         } else {
             loadedRows
+        }
+        // "Hide duplicate titles": each title only in the first of the folder's rows that has it.
+        val allRows = if (com.nuvio.tv.core.poster.HideDuplicateTitlesPreference.enabled.value) {
+            com.nuvio.tv.ui.screens.home.withoutDuplicateTitles(builtRows).filter { it.items.isNotEmpty() }
+        } else {
+            builtRows
         }
 
         if (allRows.isEmpty()) return

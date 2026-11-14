@@ -850,6 +850,9 @@ fun ClassicHomeContent(
 
                     CatalogRowSection(
                         catalogRow = catalogRow,
+                        // "Recently added" gathers several rows: it has no single catalog to open.
+                        showSeeAll = !catalogRow.isRecentlyAddedRow() &&
+                            (catalogRow.hasMore || catalogRow.items.size >= 15),
                         posterCardStyle = classicCatalogPosterCardStyle,
                         showPosterLabels = uiState.posterLabelsEnabled,
                         showImdbRatings = uiState.homeImdbRatingsVisibility.showRatings,

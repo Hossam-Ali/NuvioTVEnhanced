@@ -995,6 +995,14 @@ class SearchViewModel @Inject constructor(
             } else {
                 null
             }
+            // "Hide duplicate titles": a title in Top results isn't repeated in the add-on rows
+            // below it, nor in a second add-on row; rows left with nothing new are dropped.
+            val shownResultRows = if (com.nuvio.tv.core.poster.HideDuplicateTitlesPreference.enabled.value) {
+                com.nuvio.tv.ui.screens.home.withoutDuplicateTitles(resultRows, top?.items.orEmpty())
+                    .filter { it.items.isNotEmpty() }
+            } else {
+                resultRows
+            }
             val rows = buildList {
                 top?.takeIf { it.items.isNotEmpty() }?.let {
                     add(searchScreenRow(TOP_RESULTS_ROW_ID, context.getString(R.string.search_top_results), it.items))
@@ -1002,7 +1010,7 @@ class SearchViewModel @Inject constructor(
                 if (tmdb.people.isNotEmpty()) {
                     add(searchScreenRow(PEOPLE_ROW_ID, context.getString(R.string.search_people), tmdb.people))
                 }
-                addAll(resultRows)
+                addAll(shownResultRows)
                 // Skeleton rows only until the first results land. After that a slow addon's row
                 // appears when it answers, instead of every pending catalog shimmering on screen.
                 if (isEmpty()) addAll(activeRows.filter(isPlaceholder).take(MAX_LOADING_ROWS))

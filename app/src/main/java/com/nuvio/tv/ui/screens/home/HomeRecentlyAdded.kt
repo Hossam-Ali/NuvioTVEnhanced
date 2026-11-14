@@ -135,3 +135,27 @@ internal fun buildRecentlyAddedRow(
         items = com.nuvio.tv.ui.util.StableList(items)
     )
 }
+
+/** Catalog id of the "Recently added" row on the Classic home, which has no add-on of its own. */
+internal const val RECENTLY_ADDED_CATALOG_ID = "nuvio_recently_added"
+
+internal fun CatalogRow.isRecentlyAddedRow(): Boolean = catalogId == RECENTLY_ADDED_CATALOG_ID && addonBaseUrl.isEmpty()
+
+/**
+ * The "Recently added" row as a catalog row, for the Classic home. Its titles come from several
+ * add-ons, so it names none: details then picks the add-on, as for search's top results.
+ */
+internal fun recentlyAddedCatalogRow(entries: List<RecentlyAddedEntry>, title: String): CatalogRow? {
+    if (entries.isEmpty()) return null
+    return CatalogRow(
+        addonId = RECENTLY_ADDED_CATALOG_ID,
+        addonName = "",
+        addonBaseUrl = "",
+        catalogId = RECENTLY_ADDED_CATALOG_ID,
+        catalogName = title,
+        type = com.nuvio.tv.domain.model.ContentType.MOVIE,
+        rawType = "movie",
+        items = entries.map { it.item },
+        hasMore = false
+    )
+}

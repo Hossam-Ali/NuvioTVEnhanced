@@ -49,7 +49,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.tv.material3.Border
 import androidx.tv.material3.Card
 import androidx.tv.material3.CardDefaults
@@ -115,6 +115,8 @@ private fun HomeEditor(uiState: LayoutSettingsUiState, onEvent: (LayoutSettingsE
     val scope = rememberCoroutineScope()
     val firstFocus = remember { FocusRequester() }
     val isModern = uiState.selectedLayout == HomeLayout.MODERN
+    // "Recently added" is a row on the Modern and Classic homes; Grid has no rows.
+    val hasRecentlyAdded = uiState.selectedLayout != HomeLayout.GRID
 
     LaunchedEffect(order.isLoading) {
         if (!order.isLoading) runCatching { firstFocus.requestFocus() }
@@ -166,7 +168,7 @@ private fun HomeEditor(uiState: LayoutSettingsUiState, onEvent: (LayoutSettingsE
                         onToggle = { com.nuvio.tv.core.poster.HideDuplicateTitlesPreference.set(!hideDuplicates) }
                     )
                 }
-                if (isModern) {
+                if (hasRecentlyAdded) {
                     item(key = "recently_added") {
                         val picked = order.items.count { it.key in recentlyAddedKeys }
                         Column(modifier = Modifier.padding(vertical = NuvioTheme.spacing.xs)) {
@@ -200,7 +202,7 @@ private fun HomeEditor(uiState: LayoutSettingsUiState, onEvent: (LayoutSettingsE
                         item = item,
                         style = styles[item.key],
                         isModern = isModern,
-                        inRecentlyAdded = item.key in recentlyAddedKeys,
+                        inRecentlyAdded = hasRecentlyAdded && item.key in recentlyAddedKeys,
                         isMoving = movingKey == item.key,
                         onFocused = { focusedKey = item.key },
                         onClick = {
@@ -225,7 +227,7 @@ private fun HomeEditor(uiState: LayoutSettingsUiState, onEvent: (LayoutSettingsE
             globalLandscape = uiState.modernLandscapePostersEnabled,
             showHero = uiState.heroSectionEnabled || isModern,
             showContinueWatching = uiState.continueWatchingEnabled,
-            showRecentlyAdded = isModern && order.items.any { it.key in recentlyAddedKeys },
+            showRecentlyAdded = hasRecentlyAdded && order.items.any { it.key in recentlyAddedKeys },
             focusedKey = focusedKey,
             isModern = isModern
         )
@@ -241,7 +243,7 @@ private fun HomeEditor(uiState: LayoutSettingsUiState, onEvent: (LayoutSettingsE
                     stringResource(if (item.isDisabled) R.string.home_editor_action_show else R.string.home_editor_action_hide)
                 )
             )
-            if (!item.isCollection && isModern) {
+            if (!item.isCollection && hasRecentlyAdded) {
                 add(
                     SettingsPickerOption(
                         HomeEditorAction.ToggleRecentlyAdded,
@@ -344,7 +346,7 @@ private fun HomeEditorRow(
                     overflow = TextOverflow.Ellipsis
                 )
             }
-            if (inRecentlyAdded && isModern) {
+            if (inRecentlyAdded) {
                 EditorChip(stringResource(R.string.home_recently_added))
             }
             if (!item.isCollection && style != null && isModern) {

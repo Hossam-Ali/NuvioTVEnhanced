@@ -765,7 +765,7 @@ internal suspend fun HomeViewModel.updateCatalogRowsPipeline() {
     heroItemOrder = baseHeroItems.map { it.id }
 
     val recentlyAddedKeys = com.nuvio.tv.core.poster.RecentlyAddedPreferences.rowKeys.value
-    val recentlyAdded = if (currentLayout == HomeLayout.MODERN && recentlyAddedKeys.isNotEmpty()) {
+    val recentlyAdded = if (currentLayout != HomeLayout.GRID && recentlyAddedKeys.isNotEmpty()) {
         withContext(Dispatchers.Default) {
             // Rows hidden from the home screen can still feed "Recently added".
             val shownKeys = orderedKeys.toSet()
@@ -796,6 +796,11 @@ internal suspend fun HomeViewModel.updateCatalogRowsPipeline() {
 
     val (computedHomeRows, nextGridItems) = withContext(Dispatchers.Default) {
         val computedHomeRows = buildList {
+            // On the Classic home "Recently added" is the first row (Modern adds its own).
+            if (currentLayout == HomeLayout.CLASSIC) {
+                recentlyAddedCatalogRow(recentlyAdded, appContext.getString(R.string.home_recently_added))
+                    ?.let { add(HomeRow.Catalog(it)) }
+            }
             val displayRowsByKey = displayRows.associateBy { it.legacyKey() }
             // Build a lookup of placeholder descriptors by key for lazy catalogs
             val placeholdersByKey = synchronized(catalogStateLock) {

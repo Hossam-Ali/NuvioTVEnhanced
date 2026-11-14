@@ -100,4 +100,15 @@ class RecentlyAddedTest {
         assertEquals(LocalDate.of(2024, 1, 1), title("x", releaseInfo = "2024-").releaseSortDate())
         assertNull(title("x").releaseSortDate())
     }
+
+    @Test
+    fun `the Classic row names no add-on and offers no See all`() {
+        val entries = recentlyAddedEntries(listOf(arabicMovies), setOf(arabicMovies.legacyKey()), today)
+        val row = recentlyAddedCatalogRow(entries, "Recently added")!!
+        assertEquals("", row.addonBaseUrl)
+        assertEquals(entries.map { it.item.id }, row.items.map { it.id })
+        assertTrue(row.isRecentlyAddedRow())
+        assertTrue(!arabicMovies.isRecentlyAddedRow())
+        assertNull(recentlyAddedCatalogRow(emptyList(), "Recently added"))
+    }
 }
