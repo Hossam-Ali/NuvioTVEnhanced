@@ -1,0 +1,105 @@
+app/build.gradle.kts
+  s_c7f847fc05dfc2::t_7f811c4ab0596f 158-159
+app/src/full/AndroidManifest.xml
+  s_c7f847fc05dfc2::t_40a75bdea4c9b7 16-23
+app/src/full/java/com/nuvio/tv/updater/ApkInstaller.kt
+  s_c7f847fc05dfc2::t_7d5e2f2501a3f0 16-19,71,90-93,95
+app/src/full/java/com/nuvio/tv/updater/UpdateInstallResultReceiver.kt
+  s_c7f847fc05dfc2::t_3215c2ffd54bc6 17-18,47-51
+app/src/full/java/com/nuvio/tv/updater/UpdatePreferences.kt
+  s_c7f847fc05dfc2::t_2b5e3d887168f5 43,82-92
+app/src/full/java/com/nuvio/tv/updater/UpdateRelaunchReceiver.kt
+  s_c7f847fc05dfc2::t_05df0001b2b961 1-55
+app/src/full/java/com/nuvio/tv/updater/UpdateViewModel.kt
+  s_c7f847fc05dfc2::t_647025aff12bf6 45-47,70,76-77,325-327,329-333,368-372
+app/src/full/java/com/nuvio/tv/updater/ui/UpdateBanner.kt
+  s_c7f847fc05dfc2::t_5298786ce09098 5,106-112
+app/src/main/java/com/nuvio/tv/data/local/LayoutPreferenceDataStore.kt
+  s_c7f847fc05dfc2::t_bc01afa7f03b62 25,122,400-406,835-840
+app/src/main/java/com/nuvio/tv/data/local/PlayerSettingsDataStore.kt
+  s_c7f847fc05dfc2::t_fde511c245c85f 374-376,415-423,443-451,722-725,1137-1149,1563-1586
+app/src/main/java/com/nuvio/tv/domain/model/ContinueWatchingClickAction.kt
+  s_c7f847fc05dfc2::t_c30e23cc8e9442 1-7
+app/src/main/java/com/nuvio/tv/ui/screens/home/HomeScreen.kt
+  s_c7f847fc05dfc2::t_c8c5538ba6c75a 160-172,367-369
+app/src/main/java/com/nuvio/tv/ui/screens/home/HomeUiState.kt
+  s_c7f847fc05dfc2::t_122fd09ff0f8bf 8,75,119-124
+app/src/main/java/com/nuvio/tv/ui/screens/home/HomeViewModel.kt
+  s_c7f847fc05dfc2::t_5d2cd18e2a646d 553-559
+app/src/main/java/com/nuvio/tv/ui/screens/home/ModernHomeContent.kt
+  s_c7f847fc05dfc2::t_e4e0e4073c10e1 1259-1260,1262-1270
+app/src/main/java/com/nuvio/tv/ui/screens/player/NuvioMpvSurfaceView.kt
+  s_c7f847fc05dfc2::t_8fb0eac44131d2 6,534-542
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerLetterboxMask.kt
+  s_c7f847fc05dfc2::t_57f1fda987f6cf 1-155
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerNavigationArgs.kt
+  s_c7f847fc05dfc2::t_6ef105b9665c30 42-44,107-108
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeController.kt
+  s_c7f847fc05dfc2::t_07fe41fecd2740 269-277,612-615
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerErrorRecovery.kt
+  s_c7f847fc05dfc2::t_b3bb4e25682117 538-540
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerExpiredLinkRefresh.kt
+  s_c7f847fc05dfc2::t_67777ad8722dcf 90,93,96
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerInitialization.kt
+  s_c7f847fc05dfc2::t_9d8f685092162e 1664-1666,2125
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerMpvEvents.kt
+  s_c7f847fc05dfc2::t_30a1b869741053 279
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerObservers.kt
+  s_c7f847fc05dfc2::t_1d8192e7391e2b 423-425
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerSourceFallback.kt
+  s_c7f847fc05dfc2::t_56c62b7ac23f83 1-172
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerStreams.kt
+  s_c7f847fc05dfc2::t_bd6004636317f3 982,1036-1039
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt
+  s_c7f847fc05dfc2::t_19163e6e810044 1270,2313,2351-2353
+app/src/main/java/com/nuvio/tv/ui/screens/player/StreamSourcesSidePanel.kt
+  s_c7f847fc05dfc2::t_91fbcf4d34cf95 117-139,194-203,220-221,225-226,228,231-235,443-444
+app/src/main/java/com/nuvio/tv/ui/screens/settings/LayoutCardSettings.kt
+  s_c7f847fc05dfc2::t_84e8832968be42 66,85,147-156,169-179,518-552
+app/src/main/java/com/nuvio/tv/ui/screens/settings/LayoutSettingsViewModel.kt
+  s_c7f847fc05dfc2::t_c1470e8cc42d9a 24,92,158,419-425,513,937-943
+app/src/main/java/com/nuvio/tv/ui/screens/settings/PlaybackAutoPlaySettings.kt
+  s_c7f847fc05dfc2::t_c5f56a983aac1e 66,110-155
+app/src/main/java/com/nuvio/tv/ui/screens/settings/PlaybackPlayerSettings.kt
+  s_c7f847fc05dfc2::t_236e7f749d5984 34-36,39-45,48
+app/src/main/java/com/nuvio/tv/ui/screens/settings/PlaybackSettingsViewModel.kt
+  s_c7f847fc05dfc2::t_0d4e4b84e764a9 576-587
+app/src/main/java/com/nuvio/tv/ui/screens/settings/UpdateChannelSettings.kt
+  s_c7f847fc05dfc2::t_2e8198cdde065a 57-67
+app/src/main/res/values-in/strings.xml
+  s_c7f847fc05dfc2::t_c600a36fb16ac1 2446-3481
+app/src/main/res/values-iw/strings.xml
+  s_c7f847fc05dfc2::t_413271c018f786 783-794,829-830,949-970,1149-1156,1259-1260,1277-1283,2025-2030,3487
+app/src/main/res/values-pl/strings.xml
+  s_c7f847fc05dfc2::t_17b825e3a98a9e 1617-1626,2345-2352
+app/src/main/res/values-sk/strings.xml
+  s_c7f847fc05dfc2::t_6e1db1f2d11383 3453-3507
+app/src/main/res/values-vi/strings.xml
+  s_c7f847fc05dfc2::t_2cdc44474f7b20 140,779-788,1133,1142-1153,1596,1628
+app/src/main/res/values/strings.xml
+  s_c7f847fc05dfc2::t_de66a7d46e7c50 420-421,813-822,1179-1186,2564-2565
+app/src/playstore/java/com/nuvio/tv/updater/UpdateViewModel.kt
+  s_c7f847fc05dfc2::t_24d86c9a339d72 25-27,56-57
+app/src/test/java/com/nuvio/tv/ui/screens/home/ContinueWatchingClickActionTest.kt
+  s_c7f847fc05dfc2::t_d652cdebb01ec8 1-67
+app/src/test/java/com/nuvio/tv/ui/screens/player/PlayerLetterboxMaskTest.kt
+  s_c7f847fc05dfc2::t_20f13f50fdfdfc 1-80
+app/src/test/java/com/nuvio/tv/ui/screens/player/SourceFallbackTest.kt
+  s_c7f847fc05dfc2::t_576062a8a8b927 1-110
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7101074ab23946220d511d93fb1998b7a6f35b17",
+  "prompts": {},
+  "sessions": {
+    "s_c7f847fc05dfc2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "666ff6ef-bff7-49b1-894d-8c6f8060c75e",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  }
+}
