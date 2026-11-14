@@ -1568,6 +1568,15 @@ private fun ModernCarouselCard(
                             .zIndex(2f)
                     )
                 }
+
+                if (item.payload is ModernPayload.Catalog && hasFreshEpisode(item.metaPreview, LocalFreshEpisodeIds.current)) {
+                    NewEpisodeBadge(
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(start = NuvioTheme.spacing.sm, top = NuvioTheme.spacing.sm)
+                            .zIndex(2f)
+                    )
+                }
             }
         }
 

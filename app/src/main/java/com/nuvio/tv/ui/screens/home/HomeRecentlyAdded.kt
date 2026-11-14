@@ -13,6 +13,9 @@ internal const val MODERN_RECENTLY_ADDED_ROW_KEY = "modern_recently_added"
 /** How many titles the "Recently added" row shows. */
 internal const val RECENTLY_ADDED_MAX_ITEMS = 40
 
+/** How old a title may be to be in "Recently added": released today or yesterday. */
+internal const val RECENTLY_ADDED_MAX_AGE_DAYS = 1L
+
 /** A title in the "Recently added" row, with the row it came from (which add-on opens it). */
 @Immutable
 data class RecentlyAddedEntry(val source: CatalogRow, val item: MetaPreview)
@@ -36,9 +39,18 @@ internal fun MetaPreview.releaseSortDate(): LocalDate? {
     return LocalDate.of(year, 1, 1)
 }
 
+/** The title's full release date, when the add-on gives one (a year alone isn't enough). */
+internal fun MetaPreview.exactReleaseDate(): LocalDate? {
+    val raw = released?.trim() ?: return null
+    val match = ISO_DATE.find(raw) ?: return null
+    val (year, month, day) = match.destructured
+    return runCatching { LocalDate.of(year.toInt(), month.toInt(), day.toInt()) }.getOrNull()
+}
+
 /**
  * The "Recently added" row: the newest titles, by release date, of the rows whose keys are in
- * [selectedRowKeys]. Titles not out yet and titles without any date are left out, each title
+ * [selectedRowKeys]. Only titles released within [maxAgeDays] (today or yesterday) count, which
+ * takes a full release date; null lifts that limit. Titles not out yet are left out, each title
  * shows once, and titles of the same date take turns between the rows, so one busy row doesn't
  * fill the whole strip.
  */
@@ -46,7 +58,8 @@ internal fun recentlyAddedEntries(
     rows: List<CatalogRow>,
     selectedRowKeys: Set<String>,
     today: LocalDate,
-    limit: Int = RECENTLY_ADDED_MAX_ITEMS
+    limit: Int = RECENTLY_ADDED_MAX_ITEMS,
+    maxAgeDays: Long? = RECENTLY_ADDED_MAX_AGE_DAYS
 ): List<RecentlyAddedEntry> {
     if (selectedRowKeys.isEmpty()) return emptyList()
     val sources = rows.filter { it.legacyKey() in selectedRowKeys }
@@ -63,8 +76,12 @@ internal fun recentlyAddedEntries(
     return alternating
         .asSequence()
         .filterNot { it.item.id.startsWith("__placeholder_") }
-        .mapNotNull { entry -> entry.item.releaseSortDate()?.let { entry to it } }
+        .mapNotNull { entry ->
+            val date = if (maxAgeDays == null) entry.item.releaseSortDate() else entry.item.exactReleaseDate()
+            date?.let { entry to it }
+        }
         .filter { (entry, date) -> !date.isAfter(today) && !entry.item.isUnreleased(today) }
+        .filter { (_, date) -> maxAgeDays == null || !date.isBefore(today.minusDays(maxAgeDays)) }
         .sortedByDescending { (_, date) -> date }
         .map { (entry, _) -> entry }
         .filter { seen.add("${it.item.apiType}:${it.item.id}") }
@@ -158,4 +175,43 @@ internal fun recentlyAddedCatalogRow(entries: List<RecentlyAddedEntry>, title: S
         items = entries.map { it.item },
         hasMore = false
     )
+}
+
+/** Home editor keys of collections start with this; the rest of a key is the collection's id. */
+internal const val COLLECTION_ROW_KEY_PREFIX = "collection_"
+
+/**
+ * The catalogs "Recently added" draws from: the rows picked in the home editor, and for each
+ * picked collection the add-on catalogs its folders show. TMDB and Trakt lists and genre-filtered
+ * catalogs aren't home catalogs, so they don't count.
+ */
+internal fun recentlyAddedCatalogKeys(
+    picked: Set<String>,
+    collections: List<com.nuvio.tv.domain.model.Collection>,
+): Set<String> {
+    if (picked.isEmpty()) return emptySet()
+    val pickedCollections = picked.filter { it.startsWith(COLLECTION_ROW_KEY_PREFIX) }
+        .map { it.removePrefix(COLLECTION_ROW_KEY_PREFIX) }
+        .toSet()
+    val fromCollections = collections.asSequence()
+        .filter { it.id in pickedCollections }
+        .flatMap { it.folders.asSequence() }
+        .flatMap { it.sources.asSequence() }
+        .filterIsInstance<com.nuvio.tv.domain.model.AddonCatalogCollectionSource>()
+        .filter { it.genre.isNullOrBlank() }
+        .map { com.nuvio.tv.domain.model.catalogRowLegacyKey(it.addonId, it.type, it.catalogId) }
+        .toSet()
+    return picked.filterNot { it.startsWith(COLLECTION_ROW_KEY_PREFIX) }.toSet() + fromCollections
+}
+
+/**
+ * This row's titles newest first, by release date (a year alone counts as its January 1st);
+ * titles without a date keep their order after the dated ones. Loading placeholders stay put.
+ */
+internal fun CatalogRow.sortedNewestFirst(): CatalogRow {
+    if (items.any { it.id.startsWith("__placeholder_") }) return this
+    val sorted = items.withIndex()
+        .sortedWith(compareByDescending<IndexedValue<MetaPreview>> { it.value.releaseSortDate() ?: LocalDate.MIN }.thenBy { it.index })
+        .map { it.value }
+    return if (sorted == items) this else copy(items = sorted)
 }

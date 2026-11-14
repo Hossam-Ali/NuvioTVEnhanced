@@ -643,6 +643,11 @@ class HomeViewModel @Inject constructor(
                 .drop(1)
                 .collect { scheduleUpdateCatalogRows() }
         }
+        viewModelScope.launch {
+            com.nuvio.tv.core.poster.NewestFirstRowsPreferences.rowKeys
+                .drop(1)
+                .collect { scheduleUpdateCatalogRows() }
+        }
     }
 
     private fun observeMdbListSettings() {

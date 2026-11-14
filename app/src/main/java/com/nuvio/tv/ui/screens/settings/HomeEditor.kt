@@ -87,7 +87,7 @@ internal fun HomeEditorEntry(uiState: LayoutSettingsUiState, onEvent: (LayoutSet
     }
 }
 
-private enum class HomeEditorAction { Move, ToggleVisible, ToggleRecentlyAdded, StyleDefault, StylePoster, StyleLandscape }
+private enum class HomeEditorAction { Move, ToggleVisible, ToggleRecentlyAdded, ToggleNewestFirst, StyleDefault, StylePoster, StyleLandscape }
 
 private fun HomeEditorAction.style(): HomeRowStyle? = when (this) {
     HomeEditorAction.StylePoster -> HomeRowStyle.POSTER
@@ -108,6 +108,7 @@ private fun HomeEditor(uiState: LayoutSettingsUiState, onEvent: (LayoutSettingsE
     val styles by HomeRowStylePreferences.styles.collectAsState()
     val recentlyAddedKeys by com.nuvio.tv.core.poster.RecentlyAddedPreferences.rowKeys.collectAsState()
     val hideDuplicates by com.nuvio.tv.core.poster.HideDuplicateTitlesPreference.enabled.collectAsState()
+    val newestFirstKeys by com.nuvio.tv.core.poster.NewestFirstRowsPreferences.rowKeys.collectAsState()
     var focusedKey by remember { mutableStateOf<String?>(null) }
     var movingKey by remember { mutableStateOf<String?>(null) }
     var actionItem by remember { mutableStateOf<CatalogOrderItem?>(null) }
@@ -203,6 +204,7 @@ private fun HomeEditor(uiState: LayoutSettingsUiState, onEvent: (LayoutSettingsE
                         style = styles[item.key],
                         isModern = isModern,
                         inRecentlyAdded = hasRecentlyAdded && item.key in recentlyAddedKeys,
+                        newestFirst = item.key in newestFirstKeys,
                         isMoving = movingKey == item.key,
                         onFocused = { focusedKey = item.key },
                         onClick = {
@@ -243,7 +245,8 @@ private fun HomeEditor(uiState: LayoutSettingsUiState, onEvent: (LayoutSettingsE
                     stringResource(if (item.isDisabled) R.string.home_editor_action_show else R.string.home_editor_action_hide)
                 )
             )
-            if (!item.isCollection && hasRecentlyAdded) {
+            // A collection counts with the add-on catalogs its folders show.
+            if (hasRecentlyAdded) {
                 add(
                     SettingsPickerOption(
                         HomeEditorAction.ToggleRecentlyAdded,
@@ -256,6 +259,15 @@ private fun HomeEditor(uiState: LayoutSettingsUiState, onEvent: (LayoutSettingsE
                 )
             }
             if (!item.isCollection) {
+                add(
+                    SettingsPickerOption(
+                        HomeEditorAction.ToggleNewestFirst,
+                        stringResource(
+                            if (item.key in newestFirstKeys) R.string.home_editor_action_addon_order
+                            else R.string.home_editor_action_newest_first
+                        )
+                    )
+                )
                 add(SettingsPickerOption(HomeEditorAction.StyleDefault, stringResource(R.string.home_editor_style_default), description = stringResource(R.string.home_editor_style_default_desc)))
                 add(SettingsPickerOption(HomeEditorAction.StylePoster, stringResource(R.string.home_editor_style_poster)))
                 add(SettingsPickerOption(HomeEditorAction.StyleLandscape, stringResource(R.string.home_editor_style_landscape)))
@@ -275,6 +287,7 @@ private fun HomeEditor(uiState: LayoutSettingsUiState, onEvent: (LayoutSettingsE
                     HomeEditorAction.Move -> movingKey = item.key
                     HomeEditorAction.ToggleVisible -> orderViewModel.toggleCatalogEnabled(item.disableKey)
                     HomeEditorAction.ToggleRecentlyAdded -> com.nuvio.tv.core.poster.RecentlyAddedPreferences.toggle(item.key)
+                    HomeEditorAction.ToggleNewestFirst -> com.nuvio.tv.core.poster.NewestFirstRowsPreferences.toggle(item.key)
                     else -> HomeRowStylePreferences.setStyle(item.key, action.style())
                 }
                 actionItem = null
@@ -293,6 +306,7 @@ private fun HomeEditorRow(
     style: HomeRowStyle?,
     isModern: Boolean,
     inRecentlyAdded: Boolean,
+    newestFirst: Boolean,
     isMoving: Boolean,
     onFocused: () -> Unit,
     onClick: () -> Unit,
@@ -348,6 +362,9 @@ private fun HomeEditorRow(
             }
             if (inRecentlyAdded) {
                 EditorChip(stringResource(R.string.home_recently_added))
+            }
+            if (newestFirst) {
+                EditorChip(stringResource(R.string.home_editor_newest_first))
             }
             if (!item.isCollection && style != null && isModern) {
                 EditorChip(stringResource(if (style == HomeRowStyle.LANDSCAPE) R.string.home_editor_style_landscape else R.string.home_editor_style_poster))

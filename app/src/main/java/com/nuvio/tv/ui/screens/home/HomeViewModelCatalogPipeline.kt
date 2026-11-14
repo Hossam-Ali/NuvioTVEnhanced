@@ -54,7 +54,13 @@ internal fun HomeViewModel.observeCollectionsPipeline() {
                 // duplicate LazyColumn keys when users import overlapping collections.
                 collectionsCache = collections.associateBy { it.id }.values.toList()
                 rebuildCatalogOrder(addonsCache)
-                scheduleUpdateCatalogRows()
+                // A collection picked for "Recently added" may bring catalogs not loaded yet.
+                val picked = com.nuvio.tv.core.poster.RecentlyAddedPreferences.rowKeys.value
+                if (picked.any { it.startsWith(COLLECTION_ROW_KEY_PREFIX) }) {
+                    loadRecentlyAddedCatalogsPipeline(picked)
+                } else {
+                    scheduleUpdateCatalogRows()
+                }
             }
     }
 }
@@ -217,7 +223,10 @@ internal suspend fun HomeViewModel.loadAllCatalogsPipeline(
         val hasHeroSelections = heroCatalogSet.isNotEmpty()
         // Rows picked for "Recently added" load at once too, even when hidden from the home
         // rows or far down the list, since that row sits at the top.
-        val recentlyAddedSet = com.nuvio.tv.core.poster.RecentlyAddedPreferences.rowKeys.value
+        val recentlyAddedSet = recentlyAddedCatalogKeys(
+            com.nuvio.tv.core.poster.RecentlyAddedPreferences.rowKeys.value,
+            collectionsCache
+        )
         val extraCatalogSet = heroCatalogSet + recentlyAddedSet
 
         if (isCatalogOrderEmpty() && !hasHeroSelections) {
@@ -423,7 +432,8 @@ internal fun HomeViewModel.loadHeroCatalogsPipeline() {
  * Loads the rows picked for "Recently added" that aren't loaded yet (picked in the home editor
  * while the home screen lives on, or hidden from the home rows), then rebuilds the rows.
  */
-internal fun HomeViewModel.loadRecentlyAddedCatalogsPipeline(rowKeys: Set<String>) {
+internal fun HomeViewModel.loadRecentlyAddedCatalogsPipeline(pickedKeys: Set<String>) {
+    val rowKeys = recentlyAddedCatalogKeys(pickedKeys, collectionsCache)
     if (rowKeys.isEmpty() || addonsCache.isEmpty()) {
         scheduleUpdateCatalogRows()
         return
@@ -764,7 +774,10 @@ internal suspend fun HomeViewModel.updateCatalogRowsPipeline() {
 
     heroItemOrder = baseHeroItems.map { it.id }
 
-    val recentlyAddedKeys = com.nuvio.tv.core.poster.RecentlyAddedPreferences.rowKeys.value
+    val recentlyAddedKeys = recentlyAddedCatalogKeys(
+        com.nuvio.tv.core.poster.RecentlyAddedPreferences.rowKeys.value,
+        collectionsCache
+    )
     val recentlyAdded = if (currentLayout != HomeLayout.GRID && recentlyAddedKeys.isNotEmpty()) {
         withContext(Dispatchers.Default) {
             // Rows hidden from the home screen can still feed "Recently added".
@@ -779,14 +792,22 @@ internal suspend fun HomeViewModel.updateCatalogRowsPipeline() {
     // "Hide duplicate titles": each title only in the first row that has it, "Recently added"
     // (above the rows on the Modern home) included. A row left with nothing new is dropped
     // rather than shown as a loading placeholder.
+    // Rows set to "newest first" in the home editor are sorted before duplicates are taken out,
+    // so a title stays in the row where it is newest.
+    val newestFirst = com.nuvio.tv.core.poster.NewestFirstRowsPreferences.rowKeys.value
+    val orderedDisplayRows = if (newestFirst.isEmpty()) {
+        loadedDisplayRows
+    } else {
+        loadedDisplayRows.map { row -> if (row.legacyKey() in newestFirst) row.sortedNewestFirst() else row }
+    }
     val hideDuplicates = com.nuvio.tv.core.poster.HideDuplicateTitlesPreference.enabled.value
     val displayRows = if (hideDuplicates) {
-        withContext(Dispatchers.Default) { withoutDuplicateTitles(loadedDisplayRows, recentlyAdded.map { it.item }) }
+        withContext(Dispatchers.Default) { withoutDuplicateTitles(orderedDisplayRows, recentlyAdded.map { it.item }) }
     } else {
-        loadedDisplayRows
+        orderedDisplayRows
     }
     val rowsEmptiedByDuplicates = if (hideDuplicates) {
-        loadedDisplayRows.zip(displayRows)
+        orderedDisplayRows.zip(displayRows)
             .filter { (loaded, shown) -> loaded.items.isNotEmpty() && shown.items.isEmpty() }
             .map { (loaded, _) -> loaded.legacyKey() }
             .toSet()

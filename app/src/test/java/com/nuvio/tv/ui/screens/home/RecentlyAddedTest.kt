@@ -45,7 +45,8 @@ class RecentlyAddedTest {
         val entries = recentlyAddedEntries(
             listOf(arabicMovies, englishSeries, other),
             setOf(arabicMovies.legacyKey(), englishSeries.legacyKey()),
-            today
+            today,
+            maxAgeDays = null
         )
         assertEquals(listOf("tt10", "tt1", "tt3", "tt2", "tt11"), entries.map { it.item.id })
         assertEquals(englishSeries, entries.first().source)
@@ -62,7 +63,7 @@ class RecentlyAddedTest {
                 title("out", released = "2026-11-13")
             )
         )
-        val entries = recentlyAddedEntries(rows, setOf(rows[0].legacyKey()), today)
+        val entries = recentlyAddedEntries(rows, setOf(rows[0].legacyKey()), today, maxAgeDays = null)
         assertEquals(listOf("out"), entries.map { it.item.id })
     }
 
@@ -70,7 +71,7 @@ class RecentlyAddedTest {
     fun `a title in two picked rows shows once`() {
         val first = row("a", ContentType.MOVIE, title("tt1", released = "2026-01-01"))
         val second = row("b", ContentType.MOVIE, title("tt1", released = "2026-01-01"), title("tt2", released = "2025-01-01"))
-        val entries = recentlyAddedEntries(listOf(first, second), setOf(first.legacyKey(), second.legacyKey()), today)
+        val entries = recentlyAddedEntries(listOf(first, second), setOf(first.legacyKey(), second.legacyKey()), today, maxAgeDays = null)
         assertEquals(listOf("tt1", "tt2"), entries.map { it.item.id })
     }
 
@@ -78,7 +79,7 @@ class RecentlyAddedTest {
     fun `titles of the same date take turns between rows`() {
         val a = row("a", ContentType.MOVIE, title("a1", releaseInfo = "2026"), title("a2", releaseInfo = "2026"))
         val b = row("b", ContentType.MOVIE, title("b1", releaseInfo = "2026"), title("b2", releaseInfo = "2026"))
-        val entries = recentlyAddedEntries(listOf(a, b), setOf(a.legacyKey(), b.legacyKey()), today)
+        val entries = recentlyAddedEntries(listOf(a, b), setOf(a.legacyKey(), b.legacyKey()), today, maxAgeDays = null)
         assertEquals(listOf("a1", "b1", "a2", "b2"), entries.map { it.item.id })
     }
 
@@ -90,7 +91,7 @@ class RecentlyAddedTest {
     @Test
     fun `the row stops at its limit`() {
         val many = row("many", ContentType.MOVIE, *Array(60) { title("t$it", releaseInfo = "2020") })
-        assertEquals(RECENTLY_ADDED_MAX_ITEMS, recentlyAddedEntries(listOf(many), setOf(many.legacyKey()), today).size)
+        assertEquals(RECENTLY_ADDED_MAX_ITEMS, recentlyAddedEntries(listOf(many), setOf(many.legacyKey()), today, maxAgeDays = null).size)
     }
 
     @Test
@@ -103,12 +104,26 @@ class RecentlyAddedTest {
 
     @Test
     fun `the Classic row names no add-on and offers no See all`() {
-        val entries = recentlyAddedEntries(listOf(arabicMovies), setOf(arabicMovies.legacyKey()), today)
+        val entries = recentlyAddedEntries(listOf(arabicMovies), setOf(arabicMovies.legacyKey()), today, maxAgeDays = null)
         val row = recentlyAddedCatalogRow(entries, "Recently added")!!
         assertEquals("", row.addonBaseUrl)
         assertEquals(entries.map { it.item.id }, row.items.map { it.id })
         assertTrue(row.isRecentlyAddedRow())
         assertTrue(!arabicMovies.isRecentlyAddedRow())
         assertNull(recentlyAddedCatalogRow(emptyList(), "Recently added"))
+    }
+
+    @Test
+    fun `only titles released today or yesterday make the row`() {
+        val row = row(
+            "fresh", ContentType.MOVIE,
+            title("today", released = "2026-11-13T00:00:00.000Z"),
+            title("yesterday", released = "2026-11-12"),
+            title("two-days", released = "2026-11-11"),
+            title("year-only", releaseInfo = "2026"),
+            title("tomorrow", released = "2026-11-14")
+        )
+        val entries = recentlyAddedEntries(listOf(row), setOf(row.legacyKey()), today)
+        assertEquals(listOf("today", "yesterday"), entries.map { it.item.id })
     }
 }
