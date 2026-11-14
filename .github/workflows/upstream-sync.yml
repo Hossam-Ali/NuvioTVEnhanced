@@ -2,7 +2,8 @@ name: Check upstream Nuvio TV
 
 # Once a week (and on demand), looks for new commits in NuvioMedia/NuvioTV. When there are some,
 # it merges them into a branch and opens a pull request here; if they conflict with this fork's
-# changes, it opens an issue instead so the merge can be done by hand.
+# changes, the run fails with the conflicting files in its summary (GitHub emails a failed run),
+# so the merge can be done by hand. Issues are off in this repository.
 on:
   schedule:
     - cron: "0 6 * * 1"
@@ -11,7 +12,6 @@ on:
 permissions:
   contents: write
   pull-requests: write
-  issues: write
 
 jobs:
   sync:
@@ -19,7 +19,7 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: dev
           fetch-depth: 0
@@ -47,8 +47,17 @@ jobs:
               --title "Merge $count upstream commits ($(date -u +%Y-%m-%d))" \
               --body "New commits from [NuvioMedia/NuvioTV](https://github.com/NuvioMedia/NuvioTV/compare/$(git merge-base dev upstream/dev)...$(git rev-parse upstream/dev)). CI runs the tests on this PR; check AI subtitles, search and settings on a device before merging."
           else
+            conflicts=$(git diff --name-only --diff-filter=U)
             git merge --abort
-            gh issue create \
-              --title "Upstream changes need a manual merge ($(date -u +%Y-%m-%d))" \
-              --body "$count new commits in NuvioMedia/NuvioTV conflict with this fork. Merge upstream/dev into dev by hand and resolve the conflicts."
+            {
+              echo "### $count upstream commits need a manual merge"
+              echo
+              echo "They conflict with this fork in:"
+              echo
+              echo "$conflicts" | sed 's/^/- /'
+              echo
+              echo "Merge upstream/dev into dev by hand and resolve these files."
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "::error::$count upstream commits conflict with this fork; see the run summary."
+            exit 1
           fi
