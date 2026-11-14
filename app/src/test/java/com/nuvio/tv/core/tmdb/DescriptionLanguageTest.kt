@@ -155,4 +155,12 @@ class DescriptionLanguageTest {
         val service = TmdbMetadataService(api).apply { favouriteDescriptionLanguage = { "ar" } }
         assertEquals("ko" to "Squid Game", service.fetchOriginalTitle("90", ContentType.SERIES))
     }
+
+    @Test
+    fun `AI translation's own target counts as the favourite language`() {
+        assertEquals("ar", favouriteSubtitleLanguage("en", translationEnabled = true, translationTarget = "ar"))
+        assertEquals("en", favouriteSubtitleLanguage("en", translationEnabled = true, translationTarget = "preferred"))
+        assertEquals("en", favouriteSubtitleLanguage("en", translationEnabled = false, translationTarget = "ar"))
+        assertEquals("ar", favouriteSubtitleLanguage("ar", translationEnabled = true, translationTarget = ""))
+    }
 }

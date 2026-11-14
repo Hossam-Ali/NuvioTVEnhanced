@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -244,6 +245,15 @@ internal fun LayoutFocusedPosterSection(
             }
         )
         if (uiState.focusedPosterBackdropTrailerEnabled) {
+            if (isModern) {
+                val onlyRecentlyAdded by com.nuvio.tv.core.poster.RecentlyAddedTrailersPreference.onlyRecentlyAdded.collectAsState()
+                SettingsToggleRow(
+                    title = stringResource(R.string.layout_trailer_only_recently_added),
+                    subtitle = stringResource(R.string.layout_trailer_only_recently_added_sub),
+                    checked = onlyRecentlyAdded,
+                    onToggle = { com.nuvio.tv.core.poster.RecentlyAddedTrailersPreference.set(!onlyRecentlyAdded) }
+                )
+            }
             SettingsToggleRow(
                 title = stringResource(R.string.layout_trailer_muted),
                 subtitle = stringResource(

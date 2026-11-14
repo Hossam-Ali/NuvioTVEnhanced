@@ -114,16 +114,25 @@ class RecentlyAddedTest {
     }
 
     @Test
-    fun `only titles released today or yesterday make the row`() {
+    fun `only titles out within the last week make the row`() {
         val row = row(
             "fresh", ContentType.MOVIE,
             title("today", released = "2026-11-13T00:00:00.000Z"),
-            title("yesterday", released = "2026-11-12"),
-            title("two-days", released = "2026-11-11"),
+            title("six-days", released = "2026-11-07"),
+            title("eight-days", released = "2026-11-05"),
             title("year-only", releaseInfo = "2026"),
             title("tomorrow", released = "2026-11-14")
         )
         val entries = recentlyAddedEntries(listOf(row), setOf(row.legacyKey()), today)
-        assertEquals(listOf("today", "yesterday"), entries.map { it.item.id })
+        assertEquals(listOf("today", "six-days"), entries.map { it.item.id })
+    }
+
+    @Test
+    fun `TMDB dates count for titles the add-on gives no date`() {
+        // Aradeb's "latest" rows carry no dates at all.
+        val row = row("aradeb", ContentType.SERIES, title("tt1"), title("tt2"), title("tt3"))
+        val tmdb = mapOf("tt1" to LocalDate.of(2026, 11, 12), "tt2" to LocalDate.of(2026, 9, 1))
+        val entries = recentlyAddedEntries(listOf(row), setOf(row.legacyKey()), today, dateOf = { tmdb[it.id] })
+        assertEquals(listOf("tt1"), entries.map { it.item.id })
     }
 }

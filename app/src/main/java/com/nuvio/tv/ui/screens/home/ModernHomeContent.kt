@@ -30,6 +30,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
@@ -167,6 +168,7 @@ fun ModernHomeContent(
     val effectiveExpandEnabled =
         (uiState.focusedPosterBackdropExpandEnabled && !useLandscapePosters) ||
             landscapeExpandedCardMode
+    val trailersOnlyInRecentlyAdded by com.nuvio.tv.core.poster.RecentlyAddedTrailersPreference.onlyRecentlyAdded.collectAsState()
     val shouldActivateFocusedPosterFlow =
         effectiveExpandEnabled ||
             (effectiveAutoplayEnabled &&
@@ -334,6 +336,7 @@ fun ModernHomeContent(
             shouldActivateFocusedPosterFlow,
             trailerPlaybackTarget,
             uiState.focusedPosterBackdropExpandDelaySeconds,
+            trailersOnlyInRecentlyAdded,
             verticalRowListState.isScrollInProgress,
             // Re-run when the sidebar takes/returns focus so a pending expand cannot
             // complete while the user is on the Home button (#2815).
@@ -346,6 +349,8 @@ fun ModernHomeContent(
             if (verticalRowListState.isScrollInProgress) return@LaunchedEffect
             val selection = focusedCatalogSelection.value ?: return@LaunchedEffect
             if (selection.payload !is ModernPayload.Catalog) return@LaunchedEffect
+            // Trailers limited to "Recently added": other rows only expand for the expand setting.
+            if (!effectiveExpandEnabled && !trailerAllowedFor(selection.focusKey, trailersOnlyInRecentlyAdded)) return@LaunchedEffect
             val expansionDelayMs = (uiState.focusedPosterBackdropExpandDelaySeconds.coerceAtLeast(0) * 1000L).coerceAtLeast(150L)
             delay(expansionDelayMs)
             if (!lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) return@LaunchedEffect
@@ -361,6 +366,7 @@ fun ModernHomeContent(
         LaunchedEffect(
             focusedCatalogSelection.value?.focusKey,
             effectiveAutoplayEnabled,
+            trailersOnlyInRecentlyAdded,
             verticalRowListState.isScrollInProgress
         ) {
             if (!effectiveAutoplayEnabled) {
@@ -377,6 +383,10 @@ fun ModernHomeContent(
                 return@LaunchedEffect
             }
             if (selection.focusKey == lastRequestedTrailerFocusKey) return@LaunchedEffect
+            if (!trailerAllowedFor(selection.focusKey, trailersOnlyInRecentlyAdded)) {
+                lastRequestedTrailerFocusKey = null
+                return@LaunchedEffect
+            }
             delay(150)
             if (focusedCatalogSelection.value?.focusKey != selection.focusKey) return@LaunchedEffect
             onRequestTrailerPreview(

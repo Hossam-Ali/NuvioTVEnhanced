@@ -658,6 +658,31 @@ class TmdbMetadataService(
     private val originalTitleCache = ConcurrentHashMap<String, Pair<String, String>>()
 
     /**
+     * When a title last came out, for "Recently added": a movie's digital (streaming) release,
+     * the earliest in any country, else its release date; a series' latest episode. Null when
+     * TMDB has no date or can't be reached.
+     */
+    suspend fun fetchLatestReleaseDate(tmdbId: String, contentType: ContentType): java.time.LocalDate? = withContext(ioDispatcher) {
+        val numericId = tmdbId.toIntOrNull() ?: return@withContext null
+        runCatching {
+            when (contentType) {
+                ContentType.SERIES, ContentType.TV -> {
+                    val details = tmdbApi.getTvDetails(numericId, TMDB_API_KEY, "en-US").body()
+                    parseTmdbDate(details?.lastAirDate) ?: parseTmdbDate(details?.firstAirDate)
+                }
+                else -> {
+                    val digital = tmdbApi.getMovieReleaseDates(numericId, TMDB_API_KEY).body()?.results.orEmpty()
+                        .flatMap { it.releaseDates.orEmpty() }
+                        .filter { it.type == TMDB_DIGITAL_RELEASE }
+                        .mapNotNull { parseTmdbDate(it.releaseDate) }
+                        .minOrNull()
+                    digital ?: parseTmdbDate(tmdbApi.getMovieDetails(numericId, TMDB_API_KEY, "en-US").body()?.releaseDate)
+                }
+            }
+        }.getOrNull()
+    }
+
+    /**
      * A title's original language and name from one details request, cached: enough to name a
      * search result the way the home screen does, without a full enrichment.
      */
@@ -2088,3 +2113,9 @@ internal fun resolveDisplayLabel(
     // Otherwise fallback to whatever non-null exists
     return fallback ?: originalLabel ?: name
 }
+
+private const val TMDB_DIGITAL_RELEASE = 4
+
+/** A TMDB date ("2026-11-12" or "2026-11-12T00:00:00.000Z"), or null. */
+internal fun parseTmdbDate(raw: String?): java.time.LocalDate? =
+    raw?.trim()?.takeIf { it.length >= 10 }?.let { runCatching { java.time.LocalDate.parse(it.substring(0, 10)) }.getOrNull() }

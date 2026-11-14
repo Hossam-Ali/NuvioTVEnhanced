@@ -135,7 +135,8 @@ class HomePosterWatchedTest {
             profileManager = profileManager,
             tvRecommendationManager = mockk(relaxed = true),
             serverCatalog = mockk(relaxed = true),
-            originalTitleStore = mockk(relaxed = true)
+            originalTitleStore = mockk(relaxed = true),
+            releaseDateStore = mockk(relaxed = true)
         )
         viewModel.startupGracePeriodActive = false
         viewModel.currentTmdbSettings = TmdbSettings(enabled = false)

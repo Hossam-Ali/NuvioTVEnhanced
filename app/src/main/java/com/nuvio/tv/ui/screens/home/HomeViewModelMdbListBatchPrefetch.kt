@@ -28,6 +28,7 @@ internal fun HomeViewModel.onFocusedRowChangedForMdbBatch(rowKey: String?) {
 
 internal fun HomeViewModel.onCatalogRowItemsChanged(rowKey: String) {
     nameCatalogRowInOriginalLanguage(rowKey)
+    lookUpRecentlyAddedDates(rowKey)
     if (!isMdbBatchPrefetchEnabled()) return
 
     viewModelScope.launch(Dispatchers.IO) {

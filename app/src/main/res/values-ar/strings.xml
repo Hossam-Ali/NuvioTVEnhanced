@@ -852,6 +852,8 @@
     <string name="layout_autoplay_trailer_sub">تشغيل الإعلان تلقائيًا للمحتوى المحدد عند توفره.</string>
     <string name="layout_trailer_delay">مهلة الإعلان</string>
     <string name="layout_trailer_delay_sub">المدة التي تبقى فيها على عنوان قبل تشغيل إعلانه</string>
+    <string name="layout_trailer_only_recently_added">في «أضيف حديثًا» فقط</string>
+    <string name="layout_trailer_only_recently_added_sub">تشغيل الإعلانات للإصدارات الجديدة في صف «أضيف حديثًا» فقط</string>
     <string name="layout_autoplay_trailer_expanded_sub">تشغيل الإعلان داخل الخلفية الممتدة عند توفره.</string>
     <string name="layout_trailer_muted">تشغيل الإعلان بدون صوت</string>
     <string name="layout_trailer_muted_sub_preview">كتم صوت الإعلان أثناء المعاينة التلقائية.</string>
@@ -3150,8 +3152,8 @@
     <string name="home_hide_duplicates_sub">عرض كل عنوان مرة واحدة في الشاشة الرئيسية، في أول صف يحتويه</string>
     <string name="home_editor_action_recently_added_add">إضافة إلى «أضيف حديثًا»</string>
     <string name="home_editor_action_recently_added_remove">إزالة من «أضيف حديثًا»</string>
-    <string name="home_editor_action_recently_added_desc">تظهر عناوينه الصادرة اليوم أو أمس في صف «أضيف حديثًا»، حتى لو كان الصف مخفيًا</string>
-    <string name="home_editor_recently_added_sub">العناوين التي صدرت اليوم أو أمس في الصفوف التي تختارها، أسفل «متابعة المشاهدة». اضغط OK على أي صف بالأسفل لإضافته.</string>
+    <string name="home_editor_action_recently_added_desc">تظهر عناوينه الصادرة خلال الأسبوع الماضي في صف «أضيف حديثًا»، حتى لو كان الصف مخفيًا</string>
+    <string name="home_editor_recently_added_sub">العناوين التي صدرت خلال الأسبوع الماضي في الصفوف التي تختارها، أسفل «متابعة المشاهدة». اضغط OK على أي صف بالأسفل لإضافته.</string>
     <string name="home_editor_recently_added_count">الصفوف المختارة: %1$d</string>
     <string name="home_editor_preview">معاينة</string>
     <string name="home_editor_preview_hero">مميز</string>

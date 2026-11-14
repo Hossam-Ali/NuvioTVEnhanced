@@ -67,4 +67,11 @@ class HomeRowExtrasTest {
         assertFalse(hasFreshEpisode(title("tt200"), fresh))
         assertFalse(hasFreshEpisode(null, fresh))
     }
+
+    @Test
+    fun `trailers limited to Recently added play only on its cards`() {
+        assertTrue(trailerAllowedFor("modern_recently_added::tt1", onlyRecentlyAdded = true))
+        assertFalse(trailerAllowedFor("addon_movie_top::tt1", onlyRecentlyAdded = true))
+        assertTrue(trailerAllowedFor("addon_movie_top::tt1", onlyRecentlyAdded = false))
+    }
 }

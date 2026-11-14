@@ -92,12 +92,21 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
         super.onCreate()
         com.nuvio.tv.core.tmdb.TmdbApiKey.attach(this)
         com.nuvio.tv.core.tmdb.DescriptionLanguage.attach(this)
-        // Descriptions follow the favourite subtitle language (see DescriptionLanguage).
+        // Titles and descriptions follow the favourite subtitle language (see DescriptionLanguage):
+        // AI translation's target when it has one, else the preferred subtitle language.
         kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.IO).launch {
             runCatching {
-                playerSettingsDataStore.playerSettings.collect { settings ->
-                    com.nuvio.tv.core.tmdb.DescriptionLanguage.setFavourite(settings.subtitleStyle.preferredLanguage)
-                }
+                com.nuvio.tv.core.subtitles.SubtitleTranslationPreferences.ensureLoaded(this@NuvioApplication)
+                kotlinx.coroutines.flow.combine(
+                    playerSettingsDataStore.playerSettings,
+                    com.nuvio.tv.core.subtitles.SubtitleTranslationPreferences.settings
+                ) { player, translation ->
+                    com.nuvio.tv.core.tmdb.favouriteSubtitleLanguage(
+                        player.subtitleStyle.preferredLanguage,
+                        translation.enabled,
+                        translation.targetLanguage
+                    )
+                }.collect { com.nuvio.tv.core.tmdb.DescriptionLanguage.setFavourite(it) }
             }
         }
         com.nuvio.tv.core.network.AddonNetworkPreferences.attach(this)
@@ -106,6 +115,7 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
         com.nuvio.tv.core.poster.RecentlyAddedPreferences.attach(this)
         com.nuvio.tv.core.poster.HideDuplicateTitlesPreference.attach(this)
         com.nuvio.tv.core.poster.NewestFirstRowsPreferences.attach(this)
+        com.nuvio.tv.core.poster.RecentlyAddedTrailersPreference.attach(this)
         com.nuvio.tv.core.player.AudioPassthroughPreferences.attach(this)
         com.nuvio.tv.core.ui.NewLookPreferences.attach(this)
         applyPersonalSetupOnce()

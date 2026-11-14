@@ -48,3 +48,19 @@ internal fun descriptionLanguageFor(original: String?, favourite: String?): Stri
     val made = original?.lowercase()?.substringBefore('-')
     return if (made == fav) fav else "en"
 }
+
+/**
+ * The favourite subtitle language: AI translation's own target language when translation is on
+ * and set to one (a personal build translating into Arabic), else the preferred subtitle
+ * language from the playback settings.
+ */
+internal fun favouriteSubtitleLanguage(
+    preferredSubtitleLanguage: String?,
+    translationEnabled: Boolean,
+    translationTarget: String?,
+): String? {
+    val target = translationTarget?.trim()?.takeIf {
+        it.isNotEmpty() && !it.equals(com.nuvio.tv.core.subtitles.SUBTITLE_TRANSLATION_TARGET_PREFERRED, ignoreCase = true)
+    }
+    return if (translationEnabled && target != null) target else preferredSubtitleLanguage
+}

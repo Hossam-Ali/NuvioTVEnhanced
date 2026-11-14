@@ -480,7 +480,10 @@ data class TmdbMovieReleaseDateCountry(
 
 @JsonClass(generateAdapter = true)
 data class TmdbMovieReleaseDateItem(
-    @Json(name = "certification") val certification: String? = null
+    @Json(name = "certification") val certification: String? = null,
+    @Json(name = "release_date") val releaseDate: String? = null,
+    /** 1 premiere, 2 limited theatrical, 3 theatrical, 4 digital, 5 physical, 6 TV. */
+    @Json(name = "type") val type: Int? = null
 )
 
 @JsonClass(generateAdapter = true)

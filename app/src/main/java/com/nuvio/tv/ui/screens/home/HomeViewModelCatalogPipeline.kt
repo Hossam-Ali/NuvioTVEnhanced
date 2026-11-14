@@ -434,6 +434,8 @@ internal fun HomeViewModel.loadHeroCatalogsPipeline() {
  */
 internal fun HomeViewModel.loadRecentlyAddedCatalogsPipeline(pickedKeys: Set<String>) {
     val rowKeys = recentlyAddedCatalogKeys(pickedKeys, collectionsCache)
+    // Rows already loaded get their titles' dates looked up now; the others when they load.
+    (rowKeys intersect snapshotCatalogKeys()).forEach { lookUpRecentlyAddedDates(it) }
     if (rowKeys.isEmpty() || addonsCache.isEmpty()) {
         scheduleUpdateCatalogRows()
         return
@@ -783,7 +785,12 @@ internal suspend fun HomeViewModel.updateCatalogRowsPipeline() {
             // Rows hidden from the home screen can still feed "Recently added".
             val shownKeys = orderedKeys.toSet()
             val hiddenRows = recentlyAddedKeys.filter { it !in shownKeys }.mapNotNull { catalogSnapshot[it] }
-            recentlyAddedEntries(fullRowsFiltered + hiddenRows, recentlyAddedKeys, LocalDate.now())
+            recentlyAddedEntries(
+                fullRowsFiltered + hiddenRows,
+                recentlyAddedKeys,
+                LocalDate.now(),
+                dateOf = { item -> releaseDateStore.known(item.id) ?: item.exactReleaseDate() }
+            )
         }
     } else {
         emptyList()

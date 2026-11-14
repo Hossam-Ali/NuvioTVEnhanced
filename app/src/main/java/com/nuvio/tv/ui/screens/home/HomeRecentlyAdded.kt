@@ -13,8 +13,8 @@ internal const val MODERN_RECENTLY_ADDED_ROW_KEY = "modern_recently_added"
 /** How many titles the "Recently added" row shows. */
 internal const val RECENTLY_ADDED_MAX_ITEMS = 40
 
-/** How old a title may be to be in "Recently added": released today or yesterday. */
-internal const val RECENTLY_ADDED_MAX_AGE_DAYS = 1L
+/** How old a title may be to be in "Recently added": out within the last week. */
+internal const val RECENTLY_ADDED_MAX_AGE_DAYS = 7L
 
 /** A title in the "Recently added" row, with the row it came from (which add-on opens it). */
 @Immutable
@@ -49,17 +49,18 @@ internal fun MetaPreview.exactReleaseDate(): LocalDate? {
 
 /**
  * The "Recently added" row: the newest titles, by release date, of the rows whose keys are in
- * [selectedRowKeys]. Only titles released within [maxAgeDays] (today or yesterday) count, which
- * takes a full release date; null lifts that limit. Titles not out yet are left out, each title
- * shows once, and titles of the same date take turns between the rows, so one busy row doesn't
- * fill the whole strip.
+ * [selectedRowKeys]. Only titles out within [maxAgeDays] count, which takes a full date from
+ * [dateOf] (TMDB's, looked up for these rows, else the add-on's); null lifts that limit. Titles
+ * not out yet are left out, each title shows once, and titles of the same date take turns
+ * between the rows, so one busy row doesn't fill the whole strip.
  */
 internal fun recentlyAddedEntries(
     rows: List<CatalogRow>,
     selectedRowKeys: Set<String>,
     today: LocalDate,
     limit: Int = RECENTLY_ADDED_MAX_ITEMS,
-    maxAgeDays: Long? = RECENTLY_ADDED_MAX_AGE_DAYS
+    maxAgeDays: Long? = RECENTLY_ADDED_MAX_AGE_DAYS,
+    dateOf: (MetaPreview) -> LocalDate? = { it.exactReleaseDate() }
 ): List<RecentlyAddedEntry> {
     if (selectedRowKeys.isEmpty()) return emptyList()
     val sources = rows.filter { it.legacyKey() in selectedRowKeys }
@@ -77,7 +78,7 @@ internal fun recentlyAddedEntries(
         .asSequence()
         .filterNot { it.item.id.startsWith("__placeholder_") }
         .mapNotNull { entry ->
-            val date = if (maxAgeDays == null) entry.item.releaseSortDate() else entry.item.exactReleaseDate()
+            val date = if (maxAgeDays == null) entry.item.releaseSortDate() else dateOf(entry.item)
             date?.let { entry to it }
         }
         .filter { (entry, date) -> !date.isAfter(today) && !entry.item.isUnreleased(today) }
@@ -215,3 +216,10 @@ internal fun CatalogRow.sortedNewestFirst(): CatalogRow {
         .map { it.value }
     return if (sorted == items) this else copy(items = sorted)
 }
+
+/** Whether a card's focus key belongs to the "Recently added" row (see [buildRecentlyAddedRow]). */
+internal fun isRecentlyAddedFocusKey(focusKey: String): Boolean = focusKey.startsWith("$MODERN_RECENTLY_ADDED_ROW_KEY::")
+
+/** Whether the focused card may play its trailer, when trailers are limited to "Recently added". */
+internal fun trailerAllowedFor(focusKey: String, onlyRecentlyAdded: Boolean): Boolean =
+    !onlyRecentlyAdded || isRecentlyAddedFocusKey(focusKey)

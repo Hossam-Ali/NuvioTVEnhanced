@@ -1211,6 +1211,8 @@
     <string name="layout_autoplay_trailer_sub">Play trailer preview for focused content when available.</string>
     <string name="layout_trailer_delay">Trailer Delay</string>
     <string name="layout_trailer_delay_sub">How long to rest on a title before its trailer plays</string>
+    <string name="layout_trailer_only_recently_added">Only in Recently added</string>
+    <string name="layout_trailer_only_recently_added_sub">Play trailers only for new releases in the Recently added row</string>
     <string name="layout_autoplay_trailer_expanded_sub">Play trailer inside expanded backdrop when available.</string>
     <string name="layout_trailer_muted">Play Trailer Muted</string>
     <string name="layout_trailer_muted_sub_preview">Mute trailer audio during autoplay preview.</string>
@@ -3609,8 +3611,8 @@
     <string name="home_hide_duplicates_sub">Show each title once on the home screen, in the first row that has it</string>
     <string name="home_editor_action_recently_added_add">Add to Recently added</string>
     <string name="home_editor_action_recently_added_remove">Remove from Recently added</string>
-    <string name="home_editor_action_recently_added_desc">Its titles released today or yesterday join the Recently added row, even if the row is hidden</string>
-    <string name="home_editor_recently_added_sub">Titles released today or yesterday in the rows you pick, under Continue Watching. Press OK on a row below to add it.</string>
+    <string name="home_editor_action_recently_added_desc">Its titles out in the last week join the Recently added row, even if the row is hidden</string>
+    <string name="home_editor_recently_added_sub">Titles out in the last week in the rows you pick, under Continue Watching. Press OK on a row below to add it.</string>
     <string name="home_editor_recently_added_count">%1$d rows picked</string>
     <string name="home_editor_preview">Preview</string>
     <string name="home_editor_preview_hero">Featured</string>
