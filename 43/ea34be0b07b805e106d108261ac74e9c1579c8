@@ -1,0 +1,21 @@
+app/src/main/java/com/nuvio/tv/ui/screens/detail/NewLookComponents.kt
+  s_c7f847fc05dfc2::t_e5de8d231bdebf 1-279
+app/src/main/java/com/nuvio/tv/ui/screens/detail/NewLookCards.kt
+  s_c7f847fc05dfc2::t_31de93abba2235 1-335
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "43ea34be0b07b805e106d108261ac74e9c1579c8",
+  "prompts": {},
+  "sessions": {
+    "s_c7f847fc05dfc2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "666ff6ef-bff7-49b1-894d-8c6f8060c75e",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  }
+}
