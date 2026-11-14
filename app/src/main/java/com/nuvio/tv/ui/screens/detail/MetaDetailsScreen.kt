@@ -94,7 +94,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.runtime.DisposableEffect
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.nuvio.tv.ui.util.localizedGenreLabel
 import com.nuvio.tv.ui.util.recompositionHighlighter
 import androidx.compose.foundation.lazy.LazyColumn
@@ -346,7 +346,8 @@ fun MetaDetailsScreen(
                         if (keyEvent.nativeKeyEvent.action != KeyEvent.ACTION_DOWN) {
                             return@onPreviewKeyEvent false
                         }
-                        when (keyEvent.nativeKeyEvent.keyCode) {
+                        // The keys the trailer controls use are handled; any other goes on to the page.
+                        return@onPreviewKeyEvent when (keyEvent.nativeKeyEvent.keyCode) {
                             KeyEvent.KEYCODE_DPAD_CENTER,
                             KeyEvent.KEYCODE_ENTER,
                             KeyEvent.KEYCODE_NUMPAD_ENTER -> {

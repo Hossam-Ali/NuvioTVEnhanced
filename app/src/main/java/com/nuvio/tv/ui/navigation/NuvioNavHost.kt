@@ -1297,7 +1297,7 @@ private fun PlaybackNavHost(
 
         rootComposable(Screen.Search.route) { backStackEntry ->
             val searchViewModel: com.nuvio.tv.ui.screens.search.SearchViewModel =
-                androidx.hilt.navigation.compose.hiltViewModel(backStackEntry)
+                androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel(backStackEntry)
             SearchScreen(
                 viewModel = searchViewModel,
                 onNavigateToCastDetail = { personId, personName ->
@@ -1581,16 +1581,16 @@ private fun PlaybackNavHost(
             }
             val searchViewModel: com.nuvio.tv.ui.screens.search.SearchViewModel? =
                 if (searchBackStackEntry != null) {
-                    androidx.hilt.navigation.compose.hiltViewModel<com.nuvio.tv.ui.screens.search.SearchViewModel>(searchBackStackEntry)
+                    androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel<com.nuvio.tv.ui.screens.search.SearchViewModel>(searchBackStackEntry)
                 } else null
             val homeBackStackEntry = androidx.compose.runtime.remember {
                 try { navController.getBackStackEntry(Screen.Home.route) } catch (_: Exception) { null }
             }
             val homeViewModel: com.nuvio.tv.ui.screens.home.HomeViewModel =
                 if (homeBackStackEntry != null) {
-                    androidx.hilt.navigation.compose.hiltViewModel(homeBackStackEntry)
+                    androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel(homeBackStackEntry)
                 } else {
-                    androidx.hilt.navigation.compose.hiltViewModel(backStackEntry)
+                    androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel(backStackEntry)
                 }
 
             CatalogSeeAllScreen(
