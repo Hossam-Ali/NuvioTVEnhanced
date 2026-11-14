@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -766,32 +767,55 @@ private fun NewLookCastItem(member: MetaCastMember, onClick: () -> Unit, modifie
     }
 }
 
+/** The size of a "More like this" card, following its picture so nothing is cropped away. */
+internal fun newLookPosterCardSize(shape: com.nuvio.tv.domain.model.PosterShape): Pair<Dp, Dp> = when (shape) {
+    com.nuvio.tv.domain.model.PosterShape.LANDSCAPE -> 176.dp to 99.dp
+    com.nuvio.tv.domain.model.PosterShape.SQUARE -> 120.dp to 120.dp
+    com.nuvio.tv.domain.model.PosterShape.POSTER -> 96.dp to 144.dp
+}
+
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun NewLookPosterCard(item: MetaPreview, onClick: () -> Unit) {
-    Surface(
-        onClick = onClick,
-        shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(10.dp)),
-        colors = ClickableSurfaceDefaults.colors(containerColor = NewLookChip, focusedContainerColor = NewLookChip),
-        border = ClickableSurfaceDefaults.border(
-            focusedBorder = androidx.tv.material3.Border(
-                border = androidx.compose.foundation.BorderStroke(2.dp, Color.White),
-                shape = RoundedCornerShape(10.dp)
-            )
-        ),
-        scale = ClickableSurfaceDefaults.scale(focusedScale = 1.05f),
-        modifier = Modifier.size(width = 96.dp, height = 144.dp)
-    ) {
-        if (item.poster.isNullOrBlank()) {
+    // TMDB's suggestions come with wide backdrops: a wide card shows all of the picture instead of
+    // a poster-shaped slice of its middle. The title's name sits under every picture.
+    val (width, height) = newLookPosterCardSize(item.posterShape)
+    Column(modifier = Modifier.width(width)) {
+        Surface(
+            onClick = onClick,
+            shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(10.dp)),
+            colors = ClickableSurfaceDefaults.colors(containerColor = NewLookChip, focusedContainerColor = NewLookChip),
+            border = ClickableSurfaceDefaults.border(
+                focusedBorder = androidx.tv.material3.Border(
+                    border = androidx.compose.foundation.BorderStroke(2.dp, Color.White),
+                    shape = RoundedCornerShape(10.dp)
+                )
+            ),
+            scale = ClickableSurfaceDefaults.scale(focusedScale = 1.05f),
+            modifier = Modifier.size(width = width, height = height)
+        ) {
+            if (item.poster.isNullOrBlank()) {
+                Text(
+                    text = item.name,
+                    fontSize = 12.sp,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(8.dp)
+                )
+            } else {
+                NewLookThumbnail(url = item.poster, width = width, height = height)
+            }
+        }
+        if (!item.poster.isNullOrBlank()) {
             Text(
                 text = item.name,
                 fontSize = 12.sp,
-                maxLines = 3,
+                color = Color.White.copy(alpha = 0.85f),
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(8.dp)
+                style = androidx.compose.ui.text.TextStyle(textDirection = androidx.compose.ui.text.style.TextDirection.Content),
+                modifier = Modifier.padding(top = 6.dp, start = 2.dp, end = 2.dp)
             )
-        } else {
-            NewLookThumbnail(url = item.poster, width = 96.dp, height = 144.dp)
         }
     }
 }

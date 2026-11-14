@@ -42,15 +42,16 @@ class OriginalTitleStore @Inject constructor(
     }
 
     /** The saved answer for [id], without asking TMDB. */
-    fun known(id: String): OriginalTitle? = saved[id]
+    fun known(id: String): OriginalTitle? = saved[keyFor(id)]
 
     /** Whether [id] was already looked up, whatever the answer. */
-    fun isLookedUp(id: String): Boolean = saved.containsKey(id) || id in unknown
+    fun isLookedUp(id: String): Boolean = saved.containsKey(keyFor(id)) || keyFor(id) in unknown
 
     /** Asks TMDB for [id]'s original title (one details request), and keeps the answer. */
     suspend fun lookUp(id: String, apiType: String, type: ContentType): OriginalTitle? {
-        saved[id]?.let { return it }
-        if (id in unknown) return null
+        val key = keyFor(id)
+        saved[key]?.let { return it }
+        if (key in unknown) return null
         val found = lookups.withPermit {
             try {
                 val tmdbId = tmdbService.ensureTmdbId(id, apiType) ?: return@withPermit null
@@ -62,10 +63,10 @@ class OriginalTitleStore @Inject constructor(
             }
         }
         if (found == null) {
-            unknown += id
+            unknown += key
             return null
         }
-        return OriginalTitle(language = found.first, title = found.second).also { save(id, it) }
+        return OriginalTitle(language = found.first, title = found.second).also { save(key, it) }
     }
 
     private fun save(id: String, title: OriginalTitle) {
@@ -86,8 +87,11 @@ class OriginalTitleStore @Inject constructor(
         return map
     }
 
+    /** Answers depend on the favourite subtitle language (see [DescriptionLanguage]), so they are kept per language. */
+    private fun keyFor(id: String): String = "${DescriptionLanguage.favourite.orEmpty()}|$id"
+
     private companion object {
-        const val PREFS_NAME = "nuvio_original_titles"
+        const val PREFS_NAME = "nuvio_original_titles_v2"
         const val SEPARATOR = '\t'
         const val MAX_SAVED = 5_000
         const val MAX_PARALLEL_LOOKUPS = 4

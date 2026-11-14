@@ -215,6 +215,10 @@ internal suspend fun HomeViewModel.loadAllCatalogsPipeline(
         // loaded, the hero has no data and won't render.
         val heroCatalogSet = currentHeroCatalogKeys.toSet()
         val hasHeroSelections = heroCatalogSet.isNotEmpty()
+        // Rows picked for "Recently added" load at once too, even when hidden from the home
+        // rows or far down the list, since that row sits at the top.
+        val recentlyAddedSet = com.nuvio.tv.core.poster.RecentlyAddedPreferences.rowKeys.value
+        val extraCatalogSet = heroCatalogSet + recentlyAddedSet
 
         if (isCatalogOrderEmpty() && !hasHeroSelections) {
             catalogsLoadInProgress = false
@@ -241,12 +245,12 @@ internal suspend fun HomeViewModel.loadAllCatalogsPipeline(
         val alreadyLoadingKeys = catalogsToLoad.map { (addon, catalog) ->
             catalogKey(addonId = addon.id, type = catalog.apiType, catalogId = catalog.id)
         }.toSet()
-        val heroOnlyCatalogs = if (hasHeroSelections) {
+        val heroOnlyCatalogs = if (extraCatalogSet.isNotEmpty()) {
             addons.flatMap { addon ->
                 addon.catalogs
                     .filter { catalog ->
                         val key = catalogKey(addonId = addon.id, type = catalog.apiType, catalogId = catalog.id)
-                        key in heroCatalogSet && key !in alreadyLoadingKeys && !catalog.isSearchOnlyCatalog()
+                        key in extraCatalogSet && key !in alreadyLoadingKeys && !catalog.isSearchOnlyCatalog()
                     }
                     .map { catalog -> addon to catalog }
             }
@@ -299,8 +303,15 @@ internal suspend fun HomeViewModel.loadAllCatalogsPipeline(
             _uiState.first { it.layoutPreferencesReady }
         }
         val isGridLayout = _uiState.value.homeLayout == HomeLayout.GRID
-        val eagerHomeCatalogs = if (isGridLayout) catalogsToLoad else catalogsToLoad.take(eagerCatalogLoadCount)
-        val lazyHomeCatalogs = if (isGridLayout) emptyList() else catalogsToLoad.drop(eagerCatalogLoadCount)
+        fun feedsRecentlyAdded(entry: Pair<Addon, CatalogDescriptor>): Boolean =
+            catalogKey(addonId = entry.first.id, type = entry.second.apiType, catalogId = entry.second.id) in recentlyAddedSet
+        val (eagerHomeCatalogs, lazyHomeCatalogs) = if (isGridLayout) {
+            catalogsToLoad to emptyList()
+        } else {
+            catalogsToLoad.withIndex()
+                .partition { (index, entry) -> index < eagerCatalogLoadCount || feedsRecentlyAdded(entry) }
+                .let { (eager, lazy) -> eager.map { it.value } to lazy.map { it.value } }
+        }
 
         // Build placeholder descriptors for lazy catalogs
         synchronized(catalogStateLock) {
@@ -406,6 +417,40 @@ internal fun HomeViewModel.loadHeroCatalogsPipeline() {
     heroToLoad.forEach { (addon, catalog) ->
         loadCatalogPipeline(addon, catalog, generation)
     }
+}
+
+/**
+ * Loads the rows picked for "Recently added" that aren't loaded yet (picked in the home editor
+ * while the home screen lives on, or hidden from the home rows), then rebuilds the rows.
+ */
+internal fun HomeViewModel.loadRecentlyAddedCatalogsPipeline(rowKeys: Set<String>) {
+    if (rowKeys.isEmpty() || addonsCache.isEmpty()) {
+        scheduleUpdateCatalogRows()
+        return
+    }
+    val missing = rowKeys - snapshotCatalogKeys()
+    val toLoad = addonsCache.flatMap { addon ->
+        addon.catalogs
+            .filter { catalog ->
+                catalogKey(addonId = addon.id, type = catalog.apiType, catalogId = catalog.id) in missing &&
+                    !catalog.isSearchOnlyCatalog()
+            }
+            .map { catalog -> addon to catalog }
+    }
+    if (toLoad.isNotEmpty()) {
+        synchronized(catalogStateLock) {
+            toLoad.forEach { (addon, catalog) ->
+                pendingLazyCatalogs.remove(catalogKey(addonId = addon.id, type = catalog.apiType, catalogId = catalog.id))
+            }
+        }
+        val generation = catalogLoadGeneration
+        pendingCatalogLoads += toLoad.size
+        toLoad.forEach { (addon, catalog) ->
+            lazyLoadRequestedKeys += catalogKey(addonId = addon.id, type = catalog.apiType, catalogId = catalog.id)
+            loadCatalogPipeline(addon, catalog, generation)
+        }
+    }
+    scheduleUpdateCatalogRows()
 }
 
 internal fun HomeViewModel.loadCatalogPipeline(
@@ -583,7 +628,7 @@ internal suspend fun HomeViewModel.updateCatalogRowsPipeline() {
     val hideUnreleased = _uiState.value.hideUnreleasedContent
     val titlesSnapshot = customCatalogTitles
 
-    val (displayRows, baseHeroItems, baseGridItems, fullRowsFiltered) = withContext(Dispatchers.Default) {
+    val (loadedDisplayRows, baseHeroItems, baseGridItems, fullRowsFiltered) = withContext(Dispatchers.Default) {
         val rawRows = orderedKeys.mapNotNull { key ->
             val row = catalogSnapshot[key] ?: return@mapNotNull null
             val custom = titlesSnapshot[key]
@@ -719,6 +764,36 @@ internal suspend fun HomeViewModel.updateCatalogRowsPipeline() {
 
     heroItemOrder = baseHeroItems.map { it.id }
 
+    val recentlyAddedKeys = com.nuvio.tv.core.poster.RecentlyAddedPreferences.rowKeys.value
+    val recentlyAdded = if (currentLayout == HomeLayout.MODERN && recentlyAddedKeys.isNotEmpty()) {
+        withContext(Dispatchers.Default) {
+            // Rows hidden from the home screen can still feed "Recently added".
+            val shownKeys = orderedKeys.toSet()
+            val hiddenRows = recentlyAddedKeys.filter { it !in shownKeys }.mapNotNull { catalogSnapshot[it] }
+            recentlyAddedEntries(fullRowsFiltered + hiddenRows, recentlyAddedKeys, LocalDate.now())
+        }
+    } else {
+        emptyList()
+    }
+
+    // "Hide duplicate titles": each title only in the first row that has it, "Recently added"
+    // (above the rows on the Modern home) included. A row left with nothing new is dropped
+    // rather than shown as a loading placeholder.
+    val hideDuplicates = com.nuvio.tv.core.poster.HideDuplicateTitlesPreference.enabled.value
+    val displayRows = if (hideDuplicates) {
+        withContext(Dispatchers.Default) { withoutDuplicateTitles(loadedDisplayRows, recentlyAdded.map { it.item }) }
+    } else {
+        loadedDisplayRows
+    }
+    val rowsEmptiedByDuplicates = if (hideDuplicates) {
+        loadedDisplayRows.zip(displayRows)
+            .filter { (loaded, shown) -> loaded.items.isNotEmpty() && shown.items.isEmpty() }
+            .map { (loaded, _) -> loaded.legacyKey() }
+            .toSet()
+    } else {
+        emptySet()
+    }
+
     val (computedHomeRows, nextGridItems) = withContext(Dispatchers.Default) {
         val computedHomeRows = buildList {
             val displayRowsByKey = displayRows.associateBy { it.legacyKey() }
@@ -744,6 +819,8 @@ internal suspend fun HomeViewModel.updateCatalogRowsPipeline() {
                     val catalogRow = displayRowsByKey[key]
                     if (catalogRow != null && catalogRow.items.isNotEmpty()) {
                         add(HomeRow.Catalog(catalogRow))
+                    } else if (key in rowsEmptiedByDuplicates) {
+                        // Every title of this row is shown higher up.
                     } else {
                         val placeholder = placeholdersByKey[key]
                         if (placeholder != null) {
@@ -888,6 +965,7 @@ internal suspend fun HomeViewModel.updateCatalogRowsPipeline() {
             heroItems = if (state.heroItems == baseHeroItems) state.heroItems else baseHeroItems,
             gridItems = if (state.gridItems == nextGridItems) state.gridItems else nextGridItems,
             homeRows = if (state.homeRows == computedHomeRows) state.homeRows else computedHomeRows,
+            recentlyAdded = if (state.recentlyAdded == recentlyAdded) state.recentlyAdded else recentlyAdded,
             isLoading = false,
             error = if (hasContent) null else state.error
         )

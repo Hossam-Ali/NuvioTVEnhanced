@@ -190,11 +190,11 @@ private suspend fun PlayerRuntimeController.enrichDescriptionFromTmdb(id: String
         }
     }
 
-    // Enrich cast from TMDB if addon didn't provide any.
+    // Cast from TMDB when the add-on gave none, and TMDB's headshots for the add-on's names.
     if (settings.useBasicInfo && enrichment.castMembers.isNotEmpty()) {
         _uiState.update { state ->
-            if (state.castMembers.isEmpty()) state.copy(castMembers = enrichment.castMembers)
-            else state
+            val merged = castWithTmdbPhotos(state.castMembers, enrichment.castMembers)
+            if (merged == state.castMembers) state else state.copy(castMembers = merged)
         }
     }
 
@@ -638,3 +638,26 @@ internal suspend fun PlayerRuntimeController.enrichEpisodesPanelFromTmdb(id: Str
 
 /** How long before the next-episode card its sources are looked up. */
 private const val NEXT_EPISODE_PRELOAD_LEAD_MS = 3 * 60 * 1_000L
+
+/**
+ * The cast for the pause screen: [addon]'s when it has one, with photos from [tmdb]. Many add-ons
+ * give names only, so a cast without any photo takes TMDB's (which has headshots and characters),
+ * and a partial one gets the missing photos of people TMDB names the same way.
+ */
+internal fun castWithTmdbPhotos(
+    addon: List<com.nuvio.tv.domain.model.MetaCastMember>,
+    tmdb: List<com.nuvio.tv.domain.model.MetaCastMember>,
+): List<com.nuvio.tv.domain.model.MetaCastMember> {
+    if (tmdb.isEmpty()) return addon
+    if (addon.isEmpty() || addon.none { !it.photo.isNullOrBlank() }) return tmdb
+    val tmdbByName = tmdb.associateBy { it.name.trim().lowercase() }
+    return addon.map { member ->
+        if (!member.photo.isNullOrBlank()) return@map member
+        val match = tmdbByName[member.name.trim().lowercase()] ?: return@map member
+        member.copy(
+            photo = match.photo,
+            character = member.character ?: match.character,
+            tmdbId = member.tmdbId ?: match.tmdbId
+        )
+    }
+}

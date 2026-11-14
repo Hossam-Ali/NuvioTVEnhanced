@@ -29,7 +29,9 @@ internal data class ModernHomePresentationInput(
         com.nuvio.tv.domain.model.DetailImdbRatingsVisibility.SHOW_ALL,
     val localeTag: String,
     /** Card style per row from the home editor, keyed like the catalog order. */
-    val rowStyles: Map<String, com.nuvio.tv.core.poster.HomeRowStyle> = emptyMap()
+    val rowStyles: Map<String, com.nuvio.tv.core.poster.HomeRowStyle> = emptyMap(),
+    /** The "Recently added" row's titles, shown above every other row. */
+    val recentlyAdded: List<RecentlyAddedEntry> = emptyList()
 )
 
 internal fun buildModernHomePresentation(
@@ -92,6 +94,22 @@ internal fun buildModernHomePresentation(
         } else {
             cache.continueWatchingItems = emptyList()
             cache.continueWatchingRow = null
+        }
+
+        // "Recently added" is always the second row, right after Continue Watching.
+        val recentlyAddedLandscape = input.rowStyles.landscapeFor(MODERN_RECENTLY_ADDED_ROW_KEY, input.useLandscapePosters)
+        buildRecentlyAddedRow(
+            entries = input.recentlyAdded,
+            title = localizedContext.getString(R.string.home_recently_added),
+            useLandscapePosters = recentlyAddedLandscape,
+            showFullReleaseDate = input.showFullReleaseDate,
+            showImdbRatings = input.showImdbRatings,
+            strTypeMovie = strTypeMovie,
+            strTypeSeries = strTypeSeries,
+            itemCache = cache.catalogItemCache.getOrPut(MODERN_RECENTLY_ADDED_ROW_KEY) { mutableMapOf() }
+        )?.let { row ->
+            activeCatalogKeys += MODERN_RECENTLY_ADDED_ROW_KEY
+            add(row.copy(useLandscapePosters = recentlyAddedLandscape.takeIf { it != input.useLandscapePosters }))
         }
 
         // Upcoming row (SPLIT_UPCOMING mode)

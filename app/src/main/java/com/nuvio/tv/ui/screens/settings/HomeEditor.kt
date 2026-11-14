@@ -87,7 +87,7 @@ internal fun HomeEditorEntry(uiState: LayoutSettingsUiState, onEvent: (LayoutSet
     }
 }
 
-private enum class HomeEditorAction { Move, ToggleVisible, StyleDefault, StylePoster, StyleLandscape }
+private enum class HomeEditorAction { Move, ToggleVisible, ToggleRecentlyAdded, StyleDefault, StylePoster, StyleLandscape }
 
 private fun HomeEditorAction.style(): HomeRowStyle? = when (this) {
     HomeEditorAction.StylePoster -> HomeRowStyle.POSTER
@@ -106,6 +106,8 @@ private fun HomeEditor(uiState: LayoutSettingsUiState, onEvent: (LayoutSettingsE
     val orderViewModel: CatalogOrderViewModel = hiltViewModel()
     val order by orderViewModel.uiState.collectAsState()
     val styles by HomeRowStylePreferences.styles.collectAsState()
+    val recentlyAddedKeys by com.nuvio.tv.core.poster.RecentlyAddedPreferences.rowKeys.collectAsState()
+    val hideDuplicates by com.nuvio.tv.core.poster.HideDuplicateTitlesPreference.enabled.collectAsState()
     var focusedKey by remember { mutableStateOf<String?>(null) }
     var movingKey by remember { mutableStateOf<String?>(null) }
     var actionItem by remember { mutableStateOf<CatalogOrderItem?>(null) }
@@ -156,6 +158,32 @@ private fun HomeEditor(uiState: LayoutSettingsUiState, onEvent: (LayoutSettingsE
                         onToggle = { onEvent(LayoutSettingsEvent.SetContinueWatchingEnabled(!uiState.continueWatchingEnabled)) }
                     )
                 }
+                item(key = "duplicates") {
+                    SettingsToggleRow(
+                        title = stringResource(R.string.home_hide_duplicates),
+                        subtitle = stringResource(R.string.home_hide_duplicates_sub),
+                        checked = hideDuplicates,
+                        onToggle = { com.nuvio.tv.core.poster.HideDuplicateTitlesPreference.set(!hideDuplicates) }
+                    )
+                }
+                if (isModern) {
+                    item(key = "recently_added") {
+                        val picked = order.items.count { it.key in recentlyAddedKeys }
+                        Column(modifier = Modifier.padding(vertical = NuvioTheme.spacing.xs)) {
+                            Text(
+                                text = stringResource(R.string.home_recently_added) +
+                                    if (picked > 0) " · " + stringResource(R.string.home_editor_recently_added_count, picked) else "",
+                                style = MaterialTheme.typography.titleSmall,
+                                color = NuvioTheme.colors.TextPrimary
+                            )
+                            Text(
+                                text = stringResource(R.string.home_editor_recently_added_sub),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = NuvioTheme.colors.TextTertiary
+                            )
+                        }
+                    }
+                }
                 if (order.followAddonsOrder) {
                     item(key = "follow") {
                         Text(
@@ -172,6 +200,7 @@ private fun HomeEditor(uiState: LayoutSettingsUiState, onEvent: (LayoutSettingsE
                         item = item,
                         style = styles[item.key],
                         isModern = isModern,
+                        inRecentlyAdded = item.key in recentlyAddedKeys,
                         isMoving = movingKey == item.key,
                         onFocused = { focusedKey = item.key },
                         onClick = {
@@ -196,6 +225,7 @@ private fun HomeEditor(uiState: LayoutSettingsUiState, onEvent: (LayoutSettingsE
             globalLandscape = uiState.modernLandscapePostersEnabled,
             showHero = uiState.heroSectionEnabled || isModern,
             showContinueWatching = uiState.continueWatchingEnabled,
+            showRecentlyAdded = isModern && order.items.any { it.key in recentlyAddedKeys },
             focusedKey = focusedKey,
             isModern = isModern
         )
@@ -211,6 +241,18 @@ private fun HomeEditor(uiState: LayoutSettingsUiState, onEvent: (LayoutSettingsE
                     stringResource(if (item.isDisabled) R.string.home_editor_action_show else R.string.home_editor_action_hide)
                 )
             )
+            if (!item.isCollection && isModern) {
+                add(
+                    SettingsPickerOption(
+                        HomeEditorAction.ToggleRecentlyAdded,
+                        stringResource(
+                            if (item.key in recentlyAddedKeys) R.string.home_editor_action_recently_added_remove
+                            else R.string.home_editor_action_recently_added_add
+                        ),
+                        description = stringResource(R.string.home_editor_action_recently_added_desc)
+                    )
+                )
+            }
             if (!item.isCollection) {
                 add(SettingsPickerOption(HomeEditorAction.StyleDefault, stringResource(R.string.home_editor_style_default), description = stringResource(R.string.home_editor_style_default_desc)))
                 add(SettingsPickerOption(HomeEditorAction.StylePoster, stringResource(R.string.home_editor_style_poster)))
@@ -230,6 +272,7 @@ private fun HomeEditor(uiState: LayoutSettingsUiState, onEvent: (LayoutSettingsE
                 when (action) {
                     HomeEditorAction.Move -> movingKey = item.key
                     HomeEditorAction.ToggleVisible -> orderViewModel.toggleCatalogEnabled(item.disableKey)
+                    HomeEditorAction.ToggleRecentlyAdded -> com.nuvio.tv.core.poster.RecentlyAddedPreferences.toggle(item.key)
                     else -> HomeRowStylePreferences.setStyle(item.key, action.style())
                 }
                 actionItem = null
@@ -247,6 +290,7 @@ private fun HomeEditorRow(
     item: CatalogOrderItem,
     style: HomeRowStyle?,
     isModern: Boolean,
+    inRecentlyAdded: Boolean,
     isMoving: Boolean,
     onFocused: () -> Unit,
     onClick: () -> Unit,
@@ -300,6 +344,9 @@ private fun HomeEditorRow(
                     overflow = TextOverflow.Ellipsis
                 )
             }
+            if (inRecentlyAdded && isModern) {
+                EditorChip(stringResource(R.string.home_recently_added))
+            }
             if (!item.isCollection && style != null && isModern) {
                 EditorChip(stringResource(if (style == HomeRowStyle.LANDSCAPE) R.string.home_editor_style_landscape else R.string.home_editor_style_poster))
             }
@@ -334,6 +381,7 @@ private fun HomeEditorPreview(
     globalLandscape: Boolean,
     showHero: Boolean,
     showContinueWatching: Boolean,
+    showRecentlyAdded: Boolean,
     focusedKey: String?,
     isModern: Boolean,
 ) {
@@ -363,6 +411,14 @@ private fun HomeEditorPreview(
         }
         if (showContinueWatching) {
             PreviewRow(title = stringResource(R.string.continue_watching), landscape = true, highlighted = false, accent = true)
+        }
+        if (showRecentlyAdded) {
+            PreviewRow(
+                title = stringResource(R.string.home_recently_added),
+                landscape = styles.landscapeFor(com.nuvio.tv.ui.screens.home.MODERN_RECENTLY_ADDED_ROW_KEY, globalLandscape),
+                highlighted = false,
+                accent = true
+            )
         }
         shown.forEach { item ->
             val landscape = !item.isCollection && isModern && styles.landscapeFor(item.key, globalLandscape)

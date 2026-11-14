@@ -231,6 +231,22 @@ internal fun LayoutFocusedPosterSection(
                     onEvent(LayoutSettingsEvent.SetFocusedPosterBackdropTrailerMuted(!uiState.focusedPosterBackdropTrailerMuted))
                 }
             )
+            if (isModernLandscape) {
+                // Wide cards have no expand step, so this is how long a title is rested on before
+                // its trailer plays.
+                SliderSettingsItem(
+                    title = stringResource(R.string.layout_trailer_delay),
+                    subtitle = stringResource(R.string.layout_trailer_delay_sub),
+                    value = uiState.focusedPosterBackdropExpandDelaySeconds,
+                    valueText = "${uiState.focusedPosterBackdropExpandDelaySeconds}s",
+                    minValue = 1,
+                    maxValue = 10,
+                    step = 1,
+                    onValueChange = { seconds ->
+                        onEvent(LayoutSettingsEvent.SetFocusedPosterBackdropExpandDelaySeconds(seconds))
+                    }
+                )
+            }
             if (isModern) {
                 ModernTrailerPlaybackTargetRow(
                     selectedTarget = uiState.focusedPosterBackdropTrailerPlaybackTarget,

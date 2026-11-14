@@ -7,6 +7,7 @@ import com.nuvio.tv.ui.theme.NuvioTheme
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -288,16 +289,50 @@ private fun CastChip(
         ),
         shape = CardDefaults.shape(shape = RoundedCornerShape(NuvioTheme.radii.md))
     ) {
-        Text(
-            text = member.name,
-            style = MaterialTheme.typography.bodyMedium,
-            color = Color.White,
-            modifier = Modifier.padding(horizontal = 18.dp, vertical = 10.dp),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
+        // A round headshot beside the name; a person TMDB has no photo of gets their initial.
+        Row(
+            modifier = Modifier.padding(start = 6.dp, end = 18.dp, top = 6.dp, bottom = 6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(CAST_PHOTO_SIZE)
+                    .clip(androidx.compose.foundation.shape.CircleShape)
+                    .background(Color.White.copy(alpha = 0.14f)),
+                contentAlignment = Alignment.Center
+            ) {
+                if (!member.photo.isNullOrBlank()) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(member.photo)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        alignment = com.nuvio.tv.ui.screens.stream.PortraitFaceAlignment,
+                        modifier = Modifier.size(CAST_PHOTO_SIZE)
+                    )
+                } else {
+                    Text(
+                        text = member.name.take(1).uppercase(),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = Color.White
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.width(10.dp))
+            Text(
+                text = member.name,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
     }
 }
+
+private val CAST_PHOTO_SIZE = 40.dp
 
 @Composable
 private fun CastDetailView(

@@ -45,6 +45,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.asStateFlow
@@ -387,6 +388,7 @@ class HomeViewModel @Inject constructor(
             loadCustomCatalogTitles()
             observeLibraryState()
             observeTmdbSettings()
+            observeRecentlyAddedRows()
             observeMdbListSettings()
             observeBlurUnwatchedEpisodes()
             observeProgressSourceChanges()
@@ -628,6 +630,20 @@ class HomeViewModel @Inject constructor(
     private fun loadCustomCatalogTitles() = loadCustomCatalogTitlesPipeline()
 
     private fun observeTmdbSettings() = observeTmdbSettingsPipeline()
+
+    /** Picking or dropping a row for "Recently added" loads it if needed and rebuilds the rows. */
+    private fun observeRecentlyAddedRows() {
+        viewModelScope.launch {
+            com.nuvio.tv.core.poster.RecentlyAddedPreferences.rowKeys
+                .drop(1)
+                .collect { keys -> loadRecentlyAddedCatalogsPipeline(keys) }
+        }
+        viewModelScope.launch {
+            com.nuvio.tv.core.poster.HideDuplicateTitlesPreference.enabled
+                .drop(1)
+                .collect { scheduleUpdateCatalogRows() }
+        }
+    }
 
     private fun observeMdbListSettings() {
         viewModelScope.launch {

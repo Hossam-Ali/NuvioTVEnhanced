@@ -60,6 +60,7 @@ class HomeSetupService @Inject constructor(
             .put("version", HOME_SETUP_VERSION)
             .put("home", layoutJson)
             .put("rowStyles", JSONObject(HomeRowStylePreferences.encode(HomeRowStylePreferences.styles.value)))
+            .put("recentlyAddedRows", JSONArray(com.nuvio.tv.core.poster.RecentlyAddedPreferences.encode(com.nuvio.tv.core.poster.RecentlyAddedPreferences.rowKeys.value)))
             .put("posterRatings", PosterRatingsPreferences.encode(PosterRatingsPreferences.settings.value))
             .put("collections", JSONArray(collections.exportToJson(collections.getCurrentCollections())))
             .toString(2)
@@ -103,6 +104,9 @@ class HomeSetupService @Inject constructor(
             }
         }
         root.optJSONObject("rowStyles")?.let { HomeRowStylePreferences.replaceAll(HomeRowStylePreferences.decode(it.toString())) }
+        root.optJSONArray("recentlyAddedRows")?.let {
+            com.nuvio.tv.core.poster.RecentlyAddedPreferences.replaceAll(com.nuvio.tv.core.poster.RecentlyAddedPreferences.decode(it.toString()))
+        }
         root.optJSONObject("posterRatings")?.let { saved ->
             val decoded = PosterRatingsPreferences.decode(saved)
             PosterRatingsPreferences.update { decoded }

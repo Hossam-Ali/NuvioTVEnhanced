@@ -33,6 +33,8 @@ data class HomeUiState(
     val homeImdbRatingsVisibility: HomeImdbRatingsVisibility = HomeImdbRatingsVisibility.SHOW_ALL,
     val detailImdbRatingsVisibility: DetailImdbRatingsVisibility = DetailImdbRatingsVisibility.SHOW_ALL,
     val heroItems: List<MetaPreview> = emptyList(),
+    /** The "Recently added" row's titles, from the rows picked in the home editor (Modern home). */
+    val recentlyAdded: List<RecentlyAddedEntry> = emptyList(),
     val heroCatalogKeys: List<String> = emptyList(),
     val heroSectionEnabled: Boolean = true,
     val modernHomePresentation: ModernHomePresentationState = ModernHomePresentationState(),

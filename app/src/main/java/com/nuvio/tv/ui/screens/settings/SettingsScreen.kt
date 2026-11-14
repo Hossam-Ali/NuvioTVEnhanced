@@ -126,6 +126,8 @@ internal data class SettingsSectionSpec(
 )
 
 private const val SETTINGS_DETAIL_FOCUS_DELAY_MS = 120L
+/** How far focus walks down a page looking for a search result's setting. */
+private const val SETTINGS_TARGET_MAX_STEPS = 120
 // The rail gets the same treatment as the options pane: bring the item into view, then keep
 // asking for a short while as it settles.
 private const val SETTINGS_RAIL_FOCUS_RETRY_WINDOW_MS = 200L
@@ -440,15 +442,29 @@ fun SettingsScreen(
         // row the user came from, usually the middle of the options.
         var requested = false
         val deadline = System.nanoTime() + SETTINGS_DETAIL_FOCUS_RETRY_WINDOW_MS * 1_000_000L
-        while (!requested && System.nanoTime() < deadline) {
+        // A search result's row that already took focus keeps it.
+        while (!requested && !SettingsFocusTarget.claimed && System.nanoTime() < deadline) {
             requested = contentFocusRequesters[category]
                 ?.let { runCatching { it.requestFocus() }.getOrDefault(false) } ?: false
             if (!requested) withFrameNanos { }
         }
-        if (!requested) {
+        if (!requested && !SettingsFocusTarget.claimed) {
             focusManager.moveFocus(if (isHorizonStyle) FocusDirection.Down else FocusDirection.Right)
         }
         pendingContentFocusCategory = null
+        // A search result's setting may sit below what the page shows: walk focus down until
+        // its row is built and claims focus, or the page ends.
+        if (SettingsFocusTarget.title != null) {
+            var steps = 0
+            while (!SettingsFocusTarget.claimed && steps < SETTINGS_TARGET_MAX_STEPS) {
+                withFrameNanos { }
+                withFrameNanos { }
+                if (SettingsFocusTarget.claimed) break
+                if (!focusManager.moveFocus(FocusDirection.Down)) break
+                steps++
+            }
+            SettingsFocusTarget.clear()
+        }
     }
 
     Box(

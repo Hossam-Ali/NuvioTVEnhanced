@@ -91,9 +91,20 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
         MemoryBudget.init(this)
         super.onCreate()
         com.nuvio.tv.core.tmdb.TmdbApiKey.attach(this)
+        com.nuvio.tv.core.tmdb.DescriptionLanguage.attach(this)
+        // Descriptions follow the favourite subtitle language (see DescriptionLanguage).
+        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.IO).launch {
+            runCatching {
+                playerSettingsDataStore.playerSettings.collect { settings ->
+                    com.nuvio.tv.core.tmdb.DescriptionLanguage.setFavourite(settings.subtitleStyle.preferredLanguage)
+                }
+            }
+        }
         com.nuvio.tv.core.network.AddonNetworkPreferences.attach(this)
         com.nuvio.tv.core.poster.PosterRatingsPreferences.attach(this)
         com.nuvio.tv.core.poster.HomeRowStylePreferences.attach(this)
+        com.nuvio.tv.core.poster.RecentlyAddedPreferences.attach(this)
+        com.nuvio.tv.core.poster.HideDuplicateTitlesPreference.attach(this)
         com.nuvio.tv.core.player.AudioPassthroughPreferences.attach(this)
         com.nuvio.tv.core.ui.NewLookPreferences.attach(this)
         applyPersonalSetupOnce()

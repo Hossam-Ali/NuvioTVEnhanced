@@ -1189,6 +1189,8 @@
     <string name="layout_autoplay_trailer">Autoplay Trailer</string>
     <string name="layout_autoplay_trailer_expanded">Autoplay Trailer in Expanded Card</string>
     <string name="layout_autoplay_trailer_sub">Play trailer preview for focused content when available.</string>
+    <string name="layout_trailer_delay">Trailer Delay</string>
+    <string name="layout_trailer_delay_sub">How long to rest on a title before its trailer plays</string>
     <string name="layout_autoplay_trailer_expanded_sub">Play trailer inside expanded backdrop when available.</string>
     <string name="layout_trailer_muted">Play Trailer Muted</string>
     <string name="layout_trailer_muted_sub_preview">Mute trailer audio during autoplay preview.</string>
@@ -3576,6 +3578,14 @@
     <string name="home_editor_style_modern_only">Card styles apply to the Modern home layout.</string>
     <string name="home_editor_collection">Collection</string>
     <string name="home_editor_hidden">Hidden</string>
+    <string name="home_recently_added">Recently added</string>
+    <string name="home_hide_duplicates">Hide duplicate titles</string>
+    <string name="home_hide_duplicates_sub">Show each title once on the home screen, in the first row that has it</string>
+    <string name="home_editor_action_recently_added_add">Add to Recently added</string>
+    <string name="home_editor_action_recently_added_remove">Remove from Recently added</string>
+    <string name="home_editor_action_recently_added_desc">Its newest titles join the Recently added row at the top, even if the row is hidden</string>
+    <string name="home_editor_recently_added_sub">The newest titles from the rows you pick, at the top of the home screen. Press OK on a row below to add it.</string>
+    <string name="home_editor_recently_added_count">%1$d rows picked</string>
     <string name="home_editor_preview">Preview</string>
     <string name="home_editor_preview_hero">Featured</string>
     <string name="home_editor_preview_more">+%d more rows</string>

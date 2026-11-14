@@ -757,6 +757,7 @@ internal fun SettingsToggleRow(
             if (enabled) onToggle()
         },
         modifier = modifier
+            .settingsSearchTarget(title, enabled)
             .fillMaxWidth()
             .heightIn(min = 62.dp)
             .focusProperties { canFocus = enabled }
@@ -839,7 +840,9 @@ internal fun SettingsActionRow(
     leadingIcon: ImageVector? = null,
     @RawRes leadingRawIconRes: Int? = null,
     leadingArtworkSize: Dp = NuvioTheme.spacing.xl,
-    valueColor: Color = NuvioTheme.colors.TextSecondary
+    valueColor: Color = NuvioTheme.colors.TextSecondary,
+    /** False for rows that only point at a setting, such as search results. */
+    searchTargetable: Boolean = true
 ) {
     val contentAlpha = if (enabled) 1f else 0.4f
     var isFocused by remember { mutableStateOf(false) }
@@ -847,6 +850,7 @@ internal fun SettingsActionRow(
     Card(
         onClick = { if (enabled) onClick() },
         modifier = modifier
+            .settingsSearchTarget(title, enabled && searchTargetable)
             .padding(top = NuvioTheme.spacing.xxs, bottom = NuvioTheme.spacing.xxs)
             .fillMaxWidth()
             .focusProperties { canFocus = enabled }

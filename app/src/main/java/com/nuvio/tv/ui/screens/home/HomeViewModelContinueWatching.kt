@@ -3212,7 +3212,7 @@ internal fun continueWatchingOriginalLanguage(
     appLanguage: String,
     isModernLayout: Boolean,
 ): String? {
-    if (!isModernLayout || enrichment.originalTitle == null) return null
+    if (!isModernLayout || enrichment.originalTitle == null || enrichment.showsOriginalTitle == false) return null
     return enrichment.language
         ?.takeIf { it.isNotBlank() && !appLanguage.lowercase().startsWith(it.lowercase()) }
 }

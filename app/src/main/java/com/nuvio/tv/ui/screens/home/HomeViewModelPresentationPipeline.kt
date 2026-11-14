@@ -334,7 +334,8 @@ internal fun HomeViewModel.observeModernHomePresentationPipeline() {
                     showImdbRatings = state.homeImdbRatingsVisibility.showRatings,
                     detailImdbRatingsVisibility = state.detailImdbRatingsVisibility,
                     localeTag = localeTag,
-                    rowStyles = rowStyles
+                    rowStyles = rowStyles,
+                    recentlyAdded = state.recentlyAdded
                 )
             }
             // Compare by row structure only (keys + item counts), not by
@@ -347,6 +348,7 @@ internal fun HomeViewModel.observeModernHomePresentationPipeline() {
                     && old.upcomingItems == new.upcomingItems
                     && old.useLandscapePosters == new.useLandscapePosters
                     && old.rowStyles == new.rowStyles
+                    && old.recentlyAdded === new.recentlyAdded
                     && old.showCatalogTypeSuffix == new.showCatalogTypeSuffix
                     && old.showFullReleaseDate == new.showFullReleaseDate
                     && old.showImdbRatings == new.showImdbRatings

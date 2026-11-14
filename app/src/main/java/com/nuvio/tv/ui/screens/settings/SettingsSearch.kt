@@ -134,7 +134,11 @@ internal fun SettingsSearchContent(
                         SettingsActionRow(
                             title = result.title,
                             subtitle = settingsSearchLocation(result.entry),
-                            onClick = { onOpen(result.entry) }
+                            onClick = {
+                                SettingsFocusTarget.aimAt(result.title)
+                                onOpen(result.entry)
+                            },
+                            searchTargetable = false
                         )
                     }
                 }
@@ -241,3 +245,49 @@ private fun SettingsSearchField(
         }
     }
 }
+
+/**
+ * The setting a search result points at. Its page opens as usual; the row with this title then
+ * takes focus itself, and when it is further down than the screen shows, focus walks down the
+ * page until that row is built and claims it.
+ */
+internal object SettingsFocusTarget {
+    var title by androidx.compose.runtime.mutableStateOf<String?>(null)
+        private set
+    var claimed by androidx.compose.runtime.mutableStateOf(false)
+        private set
+
+    fun aimAt(title: String) {
+        this.title = title
+        claimed = false
+    }
+
+    fun claim() {
+        claimed = true
+    }
+
+    fun clear() {
+        title = null
+        claimed = false
+    }
+}
+
+/** Lets a settings row take focus when a search result points at it (see [SettingsFocusTarget]). */
+@Composable
+internal fun Modifier.settingsSearchTarget(title: String, enabled: Boolean = true): Modifier {
+    val requester = remember { FocusRequester() }
+    val aimed = enabled && SettingsFocusTarget.title == title && !SettingsFocusTarget.claimed
+    androidx.compose.runtime.LaunchedEffect(aimed) {
+        if (!aimed) return@LaunchedEffect
+        repeat(SETTINGS_TARGET_FOCUS_ATTEMPTS) {
+            if (runCatching { requester.requestFocus() }.getOrDefault(false)) {
+                SettingsFocusTarget.claim()
+                return@LaunchedEffect
+            }
+            androidx.compose.runtime.withFrameNanos { }
+        }
+    }
+    return this.focusRequester(requester)
+}
+
+private const val SETTINGS_TARGET_FOCUS_ATTEMPTS = 20

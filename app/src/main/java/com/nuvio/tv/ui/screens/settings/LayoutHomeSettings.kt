@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -186,6 +187,13 @@ internal fun LayoutHomeContentSection(
             }
         )
     }
+    val hideDuplicates by com.nuvio.tv.core.poster.HideDuplicateTitlesPreference.enabled.collectAsState()
+    SettingsToggleRow(
+        title = stringResource(R.string.home_hide_duplicates),
+        subtitle = stringResource(R.string.home_hide_duplicates_sub),
+        checked = hideDuplicates,
+        onToggle = { com.nuvio.tv.core.poster.HideDuplicateTitlesPreference.set(!hideDuplicates) }
+    )
 }
 
 @Composable

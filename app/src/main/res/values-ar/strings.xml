@@ -850,6 +850,8 @@
     <string name="layout_autoplay_trailer">تشغيل الإعلان تلقائياً</string>
     <string name="layout_autoplay_trailer_expanded">تشغيل الإعلان في الخلفية الممتدة</string>
     <string name="layout_autoplay_trailer_sub">تشغيل الإعلان تلقائيًا للمحتوى المحدد عند توفره.</string>
+    <string name="layout_trailer_delay">مهلة الإعلان</string>
+    <string name="layout_trailer_delay_sub">المدة التي تبقى فيها على عنوان قبل تشغيل إعلانه</string>
     <string name="layout_autoplay_trailer_expanded_sub">تشغيل الإعلان داخل الخلفية الممتدة عند توفره.</string>
     <string name="layout_trailer_muted">تشغيل الإعلان بدون صوت</string>
     <string name="layout_trailer_muted_sub_preview">كتم صوت الإعلان أثناء المعاينة التلقائية.</string>
@@ -3139,6 +3141,14 @@
     <string name="home_editor_style_modern_only">أشكال البطاقات تنطبق على تخطيط الرئيسية الحديث.</string>
     <string name="home_editor_collection">مجموعة</string>
     <string name="home_editor_hidden">مخفي</string>
+    <string name="home_recently_added">أضيف حديثًا</string>
+    <string name="home_hide_duplicates">إخفاء العناوين المكررة</string>
+    <string name="home_hide_duplicates_sub">عرض كل عنوان مرة واحدة في الشاشة الرئيسية، في أول صف يحتويه</string>
+    <string name="home_editor_action_recently_added_add">إضافة إلى «أضيف حديثًا»</string>
+    <string name="home_editor_action_recently_added_remove">إزالة من «أضيف حديثًا»</string>
+    <string name="home_editor_action_recently_added_desc">تظهر أحدث عناوينه في صف «أضيف حديثًا» في الأعلى، حتى لو كان الصف مخفيًا</string>
+    <string name="home_editor_recently_added_sub">أحدث العناوين من الصفوف التي تختارها، في أعلى الشاشة الرئيسية. اضغط OK على أي صف بالأسفل لإضافته.</string>
+    <string name="home_editor_recently_added_count">الصفوف المختارة: %1$d</string>
     <string name="home_editor_preview">معاينة</string>
     <string name="home_editor_preview_hero">مميز</string>
     <string name="home_editor_preview_more">+%d صفوف أخرى</string>

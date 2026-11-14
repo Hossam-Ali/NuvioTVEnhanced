@@ -25,6 +25,20 @@ class TmdbSearchLanguageTest {
     }
 }
 
+class TmdbSearchFavouriteLanguageTest {
+    private fun result(title: String, original: String, language: String, overview: String = "عربي") =
+        TmdbMultiSearchResult(id = 1, mediaType = "movie", title = title, originalTitle = original, originalLanguage = language, overview = overview)
+
+    @Test
+    fun `with an Arabic favourite, Arabic titles keep their name and the rest read in English`() {
+        val english = result("Parasite", "기생충", "ko", overview = "A poor family")
+        assertEquals("Parasite", result("الطفيلي", "기생충", "ko").inOwnLanguage("ar", english, favourite = "ar").title)
+        assertEquals("حد أقصى", result("Limit", "حد أقصى", "ar").inOwnLanguage("en", null, favourite = "ar").title)
+        assertEquals("Interstellar", result("بين النجوم", "Interstellar", "en").inOwnLanguage("ar", null, favourite = "ar").title)
+        assertEquals("Parasite", result("Parasite", "기생충", "ko").inOwnLanguage("en", null, favourite = "ar").title)
+    }
+}
+
 class SearchResultScriptTest {
     @Test
     fun `only results named in a non-latin script are renamed`() {

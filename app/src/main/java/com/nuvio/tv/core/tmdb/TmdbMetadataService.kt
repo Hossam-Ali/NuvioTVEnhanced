@@ -7,6 +7,7 @@ import com.nuvio.tv.data.remote.api.TmdbCastMember
 import com.nuvio.tv.data.remote.api.TmdbCollectionPart
 import com.nuvio.tv.data.remote.api.TmdbCreditsResponse
 import com.nuvio.tv.data.remote.api.TmdbCrewMember
+import com.nuvio.tv.data.remote.api.TmdbDetailsResponse
 import com.nuvio.tv.data.remote.api.TmdbDiscoverResult
 import com.nuvio.tv.data.remote.api.TmdbEpisode
 import com.nuvio.tv.data.remote.api.TmdbImage
@@ -52,6 +53,9 @@ class TmdbMetadataService(
     @Inject
     constructor(tmdbApi: TmdbApi) : this(tmdbApi, Dispatchers.IO)
 
+    /** The favourite subtitle language descriptions follow; tests can set their own. */
+    internal var favouriteDescriptionLanguage: () -> String? = { DescriptionLanguage.favourite }
+
     // In-memory caches
     private val enrichmentCache = ConcurrentHashMap<String, TmdbEnrichment>()
     private val episodeCache = ConcurrentHashMap<String, Map<Pair<Int, Int>, TmdbEpisodeEnrichment>>()
@@ -76,7 +80,8 @@ class TmdbMetadataService(
     ): TmdbEnrichment? =
         withContext(ioDispatcher) {
             val normalizedLanguage = normalizeTmdbLanguage(language)
-            val cacheKey = "$tmdbId:${contentType.name}:$normalizedLanguage"
+            val favouriteLanguage = favouriteDescriptionLanguage()
+            val cacheKey = "$tmdbId:${contentType.name}:$normalizedLanguage:${favouriteLanguage.orEmpty()}"
             enrichmentCache[cacheKey]?.let { return@withContext it }
             enrichmentInFlight[cacheKey]?.let { return@withContext it.await() }
 
@@ -329,16 +334,36 @@ class TmdbMetadataService(
 
                 // The overview in the original language, to go with originalTitle on screens that show
                 // it: an Arabic show in an English app reads "حد أقصى" over an Arabic description.
+                // With a favourite subtitle language, only a title made in it reads in its own
+                // language; every other title is described in English (see DescriptionLanguage).
+                val descriptionLanguage = descriptionLanguageFor(language, favouriteLanguage)
+                val detailsByLanguage = HashMap<String, TmdbDetailsResponse?>()
+                suspend fun detailsIn(target: String): TmdbDetailsResponse? = detailsByLanguage.getOrPut(target) {
+                    runCatching {
+                        when (tmdbType) {
+                            "tv" -> tmdbApi.getTvDetails(numericId, TMDB_API_KEY, normalizeTmdbLanguage(target))
+                            else -> tmdbApi.getMovieDetails(numericId, TMDB_API_KEY, normalizeTmdbLanguage(target))
+                        }.body()
+                    }.getOrNull()
+                }
+                suspend fun overviewIn(target: String): String? = detailsIn(target)?.overview?.trim()?.takeIf { it.isNotBlank() }
                 val originalLanguageDescription = language
                     ?.takeIf { originalTitle != null && !normalizedLanguage.startsWith(it) }
-                    ?.let { original ->
-                        runCatching {
-                            when (tmdbType) {
-                                "tv" -> tmdbApi.getTvDetails(numericId, TMDB_API_KEY, normalizeTmdbLanguage(original))
-                                else -> tmdbApi.getMovieDetails(numericId, TMDB_API_KEY, normalizeTmdbLanguage(original))
-                            }.body()?.overview?.trim()?.takeIf { it.isNotBlank() && it != description?.trim() }
-                        }.getOrNull()
-                    }
+                    ?.takeIf { descriptionLanguage == null || it == descriptionLanguage }
+                    ?.let { original -> overviewIn(original)?.takeIf { it != description?.trim() } }
+                val shownDescription = when {
+                    descriptionLanguage == null || normalizedLanguage.startsWith(descriptionLanguage) -> description
+                    descriptionLanguage == language -> originalLanguageDescription ?: description
+                    else -> overviewIn(descriptionLanguage) ?: description
+                }
+                // Titles follow the same rule: a title made in the favourite language keeps its
+                // original name, any other is named in English.
+                val showsOriginalTitle = descriptionLanguage?.let { it == language }
+                val shownLocalizedTitle = if (descriptionLanguage == "en" && !normalizedLanguage.startsWith("en")) {
+                    detailsIn("en")?.let { it.title ?: it.name }?.trim()?.takeIf { it.isNotBlank() } ?: localizedTitle
+                } else {
+                    localizedTitle
+                }
 
                 val castMembers = credits?.cast
                     .orEmpty()
@@ -499,13 +524,14 @@ class TmdbMetadataService(
                 }
 
                 val enrichment = TmdbEnrichment(
-                    localizedTitle = localizedTitle,
-                    description = description,
+                    localizedTitle = shownLocalizedTitle,
+                    description = shownDescription,
                     genres = genres,
                     backdrop = backdrop,
                     logo = logo,
                     originalLanguageLogo = originalLanguageLogo,
                     originalLanguageDescription = originalLanguageDescription,
+                    showsOriginalTitle = showsOriginalTitle,
                     poster = poster,
                     directorMembers = exposedDirectorMembers,
                     writerMembers = exposedWriterMembers,
@@ -636,7 +662,8 @@ class TmdbMetadataService(
      * search result the way the home screen does, without a full enrichment.
      */
     suspend fun fetchOriginalTitle(tmdbId: String, contentType: ContentType): Pair<String, String>? = withContext(ioDispatcher) {
-        val key = "${contentType.toApiString()}:$tmdbId"
+        val favourite = favouriteDescriptionLanguage()
+        val key = "${contentType.toApiString()}:$tmdbId:${favourite.orEmpty()}"
         originalTitleCache[key]?.let { return@withContext it }
         val numericId = tmdbId.toIntOrNull() ?: return@withContext null
         val details = runCatching {
@@ -646,7 +673,13 @@ class TmdbMetadataService(
             }.body()
         }.getOrNull() ?: return@withContext null
         val language = details.originalLanguage?.takeIf { it.isNotBlank() } ?: return@withContext null
-        val title = (details.originalTitle ?: details.originalName)?.trim()?.takeIf { it.isNotBlank() } ?: return@withContext null
+        val original = (details.originalTitle ?: details.originalName)?.trim()?.takeIf { it.isNotBlank() } ?: return@withContext null
+        // With a favourite subtitle language, a title not made in it goes by its English name.
+        val title = if (descriptionLanguageFor(language, favourite).let { it != null && it != language.lowercase() }) {
+            (details.title ?: details.name)?.trim()?.takeIf { it.isNotBlank() } ?: original
+        } else {
+            original
+        }
         (language to title).also { originalTitleCache[key] = it }
     }
 
@@ -661,6 +694,12 @@ class TmdbMetadataService(
         show: TmdbEnrichment?,
     ): Map<Pair<Int, Int>, TmdbEpisodeEnrichment> {
         val local = fetchEpisodeEnrichment(tmdbId, seasonNumbers, language)
+        // Episode text follows the show's description language when there is a favourite.
+        val target = descriptionLanguageFor(show?.language, favouriteDescriptionLanguage())
+        if (target != null) {
+            if (normalizeTmdbLanguage(language).startsWith(target)) return local
+            return preferOriginalEpisodeText(local, fetchEpisodeEnrichment(tmdbId, seasonNumbers, target))
+        }
         val original = show?.originalLanguageDifferentFrom(language) ?: return local
         return preferOriginalEpisodeText(local, fetchEpisodeEnrichment(tmdbId, seasonNumbers, original))
     }
@@ -1779,17 +1818,26 @@ data class TmdbEnrichment(
     /** A logo in the original [language], which reads like [originalTitle]. */
     val originalLanguageLogo: String? = null,
     /** The overview in the original [language], which goes with [originalTitle]. */
-    val originalLanguageDescription: String? = null
+    val originalLanguageDescription: String? = null,
+    /**
+     * With a favourite subtitle language (see [DescriptionLanguage]): true when the title was made
+     * in it and keeps its original name, false when it is named in English ([localizedTitle]).
+     * Null without a favourite, where original titles show whatever their language.
+     */
+    val showsOriginalTitle: Boolean? = null
 ) {
     /**
      * The modern home names a title the way its artwork does: by its original title ("طالع نازل",
-     * not "Up and Down"), whatever the app language.
+     * not "Up and Down"), whatever the app language; with a favourite subtitle language, only a
+     * title made in it, the others by their English name.
      */
-    fun originalTitleOr(fallback: String): String = originalTitle ?: localizedTitle ?: fallback
+    fun originalTitleOr(fallback: String): String =
+        if (showsOriginalTitle == false) localizedTitle ?: originalTitle ?: fallback
+        else originalTitle ?: localizedTitle ?: fallback
 
     /** The show's original language when it has its own title and is not in [appLanguage]. */
     fun originalLanguageDifferentFrom(appLanguage: String): String? {
-        if (originalTitle == null) return null
+        if (originalTitle == null || showsOriginalTitle == false) return null
         return language?.takeIf { it.isNotBlank() && !appLanguage.lowercase().startsWith(it.lowercase()) }
     }
 
@@ -1798,8 +1846,19 @@ data class TmdbEnrichment(
      * language, else [fallback] (the addon's) when it is written in the title's script, else the
      * overview in the app language.
      */
-    fun descriptionForOriginalTitle(fallback: String?): String? {
+    fun descriptionForOriginalTitle(fallback: String?): String? =
+        descriptionForOriginalTitle(fallback, DescriptionLanguage.favourite)
+
+    /**
+     * As above, with a favourite subtitle language: a title made in it keeps the description in
+     * it, and any other title takes the English one fetched for it over an add-on's description
+     * in the title's own language.
+     */
+    internal fun descriptionForOriginalTitle(fallback: String?, favourite: String?): String? {
         originalLanguageDescription?.let { return it }
+        if (favourite != null && descriptionLanguageFor(language, favourite) != favourite) {
+            return description ?: fallback
+        }
         val title = originalTitle
         if (title != null && fallback != null && firstLetterScript(fallback) == firstLetterScript(title)) return fallback
         return description ?: fallback
@@ -1811,7 +1870,7 @@ data class TmdbEnrichment(
      * An addon's logo is assumed English.
      */
     fun logoForOriginalTitle(addonLogo: String?): String? {
-        if (originalTitle == null) return logo ?: addonLogo
+        if (originalTitle == null || showsOriginalTitle == false) return logo ?: addonLogo
         return originalLanguageLogo ?: if (language == "en") logo ?: addonLogo else null
     }
 }

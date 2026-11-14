@@ -54,6 +54,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.border
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -635,7 +638,7 @@ fun AdvancedSettingsContent(
             item(key = "speed_results") {
                 SettingsGroupCard(modifier = Modifier.fillMaxWidth()) {
                     Column(
-                        modifier = Modifier.padding(NuvioTheme.spacing.xs),
+                        modifier = Modifier.readOnlyFocusable().padding(NuvioTheme.spacing.xs),
                         verticalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.lg)
                     ) {
                         Text(
@@ -686,7 +689,7 @@ fun AdvancedSettingsContent(
             item(key = "stream_speed_results") {
                 SettingsGroupCard(modifier = Modifier.fillMaxWidth()) {
                     Column(
-                        modifier = Modifier.padding(NuvioTheme.spacing.xs),
+                        modifier = Modifier.readOnlyFocusable().padding(NuvioTheme.spacing.xs),
                         verticalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.sm)
                     ) {
                         Row(
@@ -859,6 +862,21 @@ fun AdvancedSettingsContent(
             onDismiss = { showSentryDialog = false }
         )
     }
+}
+
+/**
+ * Lets the D-pad stop on read-only results. The list only scrolls by moving focus, so without it
+ * Down from a test jumps over its results to the next setting below them.
+ */
+@Composable
+private fun Modifier.readOnlyFocusable(): Modifier {
+    var isFocused by remember { mutableStateOf(false) }
+    val shape = RoundedCornerShape(10.dp)
+    val ring = NuvioTheme.focusRing.border(NuvioTheme.spacing.xxs, alpha = 0.5f)
+    return this
+        .onFocusChanged { isFocused = it.isFocused }
+        .focusable()
+        .then(if (isFocused) Modifier.border(ring, shape) else Modifier)
 }
 
 @Composable

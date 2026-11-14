@@ -167,6 +167,7 @@ private fun SliderSettingsItemLayout(
     Card(
         onClick = { },
         modifier = modifier
+            .settingsSearchTarget(title, enabled)
             .fillMaxWidth()
             .onFocusChanged { state ->
                 val nowFocused = state.isFocused
@@ -351,6 +352,7 @@ internal fun ColorSettingsItem(
     Card(
         onClick = { if (enabled) onClick() },
         modifier = Modifier
+            .settingsSearchTarget(title, enabled)
             .fillMaxWidth()
             .onFocusChanged { state ->
                 val nowFocused = state.isFocused

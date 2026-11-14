@@ -26,6 +26,7 @@ internal val settingsSearchIndex: List<SettingsSearchEntry> = listOf(
     SettingsSearchEntry(R.string.layout_addon_name, R.string.layout_addon_name_sub, SettingsCategory.LAYOUT, null, null),
     SettingsSearchEntry(R.string.layout_catalog_type, R.string.layout_catalog_type_sub, SettingsCategory.LAYOUT, null, null),
     SettingsSearchEntry(R.string.layout_hide_unreleased, R.string.layout_hide_unreleased_sub, SettingsCategory.LAYOUT, null, null),
+    SettingsSearchEntry(R.string.home_hide_duplicates, R.string.home_hide_duplicates_sub, SettingsCategory.LAYOUT, null, null),
     SettingsSearchEntry(R.string.layout_overall_ratings, null, SettingsCategory.LAYOUT, null, null),
     SettingsSearchEntry(R.string.layout_show_discover, R.string.layout_show_discover_sub, SettingsCategory.LAYOUT, null, null),
     SettingsSearchEntry(R.string.layout_discover_location_action, null, SettingsCategory.LAYOUT, null, null),

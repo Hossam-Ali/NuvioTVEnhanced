@@ -105,10 +105,36 @@ class TmdbSearchSource @Inject constructor(
 /**
  * A result named in its own language, as on the home screen: an English film keeps its English
  * title and overview ([english], from the English search), a title in the app language keeps the
- * localized ones, and any other is named by its original title.
+ * localized ones, and any other is named by its original title. With a [favourite] subtitle
+ * language, only a title made in it keeps its original name; any other reads in English.
  */
-internal fun TmdbMultiSearchResult.inOwnLanguage(appLanguage: String, english: TmdbMultiSearchResult?): TmdbMultiSearchResult {
+internal fun TmdbMultiSearchResult.inOwnLanguage(
+    appLanguage: String,
+    english: TmdbMultiSearchResult?,
+    favourite: String? = com.nuvio.tv.core.tmdb.DescriptionLanguage.favourite,
+): TmdbMultiSearchResult {
     val original = originalLanguage?.lowercase()?.takeIf { it.isNotBlank() } ?: return this
+    if (favourite != null) {
+        return when {
+            original == favourite -> copy(
+                title = originalTitle?.takeIf { it.isNotBlank() } ?: title,
+                name = originalName?.takeIf { it.isNotBlank() } ?: name
+            )
+            english != null -> copy(
+                title = english.title ?: title,
+                name = english.name ?: name,
+                overview = english.overview?.takeIf { it.isNotBlank() } ?: overview
+            )
+            // An English search runs beside any other language; without its result, an English
+            // title's original name is its English one.
+            appLanguage.startsWith("en") -> this
+            original == "en" -> copy(
+                title = originalTitle?.takeIf { it.isNotBlank() } ?: title,
+                name = originalName?.takeIf { it.isNotBlank() } ?: name
+            )
+            else -> this
+        }
+    }
     return when {
         original == appLanguage -> this
         original == "en" && english != null -> copy(
