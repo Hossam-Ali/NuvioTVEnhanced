@@ -56,7 +56,7 @@ internal class PartyChannel(
     suspend fun send(event: String, payload: JsonObject) {
         val current = channel ?: return
         if (current.status.value != RealtimeChannel.Status.SUBSCRIBED) return
-        current.broadcast(event, payload)
+        current.broadcast(event, io.github.jan.supabase.realtime.broadcast.BroadcastPayload.Json(payload))
     }
 
     suspend fun track(payload: JsonObject) {
