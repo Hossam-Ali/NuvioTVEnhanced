@@ -1,0 +1,45 @@
+app/src/main/java/com/nuvio/tv/NuvioApplication.kt
+  s_c7f847fc05dfc2::t_cc46caf20e5f16 108
+app/src/main/java/com/nuvio/tv/core/collections/HomeSetupService.kt
+  s_c7f847fc05dfc2::t_e9d5be87d3b12b 64,111-113
+app/src/main/java/com/nuvio/tv/core/poster/NewestFirstRowsPreferences.kt
+  s_c7f847fc05dfc2::t_e9f8a71d0d2a98 1-38
+app/src/main/java/com/nuvio/tv/ui/screens/home/HomeNewEpisodeBadge.kt
+  s_c7f847fc05dfc2::t_513b3a388fda23 1-54
+app/src/main/java/com/nuvio/tv/ui/screens/home/HomeRecentlyAdded.kt
+  s_c7f847fc05dfc2::t_fbdb8c182973f4 16-18,42-49,52-53,61-62,79-82,84,179-217
+app/src/main/java/com/nuvio/tv/ui/screens/home/HomeViewModel.kt
+  s_c7f847fc05dfc2::t_9b9b957527c4e5 646-650
+app/src/main/java/com/nuvio/tv/ui/screens/home/HomeViewModelCatalogPipeline.kt
+  s_c7f847fc05dfc2::t_2af8f00e6d5495 57-63,226-229,435-436,777-780,795-802,805,807,810
+app/src/main/java/com/nuvio/tv/ui/screens/home/ModernHomeContent.kt
+  s_c7f847fc05dfc2::t_61d3d3d67ad467 28,711-712,1324
+app/src/main/java/com/nuvio/tv/ui/screens/home/ModernHomeRows.kt
+  s_c7f847fc05dfc2::t_68636f4b766b5a 1571-1579
+app/src/main/java/com/nuvio/tv/ui/screens/settings/HomeEditor.kt
+  s_c7f847fc05dfc2::t_18ec200ed402ca 90,111,207,248-249,262-270,290,309,366-368
+app/src/main/res/values-ar/strings.xml
+  s_c7f847fc05dfc2::t_a2b57d191517b7 3145-3148,3153-3154
+app/src/main/res/values/strings.xml
+  s_c7f847fc05dfc2::t_169b4d0162c50d 3582-3585,3590-3591
+app/src/test/java/com/nuvio/tv/ui/screens/home/HomeRowExtrasTest.kt
+  s_c7f847fc05dfc2::t_f1b7a8c369bf00 1-70
+app/src/test/java/com/nuvio/tv/ui/screens/home/RecentlyAddedTest.kt
+  s_c7f847fc05dfc2::t_fbeb7f8a9987d0 48-49,66,74,82,94,107,115-128
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8012bdfa5fc43dade72238d4bf5e14f3a3b66e5b",
+  "prompts": {},
+  "sessions": {
+    "s_c7f847fc05dfc2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "666ff6ef-bff7-49b1-894d-8c6f8060c75e",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  }
+}
