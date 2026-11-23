@@ -44,7 +44,7 @@ import com.nuvio.tv.ui.theme.NuvioTheme
 import com.nuvio.tv.core.search.normalizeSearchText
 
 /** The integrations sub-page a setting lives on. */
-internal enum class SettingsSearchIntegration { Debrid, Tmdb, MdbList, AnimeSkip }
+internal enum class SettingsSearchIntegration { Debrid, Tmdb, MdbList, AnimeSkip, Usenet }
 
 /** A searchable settings row: its title and description, and the page (and section) it is on. */
 internal data class SettingsSearchEntry(

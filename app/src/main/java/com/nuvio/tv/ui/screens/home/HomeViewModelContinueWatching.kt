@@ -8,6 +8,7 @@ import com.nuvio.tv.core.player.PlayerSessionTracker
 import com.nuvio.tv.core.util.isEpisodeReleaseAired
 import com.nuvio.tv.core.util.parseEpisodeReleaseInstant
 import com.nuvio.tv.core.util.selectEpisodeReleaseValue
+import com.nuvio.tv.data.repository.AddonEpisodeAirDate
 import com.nuvio.tv.domain.model.ContinueWatchingSortMode
 import com.nuvio.tv.domain.model.ContentType
 import com.nuvio.tv.domain.model.HomeLayout
@@ -1771,6 +1772,20 @@ private suspend fun HomeViewModel.enrichVisibleContinueWatchingItems(
     true
 }
 
+private val upcomingReleaseComparator = compareBy<ContinueWatchingItem, LocalDate?>(nullsLast()) { item ->
+    parseEpisodeReleaseDate((item as? ContinueWatchingItem.NextUp)?.info?.released)
+}.thenBy(nullsLast()) { item ->
+    parseTimedEpisodeReleaseInstant((item as? ContinueWatchingItem.NextUp)?.info?.released)
+}
+
+private fun parseTimedEpisodeReleaseInstant(raw: String?): Instant? {
+    val value = raw?.trim() ?: return null
+    if (runCatching { DateTimeFormatter.ISO_DATE_TIME.parse(value) }.isFailure) {
+        return runCatching { Instant.parse(value) }.getOrNull()
+    }
+    return parseEpisodeReleaseInstant(value)
+}
+
 internal fun sortContinueWatchingItems(
     items: List<ContinueWatchingItem>,
     mode: ContinueWatchingSortMode,
@@ -1818,26 +1833,7 @@ private fun sortContinueWatchingItemsByMode(
                 }
             }
 
-            val sortedUnreleased = unreleased.sortedWith { a, b ->
-                val dateA = parseEpisodeReleaseDate(
-                    when (a) {
-                        is ContinueWatchingItem.InProgress -> null
-                        is ContinueWatchingItem.NextUp -> a.info.released
-                    }
-                )
-                val dateB = parseEpisodeReleaseDate(
-                    when (b) {
-                        is ContinueWatchingItem.InProgress -> null
-                        is ContinueWatchingItem.NextUp -> b.info.released
-                    }
-                )
-                when {
-                    dateA == null && dateB == null -> 0
-                    dateA == null -> 1 // unknown dates go to the end
-                    dateB == null -> -1
-                    else -> dateA.compareTo(dateB) // ascending: soonest first
-                }
-            }
+            val sortedUnreleased = unreleased.sortedWith(upcomingReleaseComparator)
 
             sortedReleased + sortedUnreleased
         }
@@ -1890,21 +1886,7 @@ internal fun splitUpcomingItems(
     val (upcoming, main) = items.partition { item ->
         item is ContinueWatchingItem.NextUp && !item.info.hasAired
     }
-    // Sort upcoming by release date ascending (soonest first)
-    val sortedUpcoming = upcoming.sortedWith { a, b ->
-        val dateA = parseEpisodeReleaseDate(
-            (a as? ContinueWatchingItem.NextUp)?.info?.released
-        )
-        val dateB = parseEpisodeReleaseDate(
-            (b as? ContinueWatchingItem.NextUp)?.info?.released
-        )
-        when {
-            dateA == null && dateB == null -> 0
-            dateA == null -> 1
-            dateB == null -> -1
-            else -> dateA.compareTo(dateB)
-        }
-    }
+    val sortedUpcoming = upcoming.sortedWith(upcomingReleaseComparator)
     return main to sortedUpcoming
 }
 
@@ -2064,7 +2046,7 @@ private suspend fun HomeViewModel.enrichInProgressItem(
             val tmdbIdInt = tmdbIdStr?.toIntOrNull()
             if (imdbId != null || tmdbIdInt != null) {
                 runCatching {
-                    imdbEpisodeRatingsRepository.getEpisodeRatings(imdbId, tmdbIdInt)
+                    imdbEpisodeRatingsRepository.getEpisodeRatings(imdbId, tmdbIdInt, meta.videos.map { AddonEpisodeAirDate(it.season, it.episode, it.released) })
                 }.getOrNull()?.get(item.progress.season!! to item.progress.episode!!)?.toFloat()
             } else null
         }
@@ -2168,7 +2150,7 @@ private suspend fun HomeViewModel.enrichNextUpItem(
             val tmdbIdInt = tmdbIdStr?.toIntOrNull()
             if (imdbId != null || tmdbIdInt != null) {
                 runCatching {
-                    imdbEpisodeRatingsRepository.getEpisodeRatings(imdbId, tmdbIdInt)
+                    imdbEpisodeRatingsRepository.getEpisodeRatings(imdbId, tmdbIdInt, meta.videos.map { AddonEpisodeAirDate(it.season, it.episode, it.released) })
                 }.getOrNull()?.get(s to e)?.toFloat()
             } else null
         }

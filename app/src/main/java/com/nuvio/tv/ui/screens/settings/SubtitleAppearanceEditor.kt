@@ -148,6 +148,14 @@ private fun SubtitleAppearanceControls(
                     onValueChange = { size -> onUpdate { setSubtitleSize(size) } }
                 )
             }
+            item(key = "customize_ass") {
+                SettingsToggleRow(
+                    title = stringResource(R.string.subtitle_style_customize_ass),
+                    subtitle = stringResource(R.string.subtitle_style_customize_ass_sub),
+                    checked = style.customizeAss,
+                    onToggle = { onUpdate { setSubtitleCustomizeAss(!style.customizeAss) } }
+                )
+            }
             item(key = "bold") {
                 SettingsToggleRow(
                     title = stringResource(R.string.sub_bold),
@@ -229,6 +237,17 @@ private fun SubtitleAppearanceControls(
                         colors = SubtitleSettingsOutlineColors,
                         selectedColor = style.outlineColor,
                         onColorSelected = { color -> onUpdate { setSubtitleOutlineColor(color.toArgb()) } }
+                    )
+                }
+                item(key = "outline_width") {
+                    SliderSettingsItem(
+                        title = stringResource(R.string.sub_outline_width),
+                        value = style.outlineWidth,
+                        valueText = style.outlineWidth.toString(),
+                        minValue = SubtitleStyleSettings.OUTLINE_WIDTH_MIN,
+                        maxValue = SubtitleStyleSettings.OUTLINE_WIDTH_MAX,
+                        step = 1,
+                        onValueChange = { width -> onUpdate { setSubtitleOutlineWidth(width) } }
                     )
                 }
             }

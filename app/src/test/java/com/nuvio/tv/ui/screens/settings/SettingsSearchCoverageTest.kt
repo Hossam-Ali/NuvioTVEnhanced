@@ -24,6 +24,9 @@ class SettingsSearchCoverageTest {
         // The speed test row's label while a test runs; its own title is network_speed_test_run.
         "network_speed_test_running",
         "settings_tmdb_subtitle", "settings_animeskip_subtitle", "layout_open",
+        // A Usenet source's own buttons, only inside that source.
+        "usenet_source_edit", "usenet_priority", "usenet_provider_tune", "usenet_source_enabled",
+        "usenet_move_up", "usenet_move_down", "usenet_source_delete", "usenet_provider_tls", "usenet_fetch_limit",
     )
 
     private val rowCall = Regex(

@@ -1243,7 +1243,6 @@
 
 
     <string name="mdblist_title">MDBList értékelések</string>
-    <string name="mdblist_subtitle">Külső értékelések beállítása a részletek oldalon</string>
     <string name="mdblist_enable_title">MDBList értékelések engedélyezése</string>
     <string name="mdblist_enable_subtitle">Értékelések lekérése külső szolgáltatóktól a részletek képernyőn</string>
     <string name="mdblist_api_key_title">API-kulcs</string>
@@ -1270,7 +1269,6 @@
     <string name="mdblist_show_on_hero_title">MDBList-értékelések megjelenítése a kiemelt tartalmaknál</string>
     <string name="mdblist_show_on_hero_subtitle">MDBList-értékelések megjelenítése a kiemelt tartalmak modern és klasszikus/rácsos nézetében</string>
     <string name="mdblist_rating_order_title">Értékelések sorrendje</string>
-    <string name="mdblist_rating_order_subtitle">Az első három engedélyezett és elérhető értékelés jelenik meg a modern kiemelt nézetben. A nyilakkal módosíthatod a sorrendet.</string>
     <string name="mdblist_dialog_title">MDBList API-kulcs</string>
     <string name="mdblist_dialog_subtitle">Add meg az API-kulcsot a külső értékelések lekéréséhez</string>
     <string name="mdblist_dialog_placeholder">MDBList API-kulcs megadása</string>
@@ -2159,15 +2157,8 @@
     <string name="library_status_dropped">Abbahagyott</string>
     <string name="library_syncing_library">Könyvtár szinkronizálása\u2026</string>
     <string name="library_type_all">Összes</string>
-    <string name="library_type_items">elem</string>
-    <string name="library_empty_local_title">Még nincs %1$s</string>
-    <string name="library_empty_trakt_title">Nincs %1$s ebben a listában</string>
-    <string name="library_empty_local_subtitle">Mentsd el a kedvenc tartalmaidat, hogy itt láthasd őket</string>
-    <string name="library_empty_trakt_subtitle">Használd a + gombot a részletek oldalon, hogy elemeket adj a várólistádhoz vagy más listákhoz</string>
     <string name="library_empty_trakt_not_auth_title">A Trakt nincs csatlakoztatva</string>
     <string name="library_empty_trakt_not_auth_subtitle">Csatlakoztasd a Trakt fiókodat a Beállításokban a Trakt könyvtárad megtekintéséhez</string>
-    <string name="library_empty_simkl_title">Nincs %1$s ebben az állapotban</string>
-    <string name="library_empty_simkl_subtitle">A részletek oldalon a + gombbal állíthatod be a tartalom megtekintési állapotát a Simklben</string>
     <string name="library_empty_simkl_not_auth_title">A Simkl nincs csatlakoztatva</string>
     <string name="library_empty_simkl_not_auth_subtitle">Csatlakoztasd a Simkl fiókodat a Beállításokban a Simkl könyvtárad megtekintéséhez</string>
     <string name="library_list_create_dialog_title">Lista létrehozása</string>
@@ -3370,17 +3361,17 @@ Próbálj meg egy másik forrást. [%1$s]</string>
     <string name="stream_test_no_stream">Még nincs adat korábbi lejátszásról. Indíts el egy videót, hogy tesztelhesd a kiszolgálóját.</string>
     <string name="stream_test_btn_start">Teszt indítása</string>
     <string name="stream_test_btn_measuring_baseline">Alapérték mérése...</string>
-    <string name="stream_test_btn_measuring_parallel1">Párhuzamos mérés (1 MB)...</string>
-    <string name="stream_test_btn_measuring_parallel4">Párhuzamos mérés (4 MB)...</string>
-    <string name="stream_test_btn_measuring_parallel8">Párhuzamos mérés (8 MB)...</string>
-    <string name="stream_test_btn_measuring_parallel16">Párhuzamos mérés (16 MB)...</string>
+    <string name="stream_test_btn_measuring_parallel1">Párhuzamos mérés (1 kapcsolat)...</string>
+    <string name="stream_test_btn_measuring_parallel4">Párhuzamos mérés (4 kapcsolat)...</string>
+    <string name="stream_test_btn_measuring_parallel8">Párhuzamos mérés (8 kapcsolat)...</string>
+    <string name="stream_test_btn_measuring_parallel16">Párhuzamos mérés (16 kapcsolat)...</string>
     <string name="stream_test_btn_run_again">Újrafuttatás</string>
     <string name="stream_test_btn_running">Fut...</string>
     <string name="stream_test_label_baseline">Egyetlen kapcsolat (alapérték)</string>
-    <string name="stream_test_label_parallel1">Párhuzamos kapcsolatok (1 MB-os blokkok)</string>
-    <string name="stream_test_label_parallel4">Párhuzamos kapcsolatok (4 MB-os blokkok)</string>
-    <string name="stream_test_label_parallel8">Párhuzamos kapcsolatok (8 MB-os blokkok)</string>
-    <string name="stream_test_label_parallel16">Párhuzamos kapcsolatok (16 MB-os blokkok)</string>
+    <string name="stream_test_label_parallel1">Párhuzamos kapcsolatok (1 kapcsolat)</string>
+    <string name="stream_test_label_parallel4">Párhuzamos kapcsolatok (4 kapcsolat)</string>
+    <string name="stream_test_label_parallel8">Párhuzamos kapcsolatok (8 kapcsolat)</string>
+    <string name="stream_test_label_parallel16">Párhuzamos kapcsolatok (16 kapcsolat)</string>
     <string name="stream_test_error_prefix">Hiba: %1$s</string>
     <string name="stream_test_video_bitrate">A videó átlagos bitrátája: %1$s</string>
     <string name="stream_test_error_connection">A kapcsolat nem jött létre. A legutóbb lejátszott stream link lejárhatott, vagy nem elérhető. Játszd le újra a videót, majd próbáld meg ismét.</string>
@@ -3413,7 +3404,6 @@ Próbálj meg egy másik forrást. [%1$s]</string>
     <string name="autosync_tolerance_value">%1$d ms</string>
     <string name="autosync_thorough_title">Alaposabb feliratszinkronizálás</string>
     <string name="autosync_thorough_description">A pontosabb egyezésért további feliratokat és beágyazott sávokat is összehasonlít. Kikapcsolva hamarabb alkalmazza az első megbízható egyezést. Csak biztos egyezés esetén módosítja az időzítést.</string>
-    <string name="autosync_toast_no_fit">Sikertelen szinkronizálás: ezek a feliratok nem illeszkednek a videó ezen változatához.</string>
     <string name="autosync_label_synced">Automatikusan időzítve</string>
     <string name="stream_resume_from_time">Folytatás innen: %1$s</string>
     <string name="stream_resume_from_percent">Folytatás innen: %1$d%%</string>

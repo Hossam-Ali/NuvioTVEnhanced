@@ -193,7 +193,7 @@ fun StreamScreen(
     }
 
     fun launchInternalPlayer(playbackInfo: StreamPlaybackInfo) {
-        viewModel.onInternalPlayerLaunching()
+        viewModel.onInternalPlayerLaunching(playbackInfo)
         onStreamSelected(playbackInfo)
     }
 
@@ -262,7 +262,7 @@ fun StreamScreen(
                     viewModel.onEvent(StreamScreenEvent.OnAutoPlayConsumed)
                 }
                 else -> {
-                    viewModel.onInternalPlayerLaunching()
+                    viewModel.onInternalPlayerLaunching(playbackInfo)
                     onAutoPlayResolved(playbackInfo)
                 }
             }
@@ -286,7 +286,7 @@ fun StreamScreen(
             viewModel.onEvent(StreamScreenEvent.OnAutoPlayConsumed)
             return@LaunchedEffect
         }
-        val playbackInfo = viewModel.resolveStreamForPlayback(stream)
+        val playbackInfo = viewModel.resolveAutoPlayStreamForPlayback(stream)
         if (playbackInfo == null) {
             viewModel.onEvent(StreamScreenEvent.OnAutoPlayConsumed)
             return@LaunchedEffect
@@ -357,7 +357,7 @@ fun StreamScreen(
                     viewModel.onEvent(StreamScreenEvent.OnAutoPlayConsumed)
                 }
                 else -> {
-                    viewModel.onInternalPlayerLaunching()
+                    viewModel.onInternalPlayerLaunching(playbackInfo)
                     onAutoPlayResolved(playbackInfo)
                     viewModel.onEvent(StreamScreenEvent.OnAutoPlayConsumed)
                 }
@@ -385,6 +385,7 @@ fun StreamScreen(
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
+            viewModel.abandonPendingUsenetPlayback()
         }
     }
 
@@ -467,6 +468,7 @@ fun StreamScreen(
                     pendingPlaybackInfo = null
                 },
                 onDismiss = {
+                    viewModel.abandonPendingUsenetPlayback()
                     showPlayerChoiceDialog = false
                     pendingPlaybackInfo = null
                 }

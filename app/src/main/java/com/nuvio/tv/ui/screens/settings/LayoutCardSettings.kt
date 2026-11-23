@@ -280,6 +280,14 @@ internal fun LayoutFocusedPosterSection(
                     }
                 )
             }
+            SettingsToggleRow(
+                title = stringResource(R.string.layout_trailer_continue_in_details),
+                subtitle = stringResource(R.string.layout_trailer_continue_in_details_sub),
+                checked = uiState.focusedPosterTrailerContinueInDetails,
+                onToggle = {
+                    onEvent(LayoutSettingsEvent.SetFocusedPosterTrailerContinueInDetails(!uiState.focusedPosterTrailerContinueInDetails))
+                }
+            )
             if (isModern) {
                 ModernTrailerPlaybackTargetRow(
                     selectedTarget = uiState.focusedPosterBackdropTrailerPlaybackTarget,
@@ -632,6 +640,15 @@ private fun ModernTrailerPlaybackTargetRow(
                 selected = selectedTarget == FocusedPosterTrailerPlaybackTarget.HERO_MEDIA,
                 onClick = {
                     onTargetSelected(FocusedPosterTrailerPlaybackTarget.HERO_MEDIA)
+                }
+            )
+        }
+        item(key = "trailer_target_hero_media_no_expand") {
+            SettingsChoiceChip(
+                label = stringResource(R.string.layout_trailer_hero_media_no_expand),
+                selected = selectedTarget == FocusedPosterTrailerPlaybackTarget.HERO_MEDIA_NO_EXPAND,
+                onClick = {
+                    onTargetSelected(FocusedPosterTrailerPlaybackTarget.HERO_MEDIA_NO_EXPAND)
                 }
             )
         }

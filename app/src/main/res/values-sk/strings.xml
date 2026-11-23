@@ -848,7 +848,6 @@
     
     
     <string name="mdblist_title">MDBList hodnotenia</string>
-    <string name="mdblist_subtitle">Nastavenie externých hodnotení zobrazených v detaile</string>
     <string name="mdblist_enable_title">Povoliť MDBList hodnotenia</string>
     <string name="mdblist_enable_subtitle">Získať hodnotenia z externých poskytovateľov v detaile metadát</string>
     <string name="mdblist_api_key_title">API kľúč</string>
@@ -1578,11 +1577,6 @@
     <string name="library_watchlist">Watchlist</string>
     <string name="library_syncing_library">Synchronizuje sa knižnica…</string>
     <string name="library_type_all">Všetko</string>
-    <string name="library_type_items">položiek</string>
-    <string name="library_empty_local_title">Zatiaľ žiadne %1$s</string>
-    <string name="library_empty_trakt_title">Žiadne %1$s v tomto zozname</string>
-    <string name="library_empty_local_subtitle">Začnite si ukladať obľúbené položky a zobrazia sa tu</string>
-    <string name="library_empty_trakt_subtitle">Použite + v detailoch pre pridanie položiek do watchlistu alebo zoznamov</string>
     <string name="library_empty_trakt_not_auth_title">Trakt nie je pripojený</string>
     <string name="library_empty_trakt_not_auth_subtitle">Pripojte svoj účet Trakt v Nastaveniach pre zobrazenie knižnice Trakt</string>
     <string name="cloud_library_connect_action">Pripojiť účet</string>
@@ -2835,17 +2829,17 @@
 <string name="stream_test_no_stream">Nezaznamenalo sa žiadne prehrávanie. Prehrajte video, aby ste mohli spustiť diagnostický test na jeho hostiteľovi.</string>
 <string name="stream_test_btn_start">Spustiť test</string>
 <string name="stream_test_btn_measuring_baseline">Meranie základnej línie….</string>
-<string name="stream_test_btn_measuring_parallel1">Meranie paralelného sťahovania (1 MB časti)….</string>
-<string name="stream_test_btn_measuring_parallel4">Meranie paralelného sťahovania (4 MB časti)….</string>
-<string name="stream_test_btn_measuring_parallel8">Meranie paralelného sťahovania (8 MB časti)….</string>
-<string name="stream_test_btn_measuring_parallel16">Meranie paralelného sťahovania (16 MB časti)….</string>
+<string name="stream_test_btn_measuring_parallel1">Meranie paralelného sťahovania (1 pripojenie)….</string>
+<string name="stream_test_btn_measuring_parallel4">Meranie paralelného sťahovania (4 pripojenia)….</string>
+<string name="stream_test_btn_measuring_parallel8">Meranie paralelného sťahovania (8 pripojení)….</string>
+<string name="stream_test_btn_measuring_parallel16">Meranie paralelného sťahovania (16 pripojení)….</string>
 <string name="stream_test_btn_run_again">Spustiť znova</string>
 <string name="stream_test_btn_running">Prebieha testovanie….</string>
 <string name="stream_test_label_baseline">Štandardné jedno pripojenie (základná línia)</string>
-<string name="stream_test_label_parallel1">Paralelné pripojenie (1 MB časti)</string>
-<string name="stream_test_label_parallel4">Paralelné pripojenie (4 MB časti)</string>
-<string name="stream_test_label_parallel8">Paralelné pripojenie (8 MB časti)</string>
-<string name="stream_test_label_parallel16">Paralelné pripojenie (16 MB časti)</string>
+<string name="stream_test_label_parallel1">Paralelné pripojenie (1 pripojenie)</string>
+<string name="stream_test_label_parallel4">Paralelné pripojenie (4 pripojenia)</string>
+<string name="stream_test_label_parallel8">Paralelné pripojenie (8 pripojení)</string>
+<string name="stream_test_label_parallel16">Paralelné pripojenie (16 pripojení)</string>
 <string name="stream_test_error_prefix">Chyba: %1$s</string>
 <string name="stream_test_video_bitrate">Priemerná dátová rýchlosť videa: %1$s</string>
 <string name="stream_test_error_connection">Pripojenie zlyhalo. Odkaz na naposledy prehrávaný stream vypršal alebo je nedostupný. Prehrajte video znova a skúste to ešte raz.</string>
@@ -2880,8 +2874,6 @@
 <string name="simkl_name">Simkl</string>
 <string name="action_back">Späť</string>
 <string name="library_sort_provider_order">Poradie poskytovateľa</string>
-<string name="library_empty_simkl_title">Žiadne položky pre status: %1$s</string>
-<string name="library_empty_simkl_subtitle">Použite tlačitko + v detailoch na pridanie položiek do statusu Simkl</string>
 <string name="library_empty_simkl_not_auth_title">Simkl nie je pripojený</string>
 <string name="library_empty_simkl_not_auth_subtitle">Pripojte svoj účet Simkl v Nastaveniach, aby ste si moli zobraziť svoju knižnicu Simkl</string>
 <string name="simkl_account_title">Účet Simkl</string>
@@ -3300,7 +3292,6 @@
     <string name="mdblist_show_on_hero_title">Použiť hodnotenia v hlavnom sekčnom paneli</string>
     <string name="mdblist_show_on_hero_subtitle">Zobrazovať hodnotenia MDBList v hlavnom karuseli (moderné aj klasické/mriežka)</string>
     <string name="mdblist_rating_order_title">Poradie hodnotení</string>
-    <string name="mdblist_rating_order_subtitle">Prvé 3 povolené a dostupné hodnotenia sa zobrazia v modernom hlavnom paneli. Zmeňte poradie pomocou šípok.</string>
     <string name="mdblist_library_lists">Zoznamy v knižnici</string>
     <string name="mdblist_library_lists_description">Vyberte, ktoré zoznamy MDBList sa zobrazia v Knižnici a v Správe zoznamov. Zoznam sledovaných sa zobrazuje vždy.</string>
     <string name="mdblist_library_lists_empty">Vo vašom účte MDBList sa zatiaľ nenašli žiadne zoznamy. Synchronizujte pre ich načítanie.</string>
@@ -3504,5 +3495,21 @@
     <string name="web_subtitle_font_added">Pridané do vášho televízora</string>
     <string name="web_subtitle_font_error">Nepodarilo sa importovať toto písmo. Vyberte platný súbor .ttf alebo .otf menší ako 10 MB.</string>
     <string name="web_subtitle_font_connection_error">Chyba pripojenia</string>
-    <string name="autosync_toast_no_fit">Synchronizácia zlyhala: tieto titulky sa nezhodujú s touto verziou videa.</string>
+
+    <string name="about_update_optimize_install_title">Optimalizovať aktualizácie počas inštalácie</string>
+    <string name="about_update_optimize_install_subtitle">Rýchlejšie prvé spustenie po aktualizácii, ale aplikácia sa počas inštalácie na približne minútu zatvorí. Vypnite, ak chcete radšej použiť inštalačnú obrazovku systému Android</string>
+    <string name="sub_outline_width">Šírka obrysu</string>
+    <string name="addon_tracking_consent_title">Doplnok na sledovanie</string>
+    <string name="addon_tracking_consent_body">%1$s je doplnok na sledovanie. Nuvio mu bude odosielať vašu aktivitu: čo prehrávate, pozastavíte a zastavíte s pozíciou prehrávania, čo pridáte do knižnice alebo z nej odstránite, a čo označíte ako pozreté alebo nepozreté. Tieto údaje opúšťajú Nuvio a spracúva ich vývojár doplnku a služba, ku ktorej sa pripája.</string>
+    <string name="addon_tracking_consent_checkbox">Súhlasím so zdieľaním aktivity sledovania a knižnice s týmto doplnkom</string>
+    <string name="addon_tracking_consent_checked">Začiarknuté</string>
+    <string name="addon_tracking_consent_unchecked">Nezačiarknuté</string>
+    <string name="addon_tracking_consent_cancel">Zrušiť</string>
+    <string name="addon_tracking_consent_install">Inštalovať</string>
+    <string name="library_empty_title">Žiadne položky na zobrazenie</string>
+    <string name="library_empty_local_hint">Zmeňte filtre alebo si začnite ukladať obľúbené položky, aby sa tu zobrazili</string>
+    <string name="library_empty_trakt_hint">Zmeňte filtre alebo použite tlačidlo + v detailoch na pridanie položiek do zoznamu sledovaných alebo iných zoznamov</string>
+    <string name="library_empty_simkl_hint">Zmeňte filtre alebo použite tlačidlo + v detailoch na pridanie položiek do stavu v službe Simkl</string>
+    <string name="update_ready_closes">Sťahovanie je dokončené. Aplikácia sa počas inštalácie aktualizácie zatvorí, čo môže trvať minútu. Potom ju opäť otvorte.</string>
+    <string name="update_ready_closes_and_reopens">Sťahovanie je dokončené. Aplikácia sa počas inštalácie aktualizácie zatvorí a sama sa opäť otvorská, čo môže trvať minútu.</string>
 </resources>

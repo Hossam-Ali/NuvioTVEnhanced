@@ -205,16 +205,23 @@ private fun HomeEditor(uiState: LayoutSettingsUiState, onEvent: (LayoutSettingsE
                         isMoving = movingKey == item.key,
                         onFocused = { focusedKey = item.key },
                         onClick = {
-                            if (movingKey == item.key) movingKey = null else actionItem = item
+                            if (movingKey == item.key) {
+                                orderViewModel.confirmMove()
+                                movingKey = null
+                            } else {
+                                actionItem = item
+                            }
                         },
                         onMove = { up ->
-                            if (up && item.canMoveUp) orderViewModel.moveUp(item.key)
-                            if (!up && item.canMoveDown) orderViewModel.moveDown(item.key)
+                            // The move is a draft until it's dropped (OK) or cancelled (Back).
+                            val newIndex = orderViewModel.moveDuringDrag(item.key, if (up) -1 else 1)
                             // Keeps the moved row in view, with a couple of rows above it.
-                            val newIndex = (index + if (up) -1 else 1).coerceIn(0, order.items.lastIndex)
-                            scope.launch { listState.animateScrollToItem(newIndex) }
+                            if (newIndex != null) scope.launch { listState.animateScrollToItem(newIndex) }
                         },
-                        onStopMoving = { movingKey = null }
+                        onStopMoving = {
+                            orderViewModel.confirmMove()
+                            movingKey = null
+                        }
                     )
                 }
             }
@@ -285,7 +292,10 @@ private fun HomeEditor(uiState: LayoutSettingsUiState, onEvent: (LayoutSettingsE
             },
             onOptionSelected = { action ->
                 when (action) {
-                    HomeEditorAction.Move -> movingKey = item.key
+                    HomeEditorAction.Move -> {
+                        orderViewModel.enterMoveMode(item.key)
+                        movingKey = item.key
+                    }
                     HomeEditorAction.ToggleVisible -> orderViewModel.toggleCatalogEnabled(item.disableKey)
                     HomeEditorAction.ToggleRecentlyAdded -> com.nuvio.tv.core.poster.RecentlyAddedPreferences.toggle(item.key)
                     HomeEditorAction.ToggleNewestFirst -> com.nuvio.tv.core.poster.NewestFirstRowsPreferences.toggle(item.key)

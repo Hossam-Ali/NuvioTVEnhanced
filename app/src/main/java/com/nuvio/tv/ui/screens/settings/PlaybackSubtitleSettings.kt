@@ -71,6 +71,7 @@ internal fun PlaybackSubtitlesSection(
             style.preferredLanguage
         }
     )
+    audioSyncSettingsItems(enabled = enabled)
 
     SettingsToggleRow(
         title = stringResource(R.string.sub_use_forced_subtitles),

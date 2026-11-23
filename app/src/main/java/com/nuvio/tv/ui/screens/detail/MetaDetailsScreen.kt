@@ -67,6 +67,10 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.draw.drawBehind
+import com.nuvio.tv.ui.components.BackgroundTrailerRequestEffect
+import com.nuvio.tv.core.player.LocalBackgroundTrailerController
+import com.nuvio.tv.core.player.BackgroundTrailerRequest
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.runtime.State
@@ -101,6 +105,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListPrefetchStrategy
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.layout.LazyLayoutCacheWindow
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.ui.draw.clip
 import androidx.tv.material3.Border
@@ -303,6 +308,22 @@ fun MetaDetailsScreen(
         }
     }
 
+    val ratingViewModel: RatingViewModel = hiltViewModel()
+    val ratingContext = LocalContext.current
+    LaunchedEffect(ratingViewModel) {
+        ratingViewModel.results.collect { result ->
+            val message = when {
+                !result.saved -> ratingContext.getString(
+                    R.string.rating_failed,
+                    result.provider?.let { ratingContext.getString(trackingProviderNameRes(it)) }.orEmpty()
+                )
+                result.removed -> ratingContext.getString(R.string.rating_removed)
+                else -> ratingContext.getString(R.string.rating_saved)
+            }
+            viewModel.onEvent(MetaDetailsEvent.OnShowMessage(message, isError = !result.saved))
+        }
+    }
+
     LaunchedEffect(uiState.userMessage) {
         if (uiState.userMessage != null) {
             delay(2500)
@@ -336,10 +357,16 @@ fun MetaDetailsScreen(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
+    val rootBackgroundTrailerController = LocalBackgroundTrailerController.current
+    val rootBackgroundColor = NuvioTheme.colors.Background
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(NuvioTheme.colors.Background)
+            .drawBehind {
+                val ownTrailerRendering = (uiState.isTrailerPlaying || uiState.isBackgroundTrailerPlaying) &&
+                    rootBackgroundTrailerController?.isRendering(uiState.trailerUrl) == true
+                if (!ownTrailerRendering) drawRect(rootBackgroundColor)
+            }
             .onPreviewKeyEvent { keyEvent ->
                 if (currentIsTrailerPlaying) {
                     if (currentShowTrailerControls) {
@@ -425,6 +452,33 @@ fun MetaDetailsScreen(
     ) {
         when {
             uiState.isLoading -> {
+                val loadingTrailerUrl = uiState.trailerUrl?.takeIf {
+                    uiState.isTrailerPlaying || uiState.isBackgroundTrailerPlaying
+                }
+                if (rootBackgroundTrailerController != null) {
+                    val loadingTrailerOwner = remember { "details_loading_${System.identityHashCode(Any())}" }
+                    BackgroundTrailerRequestEffect(
+                        controller = rootBackgroundTrailerController,
+                        owner = loadingTrailerOwner,
+                        request = loadingTrailerUrl?.let { url ->
+                            BackgroundTrailerRequest(
+                                videoUrl = url,
+                                audioUrl = uiState.trailerAudioUrl,
+                                isPaused = isTrailerPaused,
+                                cropToFill = uiState.isBackgroundTrailerPlaying,
+                                autoCropLetterbox = uiState.isBackgroundTrailerPlaying,
+                                onEnded = { viewModel.onEvent(MetaDetailsEvent.OnTrailerEnded) }
+                            )
+                        }
+                    )
+                }
+                val loadingTrailerRendering = loadingTrailerUrl != null &&
+                    rootBackgroundTrailerController?.isRendering(loadingTrailerUrl) == true
+                val loadingBackdropAlpha by animateFloatAsState(
+                    targetValue = if (loadingTrailerRendering) 0f else 1f,
+                    animationSpec = tween(durationMillis = 800),
+                    label = "loadingBackdropFade"
+                )
                 if (playOnLoad && !playOnLoadReturnContentRevealed) {
                     PlaybackHandoffBackdrop(backdropUrl = heroBackdropUrl)
                 } else {
@@ -448,12 +502,25 @@ fun MetaDetailsScreen(
                         AsyncImage(
                             model = loadingBackdropRequest,
                             contentDescription = null,
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .graphicsLayer { alpha = loadingBackdropAlpha },
                             contentScale = ContentScale.Crop,
                             alignment = Alignment.TopEnd
                         )
+                    } else if (loadingTrailerUrl != null) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .graphicsLayer { alpha = loadingBackdropAlpha }
+                                .background(NuvioTheme.colors.Background)
+                        )
                     }
-                    MetaDetailsSkeleton(backdropAware = !heroBackdropUrl.isNullOrBlank())
+                    if (!(uiState.isTrailerPlaying && loadingTrailerRendering)) {
+                        MetaDetailsSkeleton(
+                            backdropAware = !heroBackdropUrl.isNullOrBlank() || loadingTrailerUrl != null
+                        )
+                    }
                 }
             }
             uiState.error != null -> {
