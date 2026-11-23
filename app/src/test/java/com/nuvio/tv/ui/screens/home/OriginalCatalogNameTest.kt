@@ -3,7 +3,9 @@ package com.nuvio.tv.ui.screens.home
 import com.nuvio.tv.core.tmdb.OriginalTitle
 import com.nuvio.tv.ui.screens.search.renamedToOriginalTitle
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class OriginalCatalogNameTest {
@@ -31,7 +33,7 @@ class OriginalCatalogNameTest {
 
     @Test
     fun `a name in Latin letters is never changed`() {
-        assertNull(originalCatalogName("Squid Game", OriginalTitle("ko", "오징어 게임")))
+        assertNull(originalCatalogName("Squid Game", OriginalTitle("ko", "오징어 게임"), favourite = null))
     }
 
     @Test
@@ -47,5 +49,33 @@ class OriginalCatalogNameTest {
     @Test
     fun `a blank original title never replaces the add-on name`() {
         assertNull(renamedToOriginalTitle("أم أخرى", " "))
+    }
+
+    @Test
+    fun `an Arabic film named in English takes its Arabic title when Arabic is the favourite`() {
+        // ArabCinemeta names الكلام على إيه "What is the matter?".
+        assertEquals(
+            "الكلام على إيه",
+            originalCatalogName("What is the matter?", OriginalTitle("ar", "الكلام على إيه"), favourite = "ar")
+        )
+    }
+
+    @Test
+    fun `without that favourite a Latin name stays`() {
+        assertNull(originalCatalogName("What is the matter?", OriginalTitle("ar", "الكلام على إيه"), favourite = null))
+        assertNull(originalCatalogName("What is the matter?", OriginalTitle("ar", "الكلام على إيه"), favourite = "en"))
+    }
+
+    @Test
+    fun `a title from another language keeps its Latin name even with a favourite`() {
+        assertNull(originalCatalogName("Squid Game", OriginalTitle("ko", "Squid Game"), favourite = "ar"))
+        assertNull(originalCatalogName("Squid Game", OriginalTitle("ko", "오징어 게임"), favourite = "ar"))
+    }
+
+    @Test
+    fun `Latin names are looked up only with a favourite language`() {
+        assertTrue(needsOriginalTitleLookup("كروس", favourite = null))
+        assertFalse(needsOriginalTitleLookup("Squid Game", favourite = null))
+        assertTrue(needsOriginalTitleLookup("What is the matter?", favourite = "ar"))
     }
 }
