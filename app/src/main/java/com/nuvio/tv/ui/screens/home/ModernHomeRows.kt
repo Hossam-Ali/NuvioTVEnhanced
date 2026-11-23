@@ -1304,9 +1304,12 @@ private fun ModernCarouselCard(
     // Use the image model directly — Coil's memory cache handles repeated
     // requests efficiently without needing scroll-aware request swapping.
     val hasImage = !imageUrl.isNullOrBlank()
-    // Backdrop cards name the title in text over a fade; the title logo belongs to the hero.
+    // Wide cards name the title under the picture (see [titleUnderCard]); an expanded card, which
+    // has no label under it, names it in text over a fade. The title logo belongs to the hero.
+    val isWideCatalogCard = useLandscapeOverlayTreatment && !isCollectionFolder
+    val showTitleUnderCard = titleUnderCard(showLabels, isWideCatalogCard, isBackdropExpanded, item.title)
     val hasLandscapeTitle =
-        (useLandscapeOverlayTreatment || isBackdropExpanded) &&
+        isBackdropExpanded &&
             !isCollectionFolder &&
             !(useLandscapeAsExpanded && !trailerFirstFrameRendered) &&
             (effectiveIgnoreLandscapePoster || isBackdropExpanded || item.metaPreview?.landscapePoster.isNullOrBlank() || customPosterLoadFailed)
@@ -1579,7 +1582,7 @@ private fun ModernCarouselCard(
             }
         }
 
-        if (showLabels && !isBackdropExpanded && item.title.isNotBlank()) {
+        if (showTitleUnderCard) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -1684,3 +1687,11 @@ private const val ROW_ART_PREFETCH_COUNT = 24
 /** How many of a row's pictures are downloaded ahead of scrolling. */
 private const val ROW_IMAGE_PREFETCH_COUNT = 12
 private const val PREFETCH_DECODE_SIZE_PX = 64
+
+/**
+ * Whether a card names its title under the picture: always for wide catalog cards, whose
+ * pictures (often an add-on's own landscape art) may or may not have the name printed on them,
+ * and with the poster-labels setting for the rest. Not while the card is expanded.
+ */
+internal fun titleUnderCard(showLabels: Boolean, wideCard: Boolean, expanded: Boolean, title: String): Boolean =
+    (showLabels || wideCard) && !expanded && title.isNotBlank()
