@@ -31,8 +31,8 @@ translates the video's own subtitles with their original timing, and when a vide
 it listens to the audio and writes them. No searching, no syncing, no wrong-version files.
 
 - **The right subtitle, picked for you.** The video's own subtitle in your language is shown as it
-  is. Otherwise its English subtitle is translated (that's what AI translates best), then any other
-  language it has, then add-on subtitles.
+  is. Otherwise its English subtitle is translated (that's what AI translates best), then an
+  English add-on subtitle, then any other language the video has.
 - **Subtitles made from the audio.** A video with no subtitles at all gets them anyway: the audio is
   read a few minutes ahead, transcribed and translated by AI in one step, and shown in time. They
   catch up within seconds after a seek, and "AI from audio" can be picked for any video.

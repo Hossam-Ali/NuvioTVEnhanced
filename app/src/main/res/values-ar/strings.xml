@@ -3522,7 +3522,7 @@
     <string name="subtitle_ai_translation_target_subtitle">الترجمات المكتوبة أصلًا بهذه اللغة تُعرض كما هي.</string>
     <string name="subtitle_ai_translation_target_preferred">اللغة المفضلة (%1$s)</string>
     <string name="subtitle_ai_translation_prefer_embedded">ترجمة تلقائية بالذكاء الاصطناعي</string>
-    <string name="subtitle_ai_translation_prefer_embedded_subtitle">يختار الترجمة لك: ترجمة الفيديو المدمجة بلغتك، وإلا يترجم ترجمته الإنجليزية (ثم أي لغة أخرى) بالذكاء الاصطناعي، وإلا ترجمات الإضافات.</string>
+    <string name="subtitle_ai_translation_prefer_embedded_subtitle">يختار الترجمة لك: ترجمة الفيديو المدمجة بلغتك، وإلا يترجم ترجمته الإنجليزية بالذكاء الاصطناعي، وإلا ترجمة إنجليزية من الإضافات، وإلا أي لغة أخرى.</string>
     <string name="subtitle_ai_translation_spending">تكلفة الترجمة</string>
     <string name="subtitle_ai_translation_spending_month">%1$s هذا الشهر · %2$d سطر</string>
     <string name="subtitle_ai_translation_spending_subtitle">حسب OpenRouter. هذا الفيديو: %1$s مقابل %2$d سطر.</string>
@@ -3538,6 +3538,7 @@
     <string name="subtitle_ai_translation_error_model">ترجمة الذكاء الاصطناعي: النموذج %1$s غير موجود</string>
     <string name="subtitle_ai_translation_error_rate">ترجمة الذكاء الاصطناعي: تم بلوغ حد الطلبات لدى %1$s، ستتم إعادة المحاولة</string>
     <string name="subtitle_ai_translation_error_generic">ترجمة الذكاء الاصطناعي: فشلت الترجمة، يتم عرض النص الأصلي مؤقتًا</string>
+    <string name="subtitle_ai_translation_addon_english_source">ترجمة الذكاء الاصطناعي: لا توجد ترجمة إنجليزية في الفيديو، تتم ترجمة الترجمة الإنجليزية القادمة من %1$s</string>
     <string name="subtitle_ai_translation_addon_source">ترجمة الذكاء الاصطناعي: لا توجد ترجمة مدمجة، تتم ترجمة الترجمة القادمة من %1$s</string>
     <string name="subtitle_ai_transcription_title">إنشاء ترجمة من الصوت</string>
     <string name="subtitle_ai_transcription_subtitle">عندما لا يحتوي الفيديو على أي ترجمة، يستمع الذكاء الاصطناعي إلى الصوت ويكتب الترجمة بلغتك. يتطلب مفتاح OpenRouter (حوالي 0.05 دولار للساعة).</string>

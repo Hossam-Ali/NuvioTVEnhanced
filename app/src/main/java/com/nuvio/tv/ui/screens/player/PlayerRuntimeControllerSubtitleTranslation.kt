@@ -145,18 +145,39 @@ internal val TranslationSource.language: String?
 
 internal fun TranslationSource.isEnglish(): Boolean = PlayerSubtitleUtils.matchesLanguageCode(language, "en")
 
+/** The add-ons' first full English subtitle, when English isn't [targetLanguage] itself. */
+internal fun addonEnglishSubtitle(
+    subtitles: List<com.nuvio.tv.domain.model.Subtitle>,
+    targetLanguage: String,
+): com.nuvio.tv.domain.model.Subtitle? =
+    addonSubtitleForTranslation(subtitles, targetLanguage)
+        ?.takeIf { PlayerSubtitleUtils.matchesLanguageCode(it.lang, "en") }
+
+/** The video's track to translate gives way to an English add-on subtitle unless it is English. */
+private fun englishAddonInsteadOf(
+    track: TrackInfo,
+    addonSubtitles: List<com.nuvio.tv.domain.model.Subtitle>,
+    targetLanguage: String,
+): com.nuvio.tv.domain.model.Subtitle? =
+    if (PlayerSubtitleUtils.matchesLanguageCode(track.language, "en")) null
+    else addonEnglishSubtitle(addonSubtitles, targetLanguage)
+
 /**
- * The subtitle to translate: the video's own tracks first, since they are always in sync (English,
- * then the spoken language, then any other), then add-on subtitles in the same order.
+ * The subtitle to translate: the video's own English track, which is always in sync, then an
+ * English add-on subtitle, then the video's other tracks (the spoken language first), then any
+ * other add-on subtitle.
  */
 internal fun subtitleSourceForTranslation(
     subtitleTracks: List<TrackInfo>,
     addonSubtitles: List<com.nuvio.tv.domain.model.Subtitle>,
     targetLanguage: String,
     audioLanguage: String? = null,
-): TranslationSource? =
-    embeddedSubtitleForTranslation(subtitleTracks, targetLanguage, audioLanguage)?.let(TranslationSource::Embedded)
-        ?: addonSubtitleForTranslation(addonSubtitles, targetLanguage, audioLanguage)?.let(TranslationSource::Addon)
+): TranslationSource? {
+    val track = embeddedSubtitleForTranslation(subtitleTracks, targetLanguage, audioLanguage)
+        ?: return addonSubtitleForTranslation(addonSubtitles, targetLanguage, audioLanguage)?.let(TranslationSource::Addon)
+    return englishAddonInsteadOf(track, addonSubtitles, targetLanguage)?.let(TranslationSource::Addon)
+        ?: TranslationSource.Embedded(track)
+}
 
 /** What "always translate with AI" shows. */
 internal sealed interface AutoSubtitleChoice {
@@ -178,24 +199,29 @@ internal fun addonSubtitleInTarget(
 ): com.nuvio.tv.domain.model.Subtitle? =
     subtitles.firstOrNull { !addonSubtitleIsForced(it) && PlayerSubtitleUtils.matchesLanguageCode(it.lang, targetLanguage) }
 
-/** True when the choice depends on the add-on list, because the video has no track to use. */
+/**
+ * True when the choice depends on the add-on list: the video's track to translate isn't English,
+ * or it has no track to use and the audio can't be read.
+ */
 internal fun autoSubtitleChoiceNeedsAddons(
     subtitleTracks: List<TrackInfo>,
     targetLanguage: String,
     canTranscribe: Boolean = true,
-): Boolean =
-    !canTranscribe &&
-        embeddedSubtitleInTarget(subtitleTracks, targetLanguage) == null &&
-        embeddedSubtitleForTranslation(subtitleTracks, targetLanguage) == null
+): Boolean {
+    if (embeddedSubtitleInTarget(subtitleTracks, targetLanguage) != null) return false
+    val track = embeddedSubtitleForTranslation(subtitleTracks, targetLanguage) ?: return !canTranscribe
+    return !PlayerSubtitleUtils.matchesLanguageCode(track.language, "en")
+}
 
 /**
  * The order "always translate with AI" follows:
  * 1. Audio already in the target language: no subtitles at all.
  * 2. The video's own subtitle in the target language, shown as it is.
  * 3. The video's English subtitle, translated (AI translates English best).
- * 4. The video's subtitle in any other language, translated.
- * 5. No subtitle in the video: subtitles made from the audio, when [canTranscribe].
- * Add-on subtitles are used only when the audio can't be read (live or adaptive streams).
+ * 4. The video only has subtitles in other languages: an add-on's English subtitle, translated.
+ * 5. The video's subtitle in any other language, translated.
+ * 6. No subtitle in the video: subtitles made from the audio, when [canTranscribe].
+ * Other add-on subtitles are used only when the audio can't be read (live or adaptive streams).
  */
 internal fun autoSubtitleChoice(
     subtitleTracks: List<TrackInfo>,
@@ -207,7 +233,10 @@ internal fun autoSubtitleChoice(
 ): AutoSubtitleChoice? {
     if (audioInTargetLanguage) return null
     embeddedSubtitleInTarget(subtitleTracks, targetLanguage)?.let { return AutoSubtitleChoice.Embedded(it) }
-    embeddedSubtitleForTranslation(subtitleTracks, targetLanguage, audioLanguage)?.let { return AutoSubtitleChoice.Embedded(it) }
+    embeddedSubtitleForTranslation(subtitleTracks, targetLanguage, audioLanguage)?.let { track ->
+        return englishAddonInsteadOf(track, addonSubtitles, targetLanguage)?.let(AutoSubtitleChoice::Addon)
+            ?: AutoSubtitleChoice.Embedded(track)
+    }
     if (canTranscribe) return AutoSubtitleChoice.Transcribe
     addonSubtitleInTarget(addonSubtitles, targetLanguage)?.let { return AutoSubtitleChoice.Addon(it) }
     addonSubtitleForTranslation(addonSubtitles, targetLanguage, audioLanguage)?.let { return AutoSubtitleChoice.Addon(it) }
@@ -259,7 +288,7 @@ internal enum class RememberedSubtitleDecision { Keep, Wait, Replace }
 /**
  * Whether a subtitle remembered from an earlier episode or movie gives way to the automatic choice
  * (see [autoSubtitleChoice] and [rememberedSubtitleMatchesChoice]). Until the video's tracks (and,
- * when it has none to use, the add-ons) are known, the restore waits, so a subtitle is not shown
+ * when the choice depends on them, the add-ons) are known, the restore waits, so a subtitle is not shown
  * and then swapped.
  */
 internal fun PlayerRuntimeController.rememberedSubtitleDecision(
@@ -284,10 +313,10 @@ internal fun PlayerRuntimeController.rememberedSubtitleDecision(
 
 /**
  * With "always translate with AI" on, shows the subtitle [autoSubtitleChoice] picks: the video's
- * own track in the target language as it is, else a translated one, else add-ons, else subtitles
- * made from the audio.
+ * own track in the target language as it is, else a translated one (English first, from the video
+ * or an add-on), else subtitles made from the audio, else add-ons.
  * Returns true when it handled the selection, which includes waiting for the add-on list when the
- * video has no track to use.
+ * choice depends on it.
  */
 internal fun PlayerRuntimeController.tryAutoSelectEmbeddedSubtitleForTranslation(
     subtitleTracks: List<TrackInfo>,
@@ -337,15 +366,21 @@ internal fun PlayerRuntimeController.tryAutoSelectEmbeddedSubtitleForTranslation
         is AutoSubtitleChoice.Addon -> {
             val addonSource = choice.subtitle
             autoSubtitleSelected = true
-            if (state.selectedAddonSubtitle?.url != addonSource.url) {
+            if (!addonSubtitleStillFits(state.selectedAddonSubtitle, addonSource)) {
                 Log.d(PlayerRuntimeController.TAG, "AUTO_SUB pick addon ${addonSource.lang} from ${addonSource.addonName} for AI translation")
                 selectAddonSubtitle(addonSource)
+                maybeRunAutomaticSubtitleSync(addonSource) // AutoSync hook
             }
-            // The notice explains add-on subtitles, which the video has no track to replace.
+            // The notice explains why an add-on subtitle is used.
             val translated = !PlayerSubtitleUtils.matchesLanguageCode(addonSource.lang, targetLanguage)
             if (firstNotice && translated) {
                 subtitleTranslationNoSourceNoticeStreamUrl = currentStreamUrl
-                showSubtitleTranslationNotice(context.getString(R.string.subtitle_ai_translation_addon_source, addonSource.addonName))
+                val notice = if (embeddedSubtitleForTranslation(subtitleTracks, targetLanguage) != null) {
+                    R.string.subtitle_ai_translation_addon_english_source
+                } else {
+                    R.string.subtitle_ai_translation_addon_source
+                }
+                showSubtitleTranslationNotice(context.getString(notice, addonSource.addonName))
             }
             return true
         }
@@ -360,6 +395,19 @@ internal fun PlayerRuntimeController.tryAutoSelectEmbeddedSubtitleForTranslation
             return true
         }
     }
+}
+
+/**
+ * Whether the add-on subtitle being shown is kept when [choice] is picked again: the same one, or
+ * another in the same language, which AutoSync switches to when it fits the video's timing better.
+ */
+internal fun addonSubtitleStillFits(
+    shown: com.nuvio.tv.domain.model.Subtitle?,
+    choice: com.nuvio.tv.domain.model.Subtitle,
+): Boolean {
+    if (shown == null) return false
+    return shown.url == choice.url ||
+        (!addonSubtitleIsForced(shown) && PlayerSubtitleUtils.matchesLanguageCode(shown.lang, choice.lang))
 }
 
 /**

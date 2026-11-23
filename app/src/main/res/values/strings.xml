@@ -3607,7 +3607,7 @@
     <string name="subtitle_ai_translation_target_subtitle">Tracks already in this language are shown as they are.</string>
     <string name="subtitle_ai_translation_target_preferred">Preferred language (%1$s)</string>
     <string name="subtitle_ai_translation_prefer_embedded">Automatic AI subtitles</string>
-    <string name="subtitle_ai_translation_prefer_embedded_subtitle">Picks subtitles for you: the video\'s own subtitle in your language, else its English (then any other) subtitle translated with AI, else add-on subtitles.</string>
+    <string name="subtitle_ai_translation_prefer_embedded_subtitle">Picks subtitles for you: the video\'s own subtitle in your language, else its English subtitle translated with AI, else an English add-on subtitle, else any other.</string>
     <string name="subtitle_ai_translation_spending">Translation spending</string>
     <string name="subtitle_ai_translation_spending_month">%1$s this month · %2$d lines</string>
     <string name="subtitle_ai_translation_spending_subtitle">Reported by OpenRouter. This video: %1$s for %2$d lines.</string>
@@ -3623,6 +3623,7 @@
     <string name="subtitle_ai_translation_error_model">AI subtitles: model %1$s was not found</string>
     <string name="subtitle_ai_translation_error_rate">AI subtitles: %1$s rate limit reached, retrying</string>
     <string name="subtitle_ai_translation_error_generic">AI subtitles: translation failed, showing the original for now</string>
+    <string name="subtitle_ai_translation_addon_english_source">AI subtitles: no English subtitle in the video, translating the English one from %1$s</string>
     <string name="subtitle_ai_translation_addon_source">AI subtitles: no built-in subtitles, translating the subtitle from %1$s</string>
     <string name="subtitle_ai_transcription_title">Make subtitles from the audio</string>
     <string name="subtitle_ai_transcription_subtitle">When a video has no subtitles at all, AI listens to its audio and writes subtitles in your language. Needs an OpenRouter key (about $0.05 per hour).</string>

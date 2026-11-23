@@ -36,9 +36,16 @@ class SubtitleTranslationSourceTest {
     }
 
     @Test
-    fun `the video's own track in another language comes before an english add-on`() {
-        val source = subtitleSourceForTranslation(listOf(track(7, "fre")), listOf(sub("en", "eng")), "ar")
-        assertEquals(7, (source as TranslationSource.Embedded).track.index)
+    fun `an english add-on comes before the video's own track in another language`() {
+        val source = subtitleSourceForTranslation(listOf(track(7, "fre")), listOf(sub("de", "ger"), sub("en", "eng")), "ar")
+        assertEquals("en", (source as TranslationSource.Addon).subtitle.id)
+    }
+
+    @Test
+    fun `a forced english add-on doesn't replace the video's own track`() {
+        val subs = listOf(sub("en-forced", "eng"))
+        assertEquals(7, (subtitleSourceForTranslation(listOf(track(7, "fre")), subs, "ar") as TranslationSource.Embedded).track.index)
+        assertEquals(7, (choice(listOf(track(7, "fre")), subs) as AutoSubtitleChoice.Embedded).track.index)
     }
 
     @Test
@@ -71,9 +78,11 @@ class SubtitleTranslationSourceTest {
     }
 
     @Test
-    fun `without an arabic track, the video's english then other tracks are translated`() {
+    fun `without an arabic track, the video's english, then an add-on's english, then other tracks are translated`() {
         assertEquals(3, (choice(listOf(track(2, "fre"), track(3, "eng")), listOf(sub("ar", "ara"))) as AutoSubtitleChoice.Embedded).track.index)
-        assertEquals(2, (choice(listOf(track(2, "fre")), listOf(sub("ar", "ara"), sub("en", "eng"))) as AutoSubtitleChoice.Embedded).track.index)
+        assertEquals(3, (choice(listOf(track(2, "fre"), track(3, "eng")), listOf(sub("en", "eng"))) as AutoSubtitleChoice.Embedded).track.index)
+        assertEquals("en", (choice(listOf(track(2, "fre")), listOf(sub("ar", "ara"), sub("en", "eng"))) as AutoSubtitleChoice.Addon).subtitle.id)
+        assertEquals(2, (choice(listOf(track(2, "fre")), listOf(sub("ar", "ara"), sub("de", "ger"))) as AutoSubtitleChoice.Embedded).track.index)
     }
 
     @Test
@@ -101,7 +110,30 @@ class SubtitleTranslationSourceTest {
     }
 
     @Test
-    fun `the add-on list only matters when the video has no track and the audio can't be read`() {
+    fun `with english as the target language, an english add-on isn't translated`() {
+        val result = autoSubtitleChoice(listOf(track(2, "fre")), listOf(sub("en", "eng")), "en")
+        assertEquals(2, (result as AutoSubtitleChoice.Embedded).track.index)
+    }
+
+    @Test
+    fun `an add-on subtitle AutoSync switched to is kept`() {
+        assertTrue(addonSubtitleStillFits(sub("en2", "en"), sub("en", "eng")))
+        assertTrue(addonSubtitleStillFits(sub("x", ""), sub("x", "")))
+        assertFalse(addonSubtitleStillFits(sub("ar", "ara"), sub("en", "eng")))
+        assertFalse(addonSubtitleStillFits(sub("en-forced", "eng"), sub("en", "eng")))
+        assertFalse(addonSubtitleStillFits(null, sub("en", "eng")))
+    }
+
+    @Test
+    fun `the add-on list matters when the video's track isn't english`() {
+        assertTrue(autoSubtitleChoiceNeedsAddons(listOf(track(2, "fre")), "ar"))
+        assertTrue(autoSubtitleChoiceNeedsAddons(listOf(track(2, "fre")), "ar", canTranscribe = false))
+        assertFalse(autoSubtitleChoiceNeedsAddons(listOf(track(2, "fre"), track(3, "eng")), "ar"))
+        assertFalse(autoSubtitleChoiceNeedsAddons(listOf(track(2, "fre"), track(3, "ara")), "ar"))
+    }
+
+    @Test
+    fun `without a track to use, the add-on list matters only when the audio can't be read`() {
         assertFalse(autoSubtitleChoiceNeedsAddons(emptyList(), "ar"))
         assertTrue(autoSubtitleChoiceNeedsAddons(emptyList(), "ar", canTranscribe = false))
         assertTrue(autoSubtitleChoiceNeedsAddons(listOf(track(1, "eng", codec = "hdmv/pgs")), "ar", canTranscribe = false))
