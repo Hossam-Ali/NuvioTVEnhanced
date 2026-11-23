@@ -1948,7 +1948,7 @@ fun PlayerRuntimeController.onEvent(
             endDetectionArmed = false
             mpvEofSeenClear = false
             exoEndOverrunHandled = false
-            hasRetriedCurrentStreamAfter416 = false
+            resetStreamRecoveryMarkers()
             playbackIssueReportRequestVersion.incrementAndGet()
             resetErrorRetryState()
             lastPlaybackIssueError = null

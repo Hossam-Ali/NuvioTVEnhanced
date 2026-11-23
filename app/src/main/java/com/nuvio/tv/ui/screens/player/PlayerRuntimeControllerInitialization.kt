@@ -148,13 +148,18 @@ private fun PlayerRuntimeController.disposeExoPlayerBeforeRebuild() {
  * Starts the current stream again, as a retry or a rebuild of the same playback, in the engine it
  * plays in: an engine chosen in the player, by hand or by a startup failover, holds until the
  * stream changes. Without it, the restart would fall back to the settings' engine.
+ *
+ * It keeps the once-per-stream recovery markers (see [resetStreamRecoveryMarkers]): a recovery
+ * that starts the stream again must not earn the same recovery again, or a stream that always
+ * fails the same way restarts forever.
  */
 internal fun PlayerRuntimeController.reinitializeCurrentStream(startPaused: Boolean = false) {
     initializePlayer(
         url = currentStreamUrl,
         headers = currentHeaders,
         overrideInternalPlayerEngine = runtimeInternalPlayerEngineOverride,
-        startPaused = startPaused
+        startPaused = startPaused,
+        keepRecoveryMarkers = true
     )
 }
 
@@ -164,7 +169,8 @@ internal fun PlayerRuntimeController.initializePlayer(
     headers: Map<String, String>,
     overrideInternalPlayerEngine: InternalPlayerEngine? = null,
     allowEngineFailover: Boolean = true,
-    startPaused: Boolean = false
+    startPaused: Boolean = false,
+    keepRecoveryMarkers: Boolean = false
 ) {
     if (url.isEmpty()) {
         _uiState.update { it.copy(error = context.getString(R.string.player_error_no_stream_url), showLoadingOverlay = false) }
@@ -192,7 +198,7 @@ internal fun PlayerRuntimeController.initializePlayer(
                     playbackIssueReportError = null
                 )
             }
-            resetLoadingOverlayForNewStream()
+            resetLoadingOverlayForNewStream(keepRecoveryMarkers)
             if (startPaused) {
                 userPausedManually = true
                 shouldEnforceAutoplayOnFirstReady = false
@@ -2119,7 +2125,19 @@ internal fun PlayerRuntimeController.buildStartupSubtitleConfigurations(startupS
     return startupSubtitlePreparation.attachedSubtitles.distinctBy { "${it.id}|${it.url}" }.map(::toSubtitleConfiguration)
 }
 
-internal fun PlayerRuntimeController.resetLoadingOverlayForNewStream() {
+/**
+ * Clears the recoveries each stream gets once (or a few times): starting again from the start after
+ * a 416, after a loader crash, or after a startup timeout. A new stream, or the user's own Retry,
+ * gets them back; restarting the same stream doesn't.
+ */
+internal fun PlayerRuntimeController.resetStreamRecoveryMarkers() {
+    timeoutRecoveryAttempts = 0
+    hasRetriedCurrentStreamAfterUnexpectedNpe = false
+    hasRetriedCurrentStreamAfterMediaPeriodHolderCrash = false
+    hasRetriedCurrentStreamAfter416 = false
+}
+
+internal fun PlayerRuntimeController.resetLoadingOverlayForNewStream(keepRecoveryMarkers: Boolean = false) {
     cancelFirstFrameWatchdog()
     cancelStallWatchdog()
     scheduleSourceStartupTimeout()
@@ -2136,10 +2154,7 @@ internal fun PlayerRuntimeController.resetLoadingOverlayForNewStream() {
     hasMarkedCurrentEpisodeCompleted = false
     shouldEnforceAutoplayOnFirstReady = true
     userPausedManually = false
-    timeoutRecoveryAttempts = 0
-    hasRetriedCurrentStreamAfterUnexpectedNpe = false
-    hasRetriedCurrentStreamAfterMediaPeriodHolderCrash = false
-    hasRetriedCurrentStreamAfter416 = false
+    if (!keepRecoveryMarkers) resetStreamRecoveryMarkers()
     hasAttemptedDv7ToDv81ForCurrentPlayback = false
     isExperimentalDv7ToDv81ActiveForCurrentPlayback = false
     isVc1TrackSelectionBypassActiveForCurrentPlayback = false
