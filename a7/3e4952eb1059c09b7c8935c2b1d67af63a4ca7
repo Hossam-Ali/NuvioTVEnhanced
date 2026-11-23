@@ -1,0 +1,23 @@
+app/src/main/java/com/nuvio/tv/ui/screens/stream/NewLookStreamSummary.kt
+  s_c7f847fc05dfc2::t_476c44aa10e944 126-156
+app/src/main/java/com/nuvio/tv/ui/screens/stream/NewLookStreams.kt
+  s_c7f847fc05dfc2::t_d17abd0f279d0e 94-101,105-109,111,131-132,140,144-152,231
+app/src/test/java/com/nuvio/tv/ui/screens/stream/NewLookStreamSummaryTest.kt
+  s_c7f847fc05dfc2::t_baf8b2968e4acc 94-131
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a73e4952eb1059c09b7c8935c2b1d67af63a4ca7",
+  "prompts": {},
+  "sessions": {
+    "s_c7f847fc05dfc2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "666ff6ef-bff7-49b1-894d-8c6f8060c75e",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  }
+}
