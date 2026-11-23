@@ -123,3 +123,34 @@ fun formatStreamSize(bytes: Long): String = when {
     bytes >= 1_000_000_000L -> String.format(Locale.US, "%.1f GB", bytes / 1_000_000_000.0)
     else -> String.format(Locale.US, "%d MB", bytes / 1_000_000L)
 }
+
+/** Release types, best first; anything not listed ranks after them. */
+private val SOURCE_RANK = listOf("REMUX", "BluRay", "WEB-DL", "WEBRip", "WEB", "HDTV")
+
+/**
+ * The source to suggest as the top pick: the highest quality there is.
+ *
+ * Ranked by, in turn: not a cam copy; not a debrid result that isn't cached yet (it can't play
+ * now); resolution; release type (REMUX, BluRay, WEB-DL…); the bigger file, which means more
+ * bitrate at the same resolution. Ties keep the add-ons' order.
+ */
+fun highestQualitySource(streams: List<Stream>, summaryOf: (Stream) -> StreamSummary = ::summarizeStream): Stream? =
+    streams.withIndex()
+        .map { (index, stream) -> Triple(index, stream, summaryOf(stream)) }
+        .minWithOrNull(
+            compareBy<Triple<Int, Stream, StreamSummary>>(
+                { (_, _, summary) -> summary.source == "CAM" },
+                { (_, stream, _) -> stream.debridCacheStatus?.state == StreamDebridCacheState.NOT_CACHED },
+                { (_, _, summary) -> summary.quality.ordinal },
+                { (_, _, summary) -> SOURCE_RANK.indexOf(summary.source).let { if (it < 0) SOURCE_RANK.size else it } },
+                { (_, _, summary) -> -(summary.sizeBytes ?: 0L) },
+                { (index, _, _) -> index }
+            )
+        )
+        ?.second
+
+/** [streams] with [top] moved to the front; the rest keep their order. */
+fun <T> withTopPickFirst(streams: List<T>, top: T?): List<T> {
+    if (top == null || streams.firstOrNull() == top) return streams
+    return listOf(top) + streams.filterNot { it == top }
+}

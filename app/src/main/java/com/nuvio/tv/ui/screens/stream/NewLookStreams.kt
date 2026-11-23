@@ -91,13 +91,24 @@ internal fun NewLookStreamContent(
     var filter by rememberSaveable { mutableStateOf(SourceFilter.ALL) }
     var focusedKey by rememberSaveable { mutableStateOf<String?>(null) }
     val streams = uiState.filteredStreams
-    val summaries = remember(streams) { streams.associateBy(::streamKey).mapValues { summarizeStream(it.value) } }
+    // Every source under the add-on chip, not just the page shown, so the top pick is the best there is.
+    val candidates = remember(uiState.allStreams, uiState.selectedAddonFilter) {
+        uiState.selectedAddonFilter?.let { addon -> uiState.allStreams.filter { it.addonName == addon } }
+            ?: uiState.allStreams
+    }
+    val summaries = remember(streams, candidates) {
+        (candidates + streams).associateBy(::streamKey).mapValues { summarizeStream(it.value) }
+    }
     val counts = remember(summaries) {
         summaries.values.groupingBy { it.quality }.eachCount()
     }
-    val shown = remember(streams, summaries, filter) {
+    val topPick = remember(candidates, streams, summaries) {
+        highestQualitySource(candidates.ifEmpty { streams }) { summaries[streamKey(it)] ?: summarizeStream(it) }
+    }
+    val topPickKey = topPick?.let(::streamKey)
+    val shown = remember(streams, summaries, filter, topPick) {
         when (filter) {
-            SourceFilter.ALL -> streams
+            SourceFilter.ALL -> withTopPickFirst(streams, topPick)
             SourceFilter.UHD -> streams.filter { summaries[streamKey(it)]?.quality == StreamQualityGroup.UHD }
             SourceFilter.FULL_HD -> streams.filter { summaries[streamKey(it)]?.quality == StreamQualityGroup.FULL_HD }
             SourceFilter.HD_AND_LOWER -> streams.filter {
@@ -117,6 +128,8 @@ internal fun NewLookStreamContent(
 
     // Land on the top source once it arrives, or back on the one that was played.
     var initialFocusDone by rememberSaveable { mutableStateOf(false) }
+    // The top pick focused for the user; while focus is still there, a better source arriving takes over.
+    var autoFocusedKey by rememberSaveable { mutableStateOf<String?>(null) }
     LaunchedEffect(shown.isNotEmpty(), shouldRestoreFocus) {
         if (shown.isEmpty()) return@LaunchedEffect
         if (initialFocusDone && !shouldRestoreFocus) return@LaunchedEffect
@@ -124,8 +137,18 @@ internal fun NewLookStreamContent(
         listState.scrollToItem(index)
         withFrameNanos { }
         requesters[streamKey(shown[index])]?.let { runCatching { it.requestFocus() } }
+        autoFocusedKey = if (index == 0) streamKey(shown[0]) else null
         initialFocusDone = true
         if (shouldRestoreFocus) onRestoreFocusHandled()
+    }
+    LaunchedEffect(topPickKey) {
+        val key = topPickKey ?: return@LaunchedEffect
+        if (!initialFocusDone || filter != SourceFilter.ALL || key == autoFocusedKey) return@LaunchedEffect
+        if (autoFocusedKey == null || focusedKey != autoFocusedKey) return@LaunchedEffect
+        listState.scrollToItem(0)
+        withFrameNanos { }
+        requesters[key]?.let { runCatching { it.requestFocus() } }
+        autoFocusedKey = key
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -205,7 +228,7 @@ internal fun NewLookStreamContent(
                                 stream = stream,
                                 summary = summary,
                                 highlighted = index == 0,
-                                topPick = index == 0 && filter == SourceFilter.ALL,
+                                topPick = index == 0 && filter == SourceFilter.ALL && key == topPickKey,
                                 onClick = {
                                     focusedKey = key
                                     onStreamSelected(stream)

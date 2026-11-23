@@ -91,4 +91,42 @@ class NewLookStreamSummaryTest {
         assertEquals("780 MB", formatStreamSize(780_000_000L))
         assertEquals(1_500_000_000L, parseSize("size 1,5 GiB"))
     }
+
+    @Test fun `top pick is the highest resolution, wherever the add-on lists it`() {
+        val hd = stream(name = "A 720p", title = "Movie.720p.WEB-DL")
+        val fullHd = stream(name = "B 1080p", title = "Movie.1080p.BluRay")
+        val uhd = stream(name = "C 4K", title = "Movie.2160p.WEB-DL")
+        assertEquals(uhd, highestQualitySource(listOf(hd, fullHd, uhd)))
+    }
+
+    @Test fun `at the same resolution a better release, then a bigger file wins`() {
+        val web = stream(title = "Movie.2160p.WEB-DL 💾 20 GB")
+        val remux = stream(title = "Movie.2160p.REMUX 💾 60 GB")
+        assertEquals(remux, highestQualitySource(listOf(web, remux)))
+        val small = stream(title = "Movie.1080p.WEB-DL 💾 2 GB")
+        val big = stream(title = "Movie.1080p.WEB-DL 💾 9 GB")
+        assertEquals(big, highestQualitySource(listOf(small, big)))
+    }
+
+    @Test fun `cam copies and uncached debrid results are never the top pick when something else plays`() {
+        val cam = stream(title = "Movie.2160p.CAM")
+        val uncached = stream(
+            title = "Movie.2160p.REMUX",
+            cache = StreamDebridCacheStatus(providerId = "rd", providerName = "RD", state = StreamDebridCacheState.NOT_CACHED)
+        )
+        val hd = stream(title = "Movie.720p.WEB-DL")
+        assertEquals(hd, highestQualitySource(listOf(cam, uncached, hd)))
+        assertEquals(cam, highestQualitySource(listOf(cam)))
+    }
+
+    @Test fun `ties keep the add-on order and the top pick moves to the front`() {
+        val first = stream(name = "first 1080p")
+        val second = stream(name = "second 1080p")
+        assertEquals(first, highestQualitySource(listOf(first, second)))
+        assertNull(highestQualitySource(emptyList()))
+        assertEquals(listOf("c", "a", "b"), withTopPickFirst(listOf("a", "b", "c"), "c"))
+        assertEquals(listOf("a", "b"), withTopPickFirst(listOf("a", "b"), null))
+        // A top pick from beyond the loaded page still leads it.
+        assertEquals(listOf("z", "a", "b"), withTopPickFirst(listOf("a", "b"), "z"))
+    }
 }
