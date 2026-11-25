@@ -473,6 +473,8 @@ class HomeEnrichmentRetryTest {
             cwEnrichmentCache = cwEnrichmentCache,
             profileManager = profileManager,
             tvRecommendationManager = mockk(relaxed = true),
+            simklSyncRepository = mockk(relaxed = true),
+            simklRewatchWriter = mockk(relaxed = true),
             serverCatalog = mockk(relaxed = true),
             originalTitleStore = mockk(relaxed = true),
             releaseDateStore = mockk(relaxed = true),

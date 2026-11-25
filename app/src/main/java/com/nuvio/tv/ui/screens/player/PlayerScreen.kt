@@ -701,11 +701,29 @@ fun PlayerScreen(
                     }
                 }
 
-                if (keyEvent.nativeKeyEvent.keyCode != KeyEvent.KEYCODE_CAPTIONS) {
+                val keyCode = keyEvent.nativeKeyEvent.keyCode
+                if (keyCode != KeyEvent.KEYCODE_CAPTIONS && keyCode != KeyEvent.KEYCODE_MEDIA_AUDIO_TRACK) {
                     return@onPreviewKeyEvent false
                 }
 
                 if (keyEvent.nativeKeyEvent.action != KeyEvent.ACTION_UP) {
+                    return@onPreviewKeyEvent true
+                }
+
+                if (keyCode == KeyEvent.KEYCODE_MEDIA_AUDIO_TRACK) {
+                    if (
+                        !uiState.showSubtitleDelayOverlay &&
+                        !uiState.showEpisodesPanel &&
+                        !uiState.showSourcesPanel && !uiState.showChaptersPanel &&
+                        !uiState.showPartyPanel &&
+                        !uiState.showAudioOverlay &&
+                        !uiState.showSubtitleOverlay &&
+                        !uiState.showSubtitleStylePanel &&
+                        !uiState.showSubtitleTimingDialog &&
+                        !(uiState.showSpeedDialog || uiState.showDiscTitlesDialog)
+                    ) {
+                        viewModel.onEvent(PlayerEvent.OnShowAudioOverlay)
+                    }
                     return@onPreviewKeyEvent true
                 }
 
@@ -1250,6 +1268,7 @@ fun PlayerScreen(
                         isBuffering = uiState.isBuffering,
                         aspectMode = uiState.aspectMode,
                         subtitleStyle = uiState.effectiveSubtitleStyle,
+                        assSubtitleStyle = uiState.effectiveAssSubtitleStyle,
                         subtitleLiftPx = subtitleLiftPx,
                         subtitleTrackKey = subtitleWidthKey.take(2),
                         onSubtitleTextMetricsChanged = { subtitleTextMetrics = it },
@@ -1272,6 +1291,7 @@ fun PlayerScreen(
                             libassRenderMode = uiState.libassRenderMode,
                             letterboxMaskEnabled = !(transparentLetterbox && playerSurfaceIsFullscreen),
                             subtitleStyle = uiState.effectiveSubtitleStyle,
+                            assSubtitleStyle = uiState.effectiveAssSubtitleStyle,
                             subtitleLiftPx = subtitleLiftPx,
                             onBindSubtitleView = viewModel::bindExoSubtitleView,
                             onSubtitleTextMetricsChanged = { subtitleTextMetrics = it },
@@ -2068,23 +2088,10 @@ fun PlayerScreen(
             Box(
                 modifier = Modifier.fillMaxSize()
             ) {
-                val isCurrentSubtitleAss = run {
-                    val addon = uiState.selectedAddonSubtitle
-                    if (addon != null) {
-                        val url = addon.url.lowercase(java.util.Locale.US)
-                        return@run url.contains(".ass") || url.contains(".ssa")
-                    }
-                    val track = uiState.subtitleTracks.getOrNull(uiState.selectedSubtitleTrackIndex)
-                    if (track != null) {
-                        val codec = track.codec?.lowercase(java.util.Locale.US).orEmpty()
-                        return@run codec.contains("ass") || codec.contains("ssa") || track.name.contains("ASS", ignoreCase = true)
-                    }
-                    false
-                }
                 val isUsingMpv = uiState.internalPlayerEngine == InternalPlayerEngine.MVP_PLAYER
-                val isAssActive = isCurrentSubtitleAss && (isUsingMpv || uiState.useLibass)
-                val supportsAssStyleCustomization = isCurrentSubtitleAss && isUsingMpv
-                val isAssStyleRestricted = isAssActive && !(supportsAssStyleCustomization && uiState.editableSubtitleStyle.customizeAss)
+                val supportsAssStyleCustomization = uiState.isAssSubtitleSelected && isUsingMpv
+                val isAssStyleRestricted = uiState.isAssSubtitleStyleActive &&
+                    !(supportsAssStyleCustomization && uiState.editableSubtitleStyle.customizeAss)
 
                 SubtitleStyleSidePanel(
                     subtitleStyle = uiState.editableSubtitleStyle,
@@ -2262,6 +2269,7 @@ private fun MpvPlayerSurface(
     isBuffering: Boolean,
     aspectMode: AspectMode,
     subtitleStyle: SubtitleStyleSettings,
+    assSubtitleStyle: SubtitleStyleSettings,
     subtitleLiftPx: Float,
     subtitleTrackKey: Any?,
     onSubtitleTextMetricsChanged: (SubtitleTextMetrics?) -> Unit,
@@ -2312,14 +2320,14 @@ private fun MpvPlayerSurface(
         mpvView.applyAspectMode(aspectMode)
     }
 
-    LaunchedEffect(mpvView, subtitleStyle, subtitleLiftPx) {
+    LaunchedEffect(mpvView, subtitleStyle, assSubtitleStyle, subtitleLiftPx) {
         val height = mpvView.height
         mpvView.subtitleLiftFraction = if (subtitleLiftPx > 0f && height > 0) {
             (subtitleLiftPx / height).toDouble()
         } else {
             0.0
         }
-        mpvView.applySubtitleStyle(subtitleStyle)
+        mpvView.applySubtitleStyle(subtitleStyle, assSubtitleStyle)
     }
 
     LaunchedEffect(mpvView, subtitleStyle, subtitleTrackKey) {
@@ -2340,6 +2348,7 @@ private fun ExoPlayerSurface(
     libassRenderMode: LibassRenderMode,
     letterboxMaskEnabled: Boolean,
     subtitleStyle: SubtitleStyleSettings,
+    assSubtitleStyle: SubtitleStyleSettings,
     subtitleLiftPx: Float,
     onBindSubtitleView: (androidx.media3.ui.SubtitleView?) -> Unit = {},
     onSubtitleTextMetricsChanged: (SubtitleTextMetrics?) -> Unit = {},
@@ -2351,6 +2360,7 @@ private fun ExoPlayerSurface(
     val latestTunneledSurfaceFill by rememberUpdatedState(tunneledSurfaceFill)
     val latestBindSubtitleView by rememberUpdatedState(onBindSubtitleView)
     val latestSubtitleStyle by rememberUpdatedState(subtitleStyle)
+    val latestAssSubtitleStyle by rememberUpdatedState(assSubtitleStyle)
     val latestSubtitleLiftPx by rememberUpdatedState(subtitleLiftPx)
     val latestMetricsCallback by rememberUpdatedState(onSubtitleTextMetricsChanged)
     val playerView = remember(context, player) {
@@ -2436,7 +2446,12 @@ private fun ExoPlayerSurface(
                 // Re-apply subtitle style when tracks change so style is applied
                 // even when subtitles are enabled after initial player setup.
                 playerView.post {
-                    playerView.applySubtitleStyleIfNeeded(latestSubtitleStyle, latestSubtitleLiftPx, force = true)
+                    playerView.applySubtitleStyleIfNeeded(
+                        latestSubtitleStyle,
+                        latestAssSubtitleStyle,
+                        latestSubtitleLiftPx,
+                        force = true
+                    )
                 }
             }
         }
@@ -2500,8 +2515,8 @@ private fun ExoPlayerSurface(
         }
     }
 
-    LaunchedEffect(playerView, subtitleStyle, subtitleLiftPx) {
-        playerView.applySubtitleStyleIfNeeded(subtitleStyle, subtitleLiftPx)
+    LaunchedEffect(playerView, subtitleStyle, assSubtitleStyle, subtitleLiftPx) {
+        playerView.applySubtitleStyleIfNeeded(subtitleStyle, assSubtitleStyle, subtitleLiftPx)
     }
 }
 
@@ -2599,6 +2614,7 @@ private fun describeRect(rect: RectF?): String =
 
 private data class SubtitleAppliedConfig(
     val style: SubtitleStyleSettings,
+    val assSize: Int,
     val isAss: Boolean,
     val liftPx: Float
 )
@@ -2632,16 +2648,17 @@ private fun PlayerView.isAssOrSsaSubtitleSelected(): Boolean =
 
 private fun PlayerView.applySubtitleStyleIfNeeded(
     subtitleStyle: SubtitleStyleSettings,
+    assSubtitleStyle: SubtitleStyleSettings,
     liftPx: Float,
     force: Boolean = false
 ) {
     val isAss = isAssOrSsaSubtitleSelected()
-    val config = SubtitleAppliedConfig(subtitleStyle, isAss, liftPx)
+    val config = SubtitleAppliedConfig(subtitleStyle, assSubtitleStyle.size, isAss, liftPx)
     if (!force && getTag(R.id.player_view_subtitle_style_tag) == config) {
         return
     }
     (player as? ExoPlayer)?.getAssHandlerCompat()?.applyAssFontScaleCompat(
-        (subtitleStyle.size / 100f).coerceIn(0.5f, 3.0f)
+        (assSubtitleStyle.size / 100f).coerceIn(0.5f, 3.0f)
     )
     findViewById<android.widget.FrameLayout>(R.id.libass_overlay_container_gl)
         ?.findAssOverlayChild()

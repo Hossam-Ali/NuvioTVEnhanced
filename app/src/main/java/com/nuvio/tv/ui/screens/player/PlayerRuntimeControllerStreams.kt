@@ -242,7 +242,8 @@ internal fun PlayerRuntimeController.loadSourceStreams(forceRefresh: Boolean) {
             season = seasonArg,
             episode = episodeArg,
             forceRefresh = forceRefresh,
-            priorityBingeGroup = currentStreamBingeGroup
+            priorityBingeGroup = currentStreamBingeGroup,
+            contentId = contentId
         ).collect { result ->
             when (result) {
                 is NetworkResult.Success -> {
@@ -1406,7 +1407,8 @@ internal fun PlayerRuntimeController.loadStreamsForEpisode(
             season = video.season,
             episode = video.episode,
             forceRefresh = forceRefresh,
-            priorityBingeGroup = currentStreamBingeGroup
+            priorityBingeGroup = currentStreamBingeGroup,
+            contentId = contentId
         ).collect { result ->
             when (result) {
                 is NetworkResult.Success -> {
@@ -2046,7 +2048,8 @@ internal fun PlayerRuntimeController.preloadNextEpisodeSources() {
             episode = nextVideo.episode,
             priorityBingeGroup = currentStreamBingeGroup,
             preferredPluginOnly = continuingPlugin,
-            continuePluginOnly = continuingPlugin
+            continuePluginOnly = continuingPlugin,
+            contentId = contentId
         ).collect { /* results cached by StreamSearchSessionCache */ }
     }
 }
@@ -2270,7 +2273,8 @@ internal fun PlayerRuntimeController.playNextEpisode(userInitiated: Boolean = fa
                     episode = nextVideo.episode,
                     priorityBingeGroup = currentStreamBingeGroup,
                     preferredPluginOnly = continuingPlugin,
-                    continuePluginOnly = continuingPlugin
+                    continuePluginOnly = continuingPlugin,
+                    contentId = contentId
                 ).collect { result ->
                     when (result) {
                         is NetworkResult.Success -> {

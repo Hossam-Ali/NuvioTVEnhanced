@@ -359,10 +359,6 @@ class PlaybackSettingsViewModel @Inject constructor(
         playerSettingsDataStore.setSubtitleShadowSize(size)
     }
 
-    suspend fun setSubtitleCustomizeAss(enabled: Boolean) {
-        playerSettingsDataStore.setSubtitleCustomizeAss(enabled)
-    }
-
     suspend fun resetSubtitleAppearance() {
         playerSettingsDataStore.resetSubtitleAppearance()
     }
