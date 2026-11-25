@@ -1,0 +1,395 @@
+BUILT_IN_USENET.md
+  s_c7f847fc05dfc2::t_63eaa66079fce7 191-208
+app/build.gradle.kts
+  s_c7f847fc05dfc2::t_0319be5df1c98a 162-163
+app/src/androidTest/java/com/nuvio/tv/core/image/CollectionCoverNetworkClientTest.kt
+  s_c7f847fc05dfc2::t_4e043229faf100 1-156
+app/src/androidTest/java/com/nuvio/tv/ui/screens/collection/CollectionCoverRequestsTest.kt
+  s_c7f847fc05dfc2::t_c0f841caa31fa9 1-131
+app/src/androidTest/java/com/nuvio/tv/ui/screens/settings/TrackingSettingsOverviewTest.kt
+  s_c7f847fc05dfc2::t_07c3d7cfe327f5 191-193,276-278
+app/src/main/java/com/nuvio/tv/MainActivity.kt
+  s_c7f847fc05dfc2::t_09be3e34041dcc 164,187,337-344,1283,1288-1295
+app/src/main/java/com/nuvio/tv/NuvioApplication.kt
+  s_c7f847fc05dfc2::t_815d81eced7fe4 12-14,35,193-194,201
+app/src/main/java/com/nuvio/tv/core/debrid/DebridFileSelection.kt
+  s_c7f847fc05dfc2::t_4efa5f169b9798 61-82,86-87
+app/src/main/java/com/nuvio/tv/core/image/CollectionCoverNetworkClient.kt
+  s_c7f847fc05dfc2::t_28af52574962df 1-33
+app/src/main/java/com/nuvio/tv/core/player/ExternalPlaybackTracker.kt
+  s_c7f847fc05dfc2::t_2b11b7b9ff3b7b 14,53-61,274-278,453-454,497,532-534,634-636,805,809-817,1398,1423,1480-1503,1506,1522-1534,1564-1568,1571-1577,1581-1588
+app/src/main/java/com/nuvio/tv/core/plugin/PluginEpisodeRequestRules.kt
+  s_c7f847fc05dfc2::t_1e4481237145d3 24
+app/src/main/java/com/nuvio/tv/core/sync/androidtv/AndroidTvChannelSyncService.kt
+  s_c7f847fc05dfc2::t_0ed037506ccd3d 61
+app/src/main/java/com/nuvio/tv/core/sync/androidtv/TvChannelRefreshJobService.kt
+  s_c7f847fc05dfc2::t_5f7aa4c50a978c 82,84
+app/src/main/java/com/nuvio/tv/core/tracking/RewatchRunPosition.kt
+  s_c7f847fc05dfc2::t_8e607eab034699 1-38
+app/src/main/java/com/nuvio/tv/core/tracking/TrackingProgressProvider.kt
+  s_c7f847fc05dfc2::t_ea7ebab0e10bbd 57-81
+app/src/main/java/com/nuvio/tv/core/tracking/TrackingScrobbleCoordinator.kt
+  s_c7f847fc05dfc2::t_d2eb6b82bc2cc9 54-73,107-115,117,119-130
+app/src/main/java/com/nuvio/tv/core/tracking/TrackingWrites.kt
+  s_c7f847fc05dfc2::t_e910b865bcfdbc 14-24,40-56,73-121,127-134,146-151,188-197,199-205
+app/src/main/java/com/nuvio/tv/core/usenet/BuiltInUsenetService.kt
+  s_c7f847fc05dfc2::t_004802fd38cefa 6-7,9,15,38,352-356,362,364,372-382,388,406,471,616-617,655,659-719,726-729
+app/src/main/java/com/nuvio/tv/core/usenet/BuiltInUsenetVideoIds.kt
+  s_c7f847fc05dfc2::t_7d016aaeee38a8 3-9,31-91
+app/src/main/java/com/nuvio/tv/core/usenet/UsenetEngineUrls.kt
+  s_c7f847fc05dfc2::t_985972094e398f 6,19-24
+app/src/main/java/com/nuvio/tv/core/usenet/UsenetLiveStats.kt
+  s_c7f847fc05dfc2::t_1d36dce687930a 1-70
+app/src/main/java/com/nuvio/tv/core/usenet/UsenetSidecar.kt
+  s_c7f847fc05dfc2::t_fb30aeb44968f5 56,60,63,91,93,264-266,317,391-404
+app/src/main/java/com/nuvio/tv/core/usenet/UsenetSourceStats.kt
+  s_c7f847fc05dfc2::t_34973ede296cbc 236-238,287,291-293
+app/src/main/java/com/nuvio/tv/data/local/PlayerSettingsDataStore.kt
+  s_c7f847fc05dfc2::t_9725abcae81f9d 6,211,324,794-806,1276,1288,1882-1903,1905,1924-1925,1927,1929-1942,1972-2015
+app/src/main/java/com/nuvio/tv/data/local/StreamLinkCacheDataStore.kt
+  s_c7f847fc05dfc2::t_26821c1d664eb4 36-39,76-78,104-105,174-176
+app/src/main/java/com/nuvio/tv/data/local/TraktSettingsDataStore.kt
+  s_c7f847fc05dfc2::t_28cf06c4ee2f8e 11-12,64,83-90,277-302
+app/src/main/java/com/nuvio/tv/data/local/WatchedSeriesStateHolder.kt
+  s_c7f847fc05dfc2::t_867e56ef2f7c4a 165-185
+app/src/main/java/com/nuvio/tv/data/mapper/MetaMapper.kt
+  s_c7f847fc05dfc2::t_66eb692fdd8de8 88-91,95-103
+app/src/main/java/com/nuvio/tv/data/mdblist/MdbListScrobbleService.kt
+  s_c7f847fc05dfc2::t_1ab2364d0f2286 13-15,17-18,21
+app/src/main/java/com/nuvio/tv/data/mdblist/MdbListTrackingProvider.kt
+  s_c7f847fc05dfc2::t_e6fe04b07e1fe9 5,58-65,73-80,82,89-93
+app/src/main/java/com/nuvio/tv/data/remote/dto/MetaResponseDto.kt
+  s_c7f847fc05dfc2::t_aac06397513ef0 96-101
+app/src/main/java/com/nuvio/tv/data/repository/StreamRepositoryImpl.kt
+  s_c7f847fc05dfc2::t_3d188d44d3c86c 113-114,152-153,257-258,293
+app/src/main/java/com/nuvio/tv/data/repository/TraktScrobbleService.kt
+  s_c7f847fc05dfc2::t_362a356e28f307 69,72,75,82,84-85,88,120,134,151,153
+app/src/main/java/com/nuvio/tv/data/repository/TraktTrackingScrobbler.kt
+  s_c7f847fc05dfc2::t_1e2d8b8b63ac6c 3,23-30,35-53,55,60-64
+app/src/main/java/com/nuvio/tv/data/repository/WatchProgressRepositoryImpl.kt
+  s_c7f847fc05dfc2::t_be1bb9b314aa96 32-33,1356-1373
+app/src/main/java/com/nuvio/tv/data/simkl/AndroidSimklAuthStorage.kt
+  s_c7f847fc05dfc2::t_de0eecd5337f35 93,101,179,193
+app/src/main/java/com/nuvio/tv/data/simkl/SimklApiClient.kt
+  s_c7f847fc05dfc2::t_f2944637e9a7f2 169-173,297-302
+app/src/main/java/com/nuvio/tv/data/simkl/SimklAuthModels.kt
+  s_c7f847fc05dfc2::t_cbb32a008489d9 33,60,107
+app/src/main/java/com/nuvio/tv/data/simkl/SimklAuthRepository.kt
+  s_c7f847fc05dfc2::t_abf7eaa4a2383f 111,115,122-175
+app/src/main/java/com/nuvio/tv/data/simkl/SimklAuthStorage.kt
+  s_c7f847fc05dfc2::t_7ad043225c5e28 31
+app/src/main/java/com/nuvio/tv/data/simkl/SimklMediaProjections.kt
+  s_c7f847fc05dfc2::t_cfb2a1854d2d64 366-371
+app/src/main/java/com/nuvio/tv/data/simkl/SimklMutationBodies.kt
+  s_c7f847fc05dfc2::t_a0ddd9a8bfb481 44,46-76,84-104,136-137,143-145,151,157-158,162-173,178-180,209-211,221-223,232-234,334-337
+app/src/main/java/com/nuvio/tv/data/simkl/SimklMutationReceipt.kt
+  s_c7f847fc05dfc2::t_f34df9cecec9b8 33-35,51-53,115,126-128,143-144,161-162,181-188,196-206,243-245,276-280
+app/src/main/java/com/nuvio/tv/data/simkl/SimklMutationReconciliation.kt
+  s_c7f847fc05dfc2::t_3d5337e737a5e7 19-23,117-150,183-184,188-208
+app/src/main/java/com/nuvio/tv/data/simkl/SimklMutationService.kt
+  s_c7f847fc05dfc2::t_decd60aea8d1d4 58-69,76,81-94,102-134,151-183,186-188,203-206,226-231
+app/src/main/java/com/nuvio/tv/data/simkl/SimklRewatchConsentRepository.kt
+  s_c7f847fc05dfc2::t_5b9865ea2e3e1c 1-236
+app/src/main/java/com/nuvio/tv/data/simkl/SimklRewatchMode.kt
+  s_c7f847fc05dfc2::t_2a176fc8fb35fb 1-302
+app/src/main/java/com/nuvio/tv/data/simkl/SimklRewatchRuns.kt
+  s_c7f847fc05dfc2::t_f0f0dcea3291a0 1-550
+app/src/main/java/com/nuvio/tv/data/simkl/SimklRewatchWriter.kt
+  s_c7f847fc05dfc2::t_05df564e8b69f5 1-131
+app/src/main/java/com/nuvio/tv/data/simkl/SimklScrobbleReconciliation.kt
+  s_c7f847fc05dfc2::t_b4c45fccae501a 4,298-505
+app/src/main/java/com/nuvio/tv/data/simkl/SimklScrobbleResult.kt
+  s_c7f847fc05dfc2::t_e098f148ca5ce8 19-50,58-60,66-67,85,95-97,163-173,178-182
+app/src/main/java/com/nuvio/tv/data/simkl/SimklSnapshotProjection.kt
+  s_c7f847fc05dfc2::t_029eee16902e12 40,86-88,95-98,191
+app/src/main/java/com/nuvio/tv/data/simkl/SimklSyncEngine.kt
+  s_c7f847fc05dfc2::t_1babbb8b416dab 3,5,9-10,14-18,24-31,56-73,79-81,88-91,99,106-108,113-177,243-248
+app/src/main/java/com/nuvio/tv/data/simkl/SimklSyncModels.kt
+  s_c7f847fc05dfc2::t_41602ff7ec3680 3,76-84,190-205
+app/src/main/java/com/nuvio/tv/data/simkl/SimklSyncRemote.kt
+  s_c7f847fc05dfc2::t_c84f23ca9d9ea1 27-37,78-105,117-127
+app/src/main/java/com/nuvio/tv/data/simkl/SimklSyncRepository.kt
+  s_c7f847fc05dfc2::t_52a9fce48e0c73 7,18,33-34,205-298,353-357,382-384,423-426
+app/src/main/java/com/nuvio/tv/data/simkl/SimklTrackingHistoryWriter.kt
+  s_c7f847fc05dfc2::t_50448a6ff83de1 3,5,8,12,15,21-24,28-41,55-76,78-163,165,182-214
+app/src/main/java/com/nuvio/tv/data/simkl/SimklTrackingProgressProvider.kt
+  s_c7f847fc05dfc2::t_4da79b07200279 7,15,25-26,29-35
+app/src/main/java/com/nuvio/tv/data/simkl/SimklTrackingProvider.kt
+  s_c7f847fc05dfc2::t_1b4527af41f7d0 6-7,11,16,23,31-33,37-44,73-118,121-123,128-170,173-174,177-218
+app/src/main/java/com/nuvio/tv/domain/model/Meta.kt
+  s_c7f847fc05dfc2::t_c1954e06e66b6b 211-218
+app/src/main/java/com/nuvio/tv/domain/model/Stream.kt
+  s_c7f847fc05dfc2::t_dec003965c1758 37-42
+app/src/main/java/com/nuvio/tv/domain/model/WatchProgress.kt
+  s_c7f847fc05dfc2::t_44c903389c4839 35-49,78-81,83-84
+app/src/main/java/com/nuvio/tv/domain/repository/StreamRepository.kt
+  s_c7f847fc05dfc2::t_3d568826c8c7a5 19-20,31-32
+app/src/main/java/com/nuvio/tv/domain/repository/WatchProgressRepository.kt
+  s_c7f847fc05dfc2::t_71c1f00735fece 182-191
+app/src/main/java/com/nuvio/tv/ui/components/CollectionCardGlow.kt
+  s_c7f847fc05dfc2::t_5c39b846004299 6,21-22,30-31,36,43-44,51-52,54-61,65,74-89,140
+app/src/main/java/com/nuvio/tv/ui/components/CollectionFolderCardMedia.kt
+  s_c7f847fc05dfc2::t_38ddd764875ca7 3-7,20-27,30
+app/src/main/java/com/nuvio/tv/ui/components/CollectionRowSection.kt
+  s_c7f847fc05dfc2::t_864cecc66c09b9 70,265-267,269-270,309,311,316-317
+app/src/main/java/com/nuvio/tv/ui/components/RewatchMarker.kt
+  s_c7f847fc05dfc2::t_270c261edd7f97 1-57
+app/src/main/java/com/nuvio/tv/ui/components/RewatchPromptOverlay.kt
+  s_c7f847fc05dfc2::t_7df89bed401fa3 1-210
+app/src/main/java/com/nuvio/tv/ui/components/TrailerPlayer.kt
+  s_c7f847fc05dfc2::t_b07303c7688159 126-128,292
+app/src/main/java/com/nuvio/tv/ui/navigation/DetailChildHost.kt
+  s_c7f847fc05dfc2::t_cec7c629b9c99f 132
+app/src/main/java/com/nuvio/tv/ui/screens/collection/CollectionEditorFolderContent.kt
+  s_c7f847fc05dfc2::t_881aa7149293ee 45,296-313,728-734,814-820,832-838,850-856
+app/src/main/java/com/nuvio/tv/ui/screens/collection/CollectionEditorScreen.kt
+  s_c7f847fc05dfc2::t_157de4f2e8fbe6 47,215-217,429-435,469-475,569-575
+app/src/main/java/com/nuvio/tv/ui/screens/detail/EpisodeOptionsOverlay.kt
+  s_c7f847fc05dfc2::t_7b3545807bbbaf 109-110,126-127,218-227,229-244
+app/src/main/java/com/nuvio/tv/ui/screens/detail/MetaDetailsUiState.kt
+  s_c7f847fc05dfc2::t_c8985919b61506 66-70,132-133
+app/src/main/java/com/nuvio/tv/ui/screens/detail/MetaDetailsViewModel.kt
+  s_c7f847fc05dfc2::t_d56f69527f06fd 30,32-35,130-131,215,219-256,439-440,2005,2027-2052,2101-2163,2733-2864
+app/src/main/java/com/nuvio/tv/ui/screens/detail/RewatchRunEpisodeSelection.kt
+  s_c7f847fc05dfc2::t_ebc9b80ef9a85f 1-105
+app/src/main/java/com/nuvio/tv/ui/screens/home/ContinueWatchingNextUpReconciliation.kt
+  s_c7f847fc05dfc2::t_4ff0c042a363e1 107-116
+app/src/main/java/com/nuvio/tv/ui/screens/home/ContinueWatchingRewatchClosePolicy.kt
+  s_c7f847fc05dfc2::t_7f31479957701a 1-27
+app/src/main/java/com/nuvio/tv/ui/screens/home/GridHomeContent.kt
+  s_c7f847fc05dfc2::t_5cc9b247657bde 78,99,1043-1045,1047-1048,1091,1093,1096-1097
+app/src/main/java/com/nuvio/tv/ui/screens/home/HomeViewModel.kt
+  s_c7f847fc05dfc2::t_04e2cabf53015c 12,61,94-95,308-316,408,450-451,550-601,950-967,974-1019
+app/src/main/java/com/nuvio/tv/ui/screens/home/HomeViewModelContinueWatching.kt
+  s_c7f847fc05dfc2::t_177c18661cae60 7,13-17,83-88,318-325,342-343,354-361,363-370,636-645,739-748,1185-1191,1198,2405-2406,3398-3474,3483-3511,3513-3514,3516-3517,3519
+app/src/main/java/com/nuvio/tv/ui/screens/home/ModernHomeRows.kt
+  s_c7f847fc05dfc2::t_9292773228bf1f 104,106,113,750,1286,1297,1348-1352,1355-1356,1476-1477,1479
+app/src/main/java/com/nuvio/tv/ui/screens/home/RewatchRunNextUpSeeds.kt
+  s_c7f847fc05dfc2::t_f0e761d6b78551 1-201
+app/src/main/java/com/nuvio/tv/ui/screens/home/SimklContinueWatchingDiagnostics.kt
+  s_c7f847fc05dfc2::t_d0cc7d0f261c58 292
+app/src/main/java/com/nuvio/tv/ui/screens/player/BdavDtsHdReader.kt
+  s_c7f847fc05dfc2::t_24c9943adf9e25 1-178
+app/src/main/java/com/nuvio/tv/ui/screens/player/BdavTrueHdReader.kt
+  s_c7f847fc05dfc2::t_7690f7342c30e8 16-20,31-34,39,41-42
+app/src/main/java/com/nuvio/tv/ui/screens/player/CustomDefaultTrackNameProvider.kt
+  s_c7f847fc05dfc2::t_351342925919b7 95
+app/src/main/java/com/nuvio/tv/ui/screens/player/NuvioMpvSurfaceView.kt
+  s_c7f847fc05dfc2::t_1c293e88620d91 64-66,283-288,500,502,505,511-542,915
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerContentEndPolicy.kt
+  s_c7f847fc05dfc2::t_bbf692fa969c2d 1-70
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerDebugStatsOverlay.kt
+  s_c7f847fc05dfc2::t_2cce101137875e 14,17,31-33,36,41,44-48,53,65-66,84-88,99-101,136-140,143-145,159-164,166-174,180-216,241-251,266,269-273,408-520,563-565
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerPlaybackNetworking.kt
+  s_c7f847fc05dfc2::t_7770cad06146dd 150-160,187
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeController.kt
+  s_c7f847fc05dfc2::t_a10e406f450b83 789-791,797-805
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerInitialization.kt
+  s_c7f847fc05dfc2::t_18e183a2abf197 1104
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerMpv.kt
+  s_c7f847fc05dfc2::t_98283025373ecc 37,154
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerObservers.kt
+  s_c7f847fc05dfc2::t_4d07dbeddad040 361
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerPlaybackEvents.kt
+  s_c7f847fc05dfc2::t_3adf3623d14be9 11,876,882,935,939,978-987,1003-1008,1017-1026,1086,1089-1091,1163-1169,1171-1172,1175-1187,1210-1215,1230-1280,1297-1308,1312-1321,1323,1326-1334,1341,1362-1367,1370-1371,1375-1379,1381,1384-1392,1399-1401,1406,1414-1419,1422-1423,1427,1440,1447-1453,1458-1464,2284-2285,2292,2297,2302-2303,2306-2307,2310-2311,2314-2315,2318-2319,2322-2323,2326-2327,2330-2331,2334-2335,2338-2339,2346-2353
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerStreams.kt
+  s_c7f847fc05dfc2::t_648d3c0385877a 245-246,1410-1411,2051-2052,2276-2277
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerTracks.kt
+  s_c7f847fc05dfc2::t_2c8a474eb43bb0 155-156
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt
+  s_c7f847fc05dfc2::t_c83db042311ce6 704-705,713-729,1271,1294,2092-2094,2272,2323,2330,2351,2363,2449-2454,2518-2519,2617,2651,2656,2661
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScrobblePolicy.kt
+  s_c7f847fc05dfc2::t_0a60e720d422e3 4,13-19,22,24,26-31,34,36-69
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerStreamType.kt
+  s_c7f847fc05dfc2::t_df3a7629400a15 1-27
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerUiState.kt
+  s_c7f847fc05dfc2::t_9d2a4ee4e0b21c 4,24,149,277-289,291
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerViewModel.kt
+  s_c7f847fc05dfc2::t_c5de50ff1b69cf 231-233
+app/src/main/java/com/nuvio/tv/ui/screens/player/SubtitleSelectionOverlay.kt
+  s_c7f847fc05dfc2::t_c097fa8f8f25c9 222-223,333,335-336,1410-1425,1430-1432,1511-1538,2109,2218-2219,2237,2256,2258,2261,2371-2390
+app/src/main/java/com/nuvio/tv/ui/screens/player/autosync/AutoSyncSubtitleCueParser.kt
+  s_c7f847fc05dfc2::t_ead2a0d86cf9d1 104,108,427-436,438-447
+app/src/main/java/com/nuvio/tv/ui/screens/player/autosync/AutoSyncSubtitleTextRetimer.kt
+  s_c7f847fc05dfc2::t_b9edef831f42f6 187
+app/src/main/java/com/nuvio/tv/ui/screens/player/autosync/EmbeddedSubtitleTimelineLoader.kt
+  s_c7f847fc05dfc2::t_1cfa7f785e08dc 72-73,124-126,133,357-371,1682,1691,1693-1695,1796-1816,2063
+app/src/main/java/com/nuvio/tv/ui/screens/settings/SettingsSearchIndex.kt
+  s_c7f847fc05dfc2::t_5e530eac89c2b3 342-343
+app/src/main/java/com/nuvio/tv/ui/screens/settings/SettingsValueRows.kt
+  s_c7f847fc05dfc2::t_5dd9b035552770 74-75,101-102,162-163,254-267,285-293
+app/src/main/java/com/nuvio/tv/ui/screens/settings/SimklSettingsViewModel.kt
+  s_c7f847fc05dfc2::t_1cc9d73b189040 13,47,157-160
+app/src/main/java/com/nuvio/tv/ui/screens/settings/TrackingProviderDialogs.kt
+  s_c7f847fc05dfc2::t_1f68eee340ec7e 936-983
+app/src/main/java/com/nuvio/tv/ui/screens/settings/TrackingSettingsScreen.kt
+  s_c7f847fc05dfc2::t_7fbb3a0e04f87c 36-37,39,81,102,113-114,231-234,517-536,561-562,731-759,926-951,974-975
+app/src/main/java/com/nuvio/tv/ui/screens/settings/TrackingSettingsViewModel.kt
+  s_c7f847fc05dfc2::t_71e8f31cafbc9a 7,17,20,22-23,39-46,58-105,113,120-128,138-148,153,155-158,160-162,197-244
+app/src/main/java/com/nuvio/tv/ui/screens/stream/StreamScreen.kt
+  s_c7f847fc05dfc2::t_3efe66162398fe 100,160-175,213-216,231,284-287,310-313,358-362,468-471,485-489
+app/src/main/java/com/nuvio/tv/ui/screens/stream/StreamScreenViewModel.kt
+  s_c7f847fc05dfc2::t_2cd23012face3e 103,515-516,873-874,1403-1407,1411-1415,1625,1628-1633,1640-1644,1746-1764,1990-1992,2094-2097,2435-2438,2446-2490
+app/src/main/res/values-ar/strings.xml
+  s_c7f847fc05dfc2::t_2ddbd7787521bd 30,40-41,84-86,89,97,103-104,113,120,131,192,220-223,247,256-257,259-260,262-263,267,278,282-286,290-292,325,336,438,473,475,477,479,483-484,486,488-490,492,494-496,505-506,532-533,544-545,557-558,574,625,677,683,768,824,891,902,904,926-927,947-948,952,963-964,967-972,974,976,978,990,993-994,1007,1025-1026,1051-1052,1057,1060-1061,1080,1097,1143,1145,1166,1171,1178,1183,1196,1229,1337,1350,1358,1377-1378,1406,1438,1440,1442,1454,1554,1583-1584,1587,1596,1607-1613,1641,1645,1648,1655,1657,1662-1664,1669,1674,1720,1740,1746,1804,1810,1842,1939,1943,1953,2029,2039-2042,2044,2050,2053,2055,2092,2097,2126-2128,2180,2185,2189,2198,2202,2210,2233,2257,2307-2308,2318-2321,2389,2451,2461,2466-2475,2478,2482,2564,2587,2659-2662,2760-2765,2767,2774,2777,2782,2805,2868,2882,2897,3016,3037,3044,3055,3080,3083,3086,3089,3102,3187,3192-3193,3197,3212,3231-3232,3234,3259,3272,3276,3296,3317,3321,3326,3334,3405,3407-3408,3429,3448,3454-3460,3504,3554
+app/src/main/res/values-ar/strings_party.xml
+  s_c7f847fc05dfc2::t_052727a18aeaca 3,54-55,75,77
+app/src/main/res/values-ar/strings_servers.xml
+  s_c7f847fc05dfc2::t_89ae2d29390dc8 3,9,25,45,56,59,61-107
+app/src/main/res/values-fr/audio_sync_strings.xml
+  s_c7f847fc05dfc2::t_ec811018b25436 1-22
+app/src/main/res/values-fr/strings.xml
+  s_c7f847fc05dfc2::t_0cd30ea2d1fd9b 630-631,747,780,820,903,905,1123-1124,1169-1170,1191-1192,1228,1315,1342,1559-1560,1858-1860,1961,2463,2584-2587,2658,2730,2735-2744,3523-3529
+app/src/main/res/values-hu/strings.xml
+  s_c7f847fc05dfc2::t_70ad786773fcfd 3,10-13,16-17,20,27,31,50,96,99-102,105,109-115,117,119,121,123,125-126,129-139,141,151-153,155-156,165-166,182-183,193,195-200,202,208-209,211-212,217-219,235-240,245,247-249,252,256,260,267-270,272-273,275-287,289,291,293-294,297,301,304,307,309,326,342-344,353,397,411,419-420,428-429,435,437,439,448,450,452,454,456,458,460,474-475,477-478,481-483,488-490,492,498,502,504-506,517-518,523,534,573,583,590,593-594,600,602-609,629-630,635-636,644-647,652-653,655,657,673,676-678,684-685,691-693,697-698,719,732,734,736,752-754,758,761,764-770,783-792,795-797,801,817-818,829-830,833,836,839-840,847,854,860-862,866-867,924-926,929,931,938-939,943,950-971,973,975-982,984,987-988,990,992,995-996,1004-1005,1011-1017,1019-1031,1033-1038,1040-1053,1086-1089,1097-1098,1100-1101,1103-1105,1107-1108,1110,1116-1119,1122-1125,1130,1134-1139,1144,1146-1148,1150-1158,1161,1168-1169,1173-1174,1190-1191,1195,1202-1203,1205,1217,1227,1230,1236,1239,1243,1246,1252,1256,1258-1259,1278-1284,1286-1287,1289,1292-1294,1296,1298-1303,1307-1310,1312,1326,1332,1335,1341-1343,1348-1354,1356-1359,1361,1364-1375,1382,1386,1394-1396,1398-1403,1407-1408,1415-1418,1429,1432,1441,1443,1446,1449,1452-1455,1458-1463,1467-1468,1478-1479,1481,1483-1486,1489,1491,1494-1499,1505-1507,1509,1511,1516-1518,1522,1528,1530-1531,1534-1535,1537-1538,1540-1541,1543,1546-1548,1551-1553,1555-1557,1559,1563-1564,1567,1577-1579,1581-1585,1589,1593-1595,1598-1603,1606-1617,1627-1628,1632-1637,1682,1696-1697,1702-1703,1708-1709,1711,1721,1739-1740,1782-1783,1786,1790-1792,1797-1805,1807,1809,1815-1817,1819-1822,1824,1834-1836,1839,1845-1846,1851-1853,1857-1860,1862,1869,1873-1876,1878,1881-1884,1890,1896,1909,1911,1914,1925,1927,1929-1930,1942,1953,1981,1983,1988,1992-1994,1997,1999-2000,2004-2006,2008,2022,2035,2041,2046-2048,2050,2052,2059,2070,2089,2097,2112-2113,2117,2122,2130,2134,2144,2153,2155-2156,2177,2179,2185,2207,2222,2229-2230,2233-2234,2237-2240,2242,2244,2250-2254,2258,2268,2281-2282,2286,2297,2301,2316,2321,2326,2328-2335,2338,2343,2345,2348-2351,2353,2355,2358,2361,2375,2383,2389,2394,2397-2398,2400,2402-2404,2406,2409-2410,2412,2417,2424,2428,2434,2436,2439,2450,2457,2463,2477-2478,2483,2493,2519,2527,2536,2538-2539,2545,2565-2566,2576-2581,2585-2586,2588,2596-2598,2602-2603,2605,2610,2617-2618,2626,2633,2642,2646,2652,2660,2699,2713,2724,2729-2738,2740-2741,2744,2754-2755,2758,2779,2782,2784-2787,2791,2794-2799,2804-2810,2812-2813,2819-2827,2829-2830,2832,2834-2846,2848-2852,2857-2866,2868,2871,2873-2874,2877-2880,2884-2887,2890-2891,2893-2896,2901,2921,2923,2925,2928,2938,2950-2951,2957-2961,2963,2965,2967-2968,2988-2990,3003-3006,3012-3013,3019,3022-3024,3032-3037,3039,3043,3075,3077,3083-3084,3089,3092,3094-3095,3097-3098,3103-3106,3108,3112-3114,3116,3120-3126,3134,3136-3137,3139-3140,3144,3147,3153-3154,3159-3160,3169-3170,3190,3201,3210-3214,3218-3222,3238,3241-3242,3245-3246,3248,3250-3252,3257-3264,3266,3268-3280,3282,3287-3290,3293,3298,3300-3301,3313-3314,3329,3332-3334,3351,3361,3369,3373,3389,3445,3466-3475,3477-3478,3480-3482,3485,3487-3491,3493,3495,3502-3509,3512-3520
+app/src/main/res/values-hu/strings_party.xml
+  s_c7f847fc05dfc2::t_9fadf0b98e5a35 2-10,19,22-23,25-30,36-42,44-47,49-50,52-56,69,71,75-77
+app/src/main/res/values-hu/strings_ratings.xml
+  s_c7f847fc05dfc2::t_eebfd4a3f5088e 1-19
+app/src/main/res/values-hu/strings_servers.xml
+  s_c7f847fc05dfc2::t_fd3958df6e4290 2-3,7-9,17-18,21-26,44-45,49-51,53-54,56,58-59,61-107
+app/src/main/res/values-iw/audio_sync_strings.xml
+  s_c7f847fc05dfc2::t_4462e308291949 1-22
+app/src/main/res/values-iw/strings.xml
+  s_c7f847fc05dfc2::t_02b05a1be8fb8c 424-425,634-635,947,1127-1128,1173-1174,1195-1196,1232,1319,1346,1563-1564,1808-1814,1862-1864,2082,2249-2252,2469,2550-2551,2590-2593,2664,2736,2741-2750,3529-3535
+app/src/main/res/values-iw/strings_servers.xml
+  s_c7f847fc05dfc2::t_64e8334485c424 3,45,61-107
+app/src/main/res/values-pl/strings.xml
+  s_c7f847fc05dfc2::t_29bd7b249c8cc1 947
+app/src/main/res/values-pt-rPT/audio_sync_strings.xml
+  s_c7f847fc05dfc2::t_08508a57619c61 1-22
+app/src/main/res/values-pt-rPT/strings.xml
+  s_c7f847fc05dfc2::t_fe76c0e8a3f04f 141,306,630-631,735,1123-1124,1149,1169-1170,1191-1192,1228,1315,1342,1559-1560,1858-1860,2463,2584-2587,2658,2730,2733,2735-2744,2746-2747,2749,2751,3532-3538
+app/src/main/res/values-pt-rPT/strings_ratings.xml
+  s_c7f847fc05dfc2::t_68d0574e69c26f 1-19
+app/src/main/res/values-sk/audio_sync_strings.xml
+  s_c7f847fc05dfc2::t_499ade1dd26753 1-22
+app/src/main/res/values-sk/strings.xml
+  s_c7f847fc05dfc2::t_3aab02fd17a7f5 205,209-210,225-228,2871-2891,3176,3543-3597
+app/src/main/res/values-vi/audio_sync_strings.xml
+  s_c7f847fc05dfc2::t_2beda936227f46 1-22
+app/src/main/res/values-vi/strings.xml
+  s_c7f847fc05dfc2::t_d1d2bd9c2ccd58 630-631,658,1226,1316,1343,1859-1861,2078,2465,2586-2589,2660,2732,2737-2746,3386,3493-3500,3533-3539,3542-3550
+app/src/main/res/values-vi/usenet.xml
+  s_c7f847fc05dfc2::t_cf0546537f1b8d 1-124
+app/src/main/res/values-vi/usenet_ranking.xml
+  s_c7f847fc05dfc2::t_c9c971447bb26b 1-107
+app/src/main/res/values-vi/usenet_sources.xml
+  s_c7f847fc05dfc2::t_47d5b26fb92593 1-204
+app/src/main/res/values/strings.xml
+  s_c7f847fc05dfc2::t_95a0f8ff2555ca 195,199-200,214-217,517-537
+app/src/test/java/com/nuvio/tv/core/debrid/DebridFileSelectorParityTest.kt
+  s_c7f847fc05dfc2::t_a2b578c0976d35 43-98
+app/src/test/java/com/nuvio/tv/core/tracking/LocalCompletionThresholdTest.kt
+  s_c7f847fc05dfc2::t_753bfc72ec03a4 1-58
+app/src/test/java/com/nuvio/tv/core/tracking/TrackingScrobbleCoordinatorTest.kt
+  s_c7f847fc05dfc2::t_50d6fc347d98e7 62-106,110-111,116
+app/src/test/java/com/nuvio/tv/core/usenet/BuiltInUsenetServiceTest.kt
+  s_c7f847fc05dfc2::t_aff5ea4a02073a 584-723
+app/src/test/java/com/nuvio/tv/core/usenet/BuiltInUsenetVideoIdsTest.kt
+  s_c7f847fc05dfc2::t_01f42a29254092 1-75
+app/src/test/java/com/nuvio/tv/core/usenet/NntpProviderTesterTest.kt
+  s_c7f847fc05dfc2::t_88699f81060301 19-30,36-37,49,88
+app/src/test/java/com/nuvio/tv/core/usenet/UsenetEngineUrlsTest.kt
+  s_c7f847fc05dfc2::t_251b4cced88047 47-53
+app/src/test/java/com/nuvio/tv/core/usenet/UsenetLiveStatsTest.kt
+  s_c7f847fc05dfc2::t_e3daa6010db5d9 1-56
+app/src/test/java/com/nuvio/tv/core/usenet/UsenetProviderNameTest.kt
+  s_c7f847fc05dfc2::t_5a054211e35dc0 1-15
+app/src/test/java/com/nuvio/tv/data/mapper/MetaMapperTest.kt
+  s_c7f847fc05dfc2::t_dbcd592c177806 145-170
+app/src/test/java/com/nuvio/tv/data/mdblist/MdbListTrackingScrobblerTest.kt
+  s_c7f847fc05dfc2::t_f6db77e6a86534 1-94
+app/src/test/java/com/nuvio/tv/data/repository/TraktTrackingScrobblerTest.kt
+  s_c7f847fc05dfc2::t_0bc967b153eeb2 8,14-18,42-133
+app/src/test/java/com/nuvio/tv/data/repository/WatchProgressRepositoryProviderMarksTest.kt
+  s_c7f847fc05dfc2::t_549885bc001331 27,119-141,156-159,172
+app/src/test/java/com/nuvio/tv/data/simkl/SimklAuthRepositoryTest.kt
+  s_c7f847fc05dfc2::t_1d7ee9c339dc12 172-314,379,386
+app/src/test/java/com/nuvio/tv/data/simkl/SimklEpisodeRuntimeTest.kt
+  s_c7f847fc05dfc2::t_eb77bfb866bac7 1-59
+app/src/test/java/com/nuvio/tv/data/simkl/SimklHistoryPushGuardTest.kt
+  s_c7f847fc05dfc2::t_f8b60e1a26acbf 1-79
+app/src/test/java/com/nuvio/tv/data/simkl/SimklMutationReconciliationTest.kt
+  s_c7f847fc05dfc2::t_7dc94d97379413 233-340
+app/src/test/java/com/nuvio/tv/data/simkl/SimklMutationServiceTest.kt
+  s_c7f847fc05dfc2::t_f9513fd287ac6f 252-279,335,343,353-418
+app/src/test/java/com/nuvio/tv/data/simkl/SimklPlaybackMergeTest.kt
+  s_c7f847fc05dfc2::t_5a90ee81ee50a6 1-76
+app/src/test/java/com/nuvio/tv/data/simkl/SimklProjectionsTest.kt
+  s_c7f847fc05dfc2::t_93252184afefc5 242,265-269,273-297
+app/src/test/java/com/nuvio/tv/data/simkl/SimklRewatchAnimeSeasonsTest.kt
+  s_c7f847fc05dfc2::t_b129f449d8c200 1-233
+app/src/test/java/com/nuvio/tv/data/simkl/SimklRewatchConsentRepositoryTest.kt
+  s_c7f847fc05dfc2::t_41b090e4f4b152 1-188
+app/src/test/java/com/nuvio/tv/data/simkl/SimklRewatchPlanLoadTest.kt
+  s_c7f847fc05dfc2::t_c5487712ad6209 1-153
+app/src/test/java/com/nuvio/tv/data/simkl/SimklRewatchPolicyTest.kt
+  s_c7f847fc05dfc2::t_d9aec5a7ab43e2 1-454
+app/src/test/java/com/nuvio/tv/data/simkl/SimklRewatchRemovalTest.kt
+  s_c7f847fc05dfc2::t_eb2eaf722827c0 1-224
+app/src/test/java/com/nuvio/tv/data/simkl/SimklRewatchRunsTest.kt
+  s_c7f847fc05dfc2::t_24ab55d69926d7 1-534
+app/src/test/java/com/nuvio/tv/data/simkl/SimklRewatchWriteTest.kt
+  s_c7f847fc05dfc2::t_0710bcae62572a 1-431
+app/src/test/java/com/nuvio/tv/data/simkl/SimklRewatchWriterTest.kt
+  s_c7f847fc05dfc2::t_2cc8b63122c277 1-233
+app/src/test/java/com/nuvio/tv/data/simkl/SimklScrobbleReconciliationTest.kt
+  s_c7f847fc05dfc2::t_83d4697a652381 3-6,9,181-778
+app/src/test/java/com/nuvio/tv/data/simkl/SimklSnapshotProjectionTest.kt
+  s_c7f847fc05dfc2::t_b9cba1a4b41378 50-71,103-105,149,185-221
+app/src/test/java/com/nuvio/tv/data/simkl/SimklSyncEngineTest.kt
+  s_c7f847fc05dfc2::t_eb76f8edea3e16 3-10,12,26-63,81,83,87,90,119,140,162,194,244,273,289,296,299,334,369,397,458-857,862,869-871,898-919,972-994,1049-1073
+app/src/test/java/com/nuvio/tv/data/simkl/SimklSyncRepositoryStorageTest.kt
+  s_c7f847fc05dfc2::t_48ec6d2b3dd0ee 7,10,32-48,116-117,190-191,238-239
+app/src/test/java/com/nuvio/tv/data/simkl/SimklTrackingScrobblerTest.kt
+  s_c7f847fc05dfc2::t_3a3c75619ac35c 1-574
+app/src/test/java/com/nuvio/tv/domain/model/WatchProgressTest.kt
+  s_c7f847fc05dfc2::t_3d2a4bc9da3e92 4-5,89-156,160-162,178-180
+app/src/test/java/com/nuvio/tv/ui/screens/detail/RewatchRunEpisodeSelectionTest.kt
+  s_c7f847fc05dfc2::t_26e90304c4ed2f 1-396
+app/src/test/java/com/nuvio/tv/ui/screens/home/ContinueWatchingRewatchClosePolicyTest.kt
+  s_c7f847fc05dfc2::t_a2afd193234767 1-105
+app/src/test/java/com/nuvio/tv/ui/screens/home/HomeEnrichmentRepositoryBoundaryTest.kt
+  s_c7f847fc05dfc2::t_316a2afe048af5 204-205
+app/src/test/java/com/nuvio/tv/ui/screens/home/HomeEnrichmentRetryTest.kt
+  s_c7f847fc05dfc2::t_1d62c01a14bcae 476-477
+app/src/test/java/com/nuvio/tv/ui/screens/home/HomePosterWatchedTest.kt
+  s_c7f847fc05dfc2::t_e5ff520ee4c7dd 137-138
+app/src/test/java/com/nuvio/tv/ui/screens/home/RewatchRunNextUpSeedsTest.kt
+  s_c7f847fc05dfc2::t_3a1d10253a7f8f 1-448
+app/src/test/java/com/nuvio/tv/ui/screens/player/BdavDtsHdReaderTest.kt
+  s_c7f847fc05dfc2::t_58dd62e4a4a468 1-154
+app/src/test/java/com/nuvio/tv/ui/screens/player/PlayerContentEndPolicyTest.kt
+  s_c7f847fc05dfc2::t_54b122f2e073ce 1-168
+app/src/test/java/com/nuvio/tv/ui/screens/player/PlayerScrobblePolicyTest.kt
+  s_c7f847fc05dfc2::t_095a9a19b56b07 39-45,49-88,93-113,118-211
+app/src/test/java/com/nuvio/tv/ui/screens/player/PlayerStreamTypeTest.kt
+  s_c7f847fc05dfc2::t_5ebdc61a33178e 1-27
+app/src/test/java/com/nuvio/tv/ui/screens/player/ProxyHeadersProtocolTest.kt
+  s_c7f847fc05dfc2::t_4a53059157168c 31-38
+app/src/test/java/com/nuvio/tv/ui/screens/player/autosync/AutoSyncSubtitleCueParserTest.kt
+  s_c7f847fc05dfc2::t_ca9391d35c91d0 5,48-116
+app/src/test/java/com/nuvio/tv/ui/screens/player/autosync/AutoSyncSubtitleTextRetimerTest.kt
+  s_c7f847fc05dfc2::t_fba94388c852be 167-178
+app/src/test/java/com/nuvio/tv/ui/screens/player/autosync/EmbeddedSubtitleTimelineLoaderTest.kt
+  s_c7f847fc05dfc2::t_21134964a1f999 3,12,15,17,19,22,67-294
+app/src/test/java/com/nuvio/tv/ui/screens/settings/TrackingSettingsViewModelTest.kt
+  s_c7f847fc05dfc2::t_bf479d8f4fcb40 17,32-38,64-67,89-174
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "24783f9525cc9b64237e3868f36154ef8e0054e4",
+  "prompts": {},
+  "sessions": {
+    "s_c7f847fc05dfc2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "666ff6ef-bff7-49b1-894d-8c6f8060c75e",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  }
+}
