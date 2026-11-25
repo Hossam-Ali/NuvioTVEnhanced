@@ -156,4 +156,73 @@ class HardwareVideoDecoderSelectorTest {
         assertFalse(isSoftwareVideoDecoderName("amstream_dves_hevc.sideband", softwareOnly))
         assertFalse(isSoftwareVideoDecoderName("OMX.MTK.VIDEO.DECODER.HEVC", softwareOnly))
     }
+
+    private fun dolbyVision(codecs: String): Format =
+        Format.Builder().setSampleMimeType(MimeTypes.VIDEO_DOLBY_VISION).setCodecs(codecs).build()
+
+    /** The Google TV Streamer's, in its order, with the Dolby Vision profiles each lists. */
+    private val streamer = listOf(
+        "c2.mtk.dvav.ser.decoder" to listOf(512),
+        "c2.mtk.dvav1.decoder" to listOf(1024),
+        "c2.mtk.dvhe.dtr.decoder" to listOf(16),
+        "c2.mtk.dvhe.sth.decoder" to listOf(256),
+        "c2.mtk.dvhe.stn.decoder" to listOf(32),
+    )
+    private val hevc = listOf("c2.mtk.hevc.decoder" to emptyList<Int>())
+
+    private fun dv7(
+        decoders: List<Pair<String, List<Int>>>,
+        playBaseLayer: Boolean = false,
+    ): List<String> = dolbyVision7Decoders(
+        decoders = decoders,
+        hevc = { hevc },
+        playBaseLayer = playBaseLayer,
+        supportsFormat = { 128 in it.second },
+        canDecodeHevc = { canDecodeHevcDolbyVision(it.second) },
+    ).map { it.first }
+
+    @Test
+    fun `Dolby Vision profile 7 plays its base layer where the first decoder is for H264`() {
+        assertEquals("c2.mtk.hevc.decoder", dv7(streamer).first())
+        assertEquals(6, dv7(streamer).size)
+    }
+
+    @Test
+    fun `a decoder that takes profile 7, or may, keeps its place`() {
+        val shield = listOf("OMX.Nvidia.DOVI.decode" to listOf(32, 128))
+        val unlisted = listOf("c2.amlogic.dolby-vision.dvhe.decoder" to listOf(256))
+        assertEquals(shield.map { it.first }, dv7(shield))
+        assertEquals(unlisted.map { it.first }, dv7(unlisted))
+        assertEquals(listOf("no.profiles"), dv7(listOf("no.profiles" to emptyList())))
+    }
+
+    @Test
+    fun `asking for the base layer plays it whatever Dolby Vision decoders there are`() {
+        assertEquals("c2.mtk.hevc.decoder", dv7(streamer, playBaseLayer = true).first())
+        assertEquals("c2.mtk.hevc.decoder", dv7(listOf("OMX.Nvidia.DOVI.decode" to listOf(128)), playBaseLayer = true).first())
+    }
+
+    @Test
+    fun `without a Dolby Vision decoder the base layer is played`() {
+        assertEquals(listOf("c2.mtk.hevc.decoder"), dv7(emptyList()))
+    }
+
+    @Test
+    fun `only profile 7 is recognised as such`() {
+        assertTrue(isDolbyVisionProfile7(dolbyVision("dvhe.07.06")))
+        assertTrue(isDolbyVisionProfile7(dolbyVision("dvh1.07.06")))
+        assertFalse(isDolbyVisionProfile7(dolbyVision("dvhe.05.06")))
+        assertFalse(isDolbyVisionProfile7(dolbyVision("dvhe.08.06")))
+        assertFalse(isDolbyVisionProfile7(format(MimeTypes.VIDEO_H265)))
+        assertFalse(isDolbyVisionProfile7(format(MimeTypes.VIDEO_DOLBY_VISION)))
+    }
+
+    @Test
+    fun `only a box that may take profile 7 gets its Dolby Vision data`() {
+        assertFalse(canDecodeDolbyVision7(streamer.map { it.second }))
+        assertTrue(canDecodeDolbyVision7(listOf(listOf(32, 128))))
+        assertTrue(canDecodeDolbyVision7(listOf(listOf(512), listOf(128))))
+        assertTrue(canDecodeDolbyVision7(listOf(listOf(256))))
+        assertFalse(canDecodeDolbyVision7(emptyList<List<Int>>()))
+    }
 }

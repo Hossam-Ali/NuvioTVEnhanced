@@ -10,6 +10,7 @@ import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
@@ -62,7 +63,10 @@ internal const val OPENROUTER_APP_URL = "https://nuvio.tv"
 internal const val OPENROUTER_APP_TITLE = "Nuvio TV"
 // Smaller batches come back sooner (reply time grows with the number of lines) and run side by side.
 private const val BATCH_SIZE = 20
+private const val PICTURE_BATCH_SIZE = 8
 private const val MAX_CONCURRENT_REQUESTS = 3
+/** Used for pictures when the default model is down; the user's own model may not read pictures. */
+private const val OPENROUTER_PICTURE_FALLBACK_MODEL = TRANSCRIPTION_MODEL
 private const val CACHE_LIMIT = 6_000
 private const val RETRY_AFTER_FAILURE_MS = 5_000L
 private const val MAX_RETRY_AFTER_FAILURE_MS = 60_000L
@@ -205,6 +209,7 @@ internal class SubtitleTranslator(
     private val http: SubtitleTranslationHttp,
     private val nowMs: () -> Long = { System.nanoTime() / 1_000_000L },
     private val onUsage: (SubtitleTranslationUsage) -> Unit = {},
+    private val encodeBase64: (ByteArray) -> String = { android.util.Base64.encodeToString(it, android.util.Base64.NO_WRAP) },
 ) {
     private val lock = Any()
     private val cache = LinkedHashMap<String, String>()
@@ -257,7 +262,8 @@ internal class SubtitleTranslator(
             if (pending.isNotEmpty() && now < retryAtMs) {
                 throw SubtitleTranslationException(SubtitleTranslationException.Code.Retry, "Waiting before retrying the translation")
             }
-            pending.chunked(BATCH_SIZE).forEach { sources ->
+            val (pictures, lines) = pending.partition(::isSubtitlePictureKey)
+            (lines.chunked(BATCH_SIZE) + pictures.chunked(PICTURE_BATCH_SIZE)).forEach { sources ->
                 val job = CompletableDeferred<Unit>()
                 sources.forEach {
                     inFlight[it] = job
@@ -314,9 +320,37 @@ internal class SubtitleTranslator(
     /** Milliseconds until requests are allowed again after a failure (0 when they are). */
     fun retryDelayMs(): Long = synchronized(lock) { (retryAtMs - nowMs()).coerceAtLeast(0L) }
 
-    private suspend fun translateBatch(sources: List<String>) {
-        val prompt = buildSubtitleTranslationPrompt(sources, targetLanguage)
-        val response = requestSlots.withPermit { request(prompt) }
+    private suspend fun translateBatch(batch: List<String>) {
+        val pictures = isSubtitlePictureKey(batch.first())
+        // A picture dropped in the meantime is offered again when it is shown.
+        val sources = if (pictures) batch.filter { SubtitlePictures.get(it) != null } else batch
+        if (sources.isEmpty()) return
+        val response = requestSlots.withPermit {
+            if (pictures) {
+                request(
+                    system = buildSubtitlePicturePrompt(targetLanguage),
+                    user = buildSubtitlePictureMessage(sources.mapNotNull(SubtitlePictures::get), encodeBase64),
+                    models = if (provider == SubtitleTranslationProvider.OpenRouter) {
+                        listOf(OPENROUTER_DEFAULT_MODEL, OPENROUTER_PICTURE_FALLBACK_MODEL)
+                    } else {
+                        listOf(model)
+                    },
+                )
+            } else {
+                val prompt = buildSubtitleTranslationPrompt(sources, targetLanguage)
+                request(
+                    system = prompt.system,
+                    user = JsonPrimitive(prompt.user),
+                    // With a model of the user's choosing, OpenRouter falls back to the default one
+                    // while it is rate-limited or down.
+                    models = if (provider == SubtitleTranslationProvider.OpenRouter) {
+                        listOf(model, OPENROUTER_DEFAULT_MODEL).distinct()
+                    } else {
+                        listOf(model)
+                    },
+                )
+            }
+        }
         val reply = runCatching {
             json.parseToJsonElement(response).jsonObject["choices"]!!.jsonArray[0].jsonObject["message"]!!
                 .jsonObject["content"]!!.jsonPrimitive.content
@@ -341,21 +375,14 @@ internal class SubtitleTranslator(
         }
     }
 
-    private suspend fun request(prompt: SubtitleTranslationPrompt): String {
+    private suspend fun request(system: String, user: JsonElement, models: List<String>): String {
         val isOpenRouter = provider == SubtitleTranslationProvider.OpenRouter
         val body = buildJsonObject {
-            put("model", model)
-            // With a model of the user's choosing, OpenRouter falls back to the default one while
-            // it is rate-limited or down.
-            if (isOpenRouter && model != OPENROUTER_DEFAULT_MODEL) {
-                put("models", buildJsonArray {
-                    add(JsonPrimitive(model))
-                    add(JsonPrimitive(OPENROUTER_DEFAULT_MODEL))
-                })
-            }
+            put("model", models.first())
+            if (models.size > 1) put("models", JsonArray(models.map(::JsonPrimitive)))
             put("messages", buildJsonArray {
-                add(buildJsonObject { put("role", "system"); put("content", prompt.system) })
-                add(buildJsonObject { put("role", "user"); put("content", prompt.user) })
+                add(buildJsonObject { put("role", "system"); put("content", system) })
+                add(buildJsonObject { put("role", "user"); put("content", user) })
             })
             // Both offered OpenRouter models support JSON mode, so replies always parse.
             put("response_format", buildJsonObject { put("type", "json_object") })

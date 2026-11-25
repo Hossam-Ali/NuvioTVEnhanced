@@ -246,13 +246,19 @@ internal fun PlayerRuntimeController.updateAvailableTracks(tracks: Tracks) {
         lastLoggedVideoTrackSignature = null
     }
 
-    hasScannedTextTracksOnce = true
+    // Stopping or replacing the media reports an empty list: the next one's tracks aren't known yet.
+    val tracksKnown = tracksAreKnown(tracks)
+    hasScannedTextTracksOnce = tracksKnown
     Log.d(
         PlayerRuntimeController.TAG,
         "TRACKS updated: internalSubs=${subtitleTracks.size}, selectedInternalIndex=$selectedSubtitleIndex, " +
                 "selectedAddon=${_uiState.value.selectedAddonSubtitle?.lang}, " +
                 "pendingAddonLang=$pendingAddonSubtitleLanguage, pendingAddonTrackId=$pendingAddonSubtitleTrackId"
     )
+    if (subtitleTracks.isNotEmpty()) {
+        val counts = subtitleTracks.groupingBy { "${it.language ?: "und"}/${it.codec ?: "?"}" }.eachCount()
+        Log.d(PlayerRuntimeController.TAG, "SUB_TRACKS: " + counts.entries.joinToString { (track, count) -> if (count > 1) "$track x$count" else track })
+    }
 
     val pendingAddonTrackId = pendingAddonSubtitleTrackId
     if (!pendingAddonTrackId.isNullOrBlank()) {
@@ -314,18 +320,23 @@ internal fun PlayerRuntimeController.updateAvailableTracks(tracks: Tracks) {
         subtitleTracks = subtitleTracks,
         selectedSubtitleIndex = selectedSubtitleIndex
     )
-    applyPersistedTrackPreference(
-        audioTracks = audioTracks,
-        subtitleTracks = subtitleTracks
-    )
+    if (tracksKnown) {
+        applyPersistedTrackPreference(
+            audioTracks = audioTracks,
+            subtitleTracks = subtitleTracks
+        )
+    }
     if (currentStreamHasVideoTrack) {
         maybeScheduleFirstFrameWatchdog()
     } else {
         cancelFirstFrameWatchdog()
     }
-    tryAutoSelectPreferredSubtitleFromAvailableTracks()
+    if (tracksKnown) tryAutoSelectPreferredSubtitleFromAvailableTracks()
     maybeAdjustLibassPipelineForTracks(tracks)
 }
+
+/** False for the empty list ExoPlayer reports when its media is stopped, cleared or replaced. */
+internal fun tracksAreKnown(tracks: Tracks): Boolean = tracks.groups.isNotEmpty()
 
 private fun formatSupportRank(@C.FormatSupport formatSupport: Int): Int {
     return when (formatSupport) {

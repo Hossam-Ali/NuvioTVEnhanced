@@ -7,7 +7,7 @@
   <p>
     An unofficial fork of <a href="https://github.com/NuvioMedia/NuvioTV">Nuvio TV</a> for Android TV and Google TV,
     with AI subtitles in any language, a redesigned look, a home screen you can shape, and an up-to-date build.
-    Based on Nuvio TV 1.2.0-beta.1.
+    Based on Nuvio TV 1.2.0-beta.4.
   </p>
 
 [Download the latest release](https://github.com/Hossam-Ali/NuvioTVEnhanced/releases/latest) · [Upstream Nuvio TV](https://github.com/NuvioMedia/NuvioTV) · [Report an issue](https://github.com/Hossam-Ali/NuvioTVEnhanced/issues)
@@ -31,11 +31,17 @@ translates the video's own subtitles with their original timing, and when a vide
 it listens to the audio and writes them. No searching, no syncing, no wrong-version files.
 
 - **The right subtitle, picked for you.** The video's own subtitle in your language is shown as it
-  is. Otherwise its English subtitle is translated (that's what AI translates best), then an
-  English add-on subtitle, then any other language the video has.
-- **Subtitles made from the audio.** A video with no subtitles at all gets them anyway: the audio is
+  is. Otherwise its English subtitle is translated (that's what AI translates best), then any other
+  language the video has. An English add-on subtitle is used only in place of the video's text
+  subtitles in another language.
+- **Blu-ray picture subtitles too.** Blu-ray files often carry subtitles as pictures of text (PGS).
+  AI reads and translates the ones you're watching while the video buffers, so they keep the
+  disc's exact timing and the other tracks cost nothing (ExoPlayer only; needs a model that reads
+  pictures, as the default one does).
+- **Subtitles made from the audio.** A video with no subtitles to use gets them anyway: the audio is
   read a few minutes ahead, transcribed and translated by AI in one step, and shown in time. They
-  catch up within seconds after a seek, and "AI from audio" can be picked for any video.
+  catch up within seconds after a seek, and "AI from audio" can be picked for any video. Reading
+  waits while the video is short of buffer, so it doesn't take the connection the video needs.
 - **Perfect sync.** Translated lines keep the source's exact timing, and lines made from audio follow
   the speech within a fraction of a second.
 - **Natural translations.** Lines are translated together with the dialogue around them by a modern
@@ -121,10 +127,13 @@ it listens to the audio and writes them. No searching, no syncing, no wrong-vers
 
 - **Top results first.** Results from every add-on are merged into one row: each title once, the
   closest match first, and it opens with the add-on that found it. No more scanning the same
-  movie across five rows.
+  movie across five rows. Copies are matched through TMDB, so an add-on's IMDb id and TMDB's own
+  id, or an English and an Arabic name, are still one title; and when an add-on's id is unknown,
+  the copy whose sources can be found is the one opened.
 - **Any language, original titles too.** Search a show by its Arabic, Turkish, Korean or original
   name and find it, even when your add-ons only know the English title. Results are named in their
-  own language, even from add-ons that translate every title.
+  own language, even from add-ons that translate every title, and films made in your favourite
+  subtitle language go by their original title, as on the home screen.
 - **Search by actor.** An "Actors & crew" row takes you straight to a person's movies and series.
 - **Clean, fast results.** Add-ons that fail to answer disappear instead of loading forever, and
   slow ones join in when ready rather than filling the screen with placeholders.
@@ -153,6 +162,9 @@ Searching by original title and by actor uses TMDB: add your free TMDB key in
 - **Trailers when you rest on a title**, after a delay you choose (Autoplay Trailer and Trailer
   Delay in **Settings → Appearance → Layout**).
 - **Cast with photos on the pause screen**, taken from TMDB when the add-on only lists names.
+- **Dolby Vision profile 7 on any box.** Boxes without a profile 7 decoder, such as the Google TV
+  Streamer, play these Blu-ray remuxes (MKV) in HDR10 instead of getting stuck buffering, failing, or
+  showing a black screen with sound. Other Dolby Vision files keep Dolby Vision.
 
 ### Fixes
 
@@ -168,6 +180,10 @@ Searching by original title and by actor uses TMDB: add your free TMDB key in
 - Resuming no longer jumps back a few minutes when the app closed before your position reached
   your account: the newer position on the TV is kept.
 - The subtitle button stays in the player when the only subtitles are ones made from the audio.
+- "No subtitles, making them from the audio" no longer shows while a video is still opening, before
+  its subtitles are known.
+- Leaving a video now stops reading its audio for subtitles at once; reading on after the player
+  closed crashed the Google TV Streamer's codec service.
 - Clearing the search field brings back your recent searches again, instead of leaving the last
   results on screen.
 - Network test results can be selected and read, instead of the list jumping past them.

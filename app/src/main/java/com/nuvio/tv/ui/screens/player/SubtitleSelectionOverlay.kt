@@ -111,6 +111,8 @@ internal fun SubtitleSelectionOverlay(
     aiTranslationTarget: String? = null,
     /** Spoken language of the playing audio track; its subtitle is the one translated. */
     aiTranslationAudioLanguage: String? = null,
+    /** The video's picture subtitles can be AI-translated too. */
+    aiReadsPictures: Boolean = false,
     /** Subtitles can be made from the audio, offered as "AI from audio" under the target language. */
     aiTranscriptionAvailable: Boolean = false,
     /** Subtitles are being made from the audio now. */
@@ -150,7 +152,7 @@ internal fun SubtitleSelectionOverlay(
     val sessionAiTranslationSource = remember(visible, sessionAddonSubtitles) {
         aiTranslationSource(
             sessionInternalTracks, sessionAddonSubtitles, sessionAiTargetKey, aiTranslationAudioLanguage,
-            sessionSelectedInternalIndex, sessionSelectedAddonSubtitle
+            sessionSelectedInternalIndex, sessionSelectedAddonSubtitle, aiReadsPictures
         )
     }
     val sessionAiSource = (sessionAiTranslationSource as? TranslationSource.Embedded)?.track
@@ -2080,6 +2082,7 @@ private fun aiTranslationSource(
     audioLanguage: String?,
     selectedInternalIndex: Int,
     selectedAddon: Subtitle?,
+    readsPictures: Boolean,
 ): TranslationSource? {
     if (aiTargetKey == null) return null
     selectedAddon?.takeIf { !addonSubtitleIsForced(it) && normalizeOverlayLanguageKey(it.lang) != aiTargetKey }
@@ -2089,12 +2092,12 @@ private fun aiTranslationSource(
     } else {
         internalTracks.firstOrNull { it.index == selectedInternalIndex } ?: internalTracks.firstOrNull { it.isSelected }
     }
-    if (selected != null && selected.isTranslatableTextSubtitle() && !selected.isForced &&
+    if (selected != null && selected.isTranslatableSubtitle(readsPictures) && !selected.isForced &&
         normalizeOverlayLanguageKeyForTrack(selected) != aiTargetKey
     ) {
         return TranslationSource.Embedded(selected)
     }
-    return subtitleSourceForTranslation(internalTracks, addonSubtitles, aiTargetKey, audioLanguage)
+    return subtitleSourceForTranslation(internalTracks, addonSubtitles, aiTargetKey, audioLanguage, readsPictures)
 }
 
 private fun aiAddonOptionId(subtitle: Subtitle): String = "ai-${addonSubtitleOptionId(subtitle)}"

@@ -902,6 +902,16 @@ internal fun PlayerRuntimeController.initializePlayer(
                         effectiveDv7Mode == Dv7HandlingMode.STRIP_DV
             }
             com.nuvio.tv.core.player.dvmkv.DolbyVisionCompatibility.setHdr10BaseLayerModeActive(isHdr10BaseLayerModeActive)
+            // With Auto and no Dolby Vision conversion, a box whose decoders don't take Profile 7
+            // (the Google TV Streamer) plays its base layer as plain HDR10: with the Dolby Vision
+            // data left in, the Streamer decodes it but shows a black screen.
+            val playProfile7BaseLayer = (playerSettings.dv7HandlingMode == Dv7HandlingMode.AUTO &&
+                    effectiveDv7Mode == Dv7HandlingMode.OFF && !canDecodeDolbyVision7()) ||
+                    (mapDv7ToHevcEnabled && !isExperimentalDv7ToDv81ActiveForCurrentPlayback)
+            com.nuvio.tv.core.player.dvmkv.DolbyVisionCompatibility.setProfile7BaseLayerActive(playProfile7BaseLayer)
+            if (playProfile7BaseLayer) {
+                Log.i(PlayerRuntimeController.TAG, "DV7_BASE_LAYER: Profile 7 plays as HDR10 host=${url.safeHost()}")
+            }
             isMapDv7ToHevcActiveForCurrentPlayback = mapDv7ToHevcEnabled
             val convertToDv81Active = !mapDv7ToHevcEnabled &&
                     dv7AutoResult?.decision == DolbyVisionBaseLayerPolicy.Decision.CONVERT_TO_DV81
@@ -1027,7 +1037,8 @@ internal fun PlayerRuntimeController.initializePlayer(
                             manualDv81 = manualDv81Selected && !dv7Mode1Forced
                         ),
                         stripDvRpu = stripDvRpuEnabled,
-                        stripHdr10PlusSei = stripHdr10PlusSei
+                        stripHdr10PlusSei = stripHdr10PlusSei,
+                        stripProfile7 = playProfile7BaseLayer
                     ).let { autoSyncExtractorsFactory(it, url, headers) } // AutoSync hook
                     .let { subtitleTranslationExtractorsFactory(it) }
             configureBdavAutoSync() // AutoSync hook for Blu-ray clips
@@ -1323,6 +1334,8 @@ internal fun PlayerRuntimeController.initializePlayer(
                         }
 
                         if (playbackState == Player.STATE_READY) {
+                            // Making subtitles from the audio waits for the video to be ready.
+                            if (!autoSubtitleSelected) tryAutoSelectPreferredSubtitleFromAvailableTracks()
                             if (pendingSeekTelemetryRequestedAtMs > 0L && pendingSeekTelemetryReadyAtMs <= 0L) {
                                 val latencyMs = (System.currentTimeMillis() - pendingSeekTelemetryRequestedAtMs).coerceAtLeast(0L)
                                 pendingSeekTelemetryReadyAtMs = System.currentTimeMillis()
@@ -2334,7 +2347,7 @@ private class SubtitleOffsetRenderersFactory(
                     .setEventListener(eventListener)
                     .setMaxDroppedFramesToNotify(DefaultRenderersFactory.MAX_DROPPED_VIDEO_FRAME_COUNT_TO_NOTIFY)
                     .setMapDV7ToHevc(mapDv7ToHevc)
-                out.add(HardwareFirstVideoRenderer(builder))
+                out.add(HardwareFirstVideoRenderer(builder, mapDv7ToHevc))
             } else {
                 out.add(renderer)
             }

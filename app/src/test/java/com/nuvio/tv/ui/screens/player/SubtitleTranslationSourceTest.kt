@@ -92,6 +92,37 @@ class SubtitleTranslationSourceTest {
         assertEquals(AutoSubtitleChoice.Transcribe, choice(listOf(track(1, "eng", codec = "hdmv/pgs")), listOf(sub("en-forced", "eng"))))
     }
 
+    private fun readingPictures(tracks: List<TrackInfo>, subs: List<Subtitle> = emptyList()) =
+        autoSubtitleChoice(tracks, subs, "ar", canReadPictures = true)
+
+    @Test
+    fun `the video's english pictures are read by AI, before the audio and before any add-on`() {
+        val pictures = listOf(track(1, "fre", codec = "PGS"), track(2, "eng", codec = "PGS"), track(3, "eng", codec = "PGS"))
+        assertEquals(2, (readingPictures(pictures, listOf(sub("en", "eng"), sub("ar", "ara"))) as AutoSubtitleChoice.Embedded).track.index)
+        assertFalse(autoSubtitleChoiceNeedsAddons(pictures, "ar", canReadPictures = true))
+        assertEquals(AutoSubtitleChoice.Transcribe, choice(pictures, listOf(sub("ar", "ara"))))
+    }
+
+    @Test
+    fun `pictures in another language are read rather than an add-on translated`() {
+        val french = listOf(track(1, "fre", codec = "PGS"))
+        assertEquals(1, (readingPictures(french, listOf(sub("en", "eng"))) as AutoSubtitleChoice.Embedded).track.index)
+        assertFalse(autoSubtitleChoiceNeedsAddons(french, "ar", canReadPictures = true))
+    }
+
+    @Test
+    fun `text comes before pictures in the same language, and english before other languages`() {
+        assertEquals(2, (readingPictures(listOf(track(1, "eng", codec = "PGS"), track(2, "eng"))) as AutoSubtitleChoice.Embedded).track.index)
+        assertEquals(1, (readingPictures(listOf(track(1, "eng", codec = "PGS"), track(2, "fre"))) as AutoSubtitleChoice.Embedded).track.index)
+    }
+
+    @Test
+    fun `an arabic picture track is shown as it is and forced pictures are not read`() {
+        assertEquals(2, (readingPictures(listOf(track(1, "eng"), track(2, "ara", codec = "PGS"))) as AutoSubtitleChoice.Embedded).track.index)
+        val forced = listOf(track(1, "eng", codec = "PGS").copy(isForced = true))
+        assertEquals(AutoSubtitleChoice.Transcribe, readingPictures(forced))
+    }
+
     @Test
     fun `add-ons are used only when the audio can't be read`() {
         assertEquals("ar", (choice(emptyList(), listOf(sub("en", "eng"), sub("ar", "ara")), canTranscribe = false) as AutoSubtitleChoice.Addon).subtitle.id)

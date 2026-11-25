@@ -30,6 +30,8 @@ internal class DolbyVisionMatroskaTransformer(
     private val config: DolbyVisionConversionConfig,
     private val stripRpuOnly: Boolean = false,
     private val stripHdr10PlusSei: Boolean = false,
+    /** Leaves a Profile 7 video with its HDR10 base layer only; other profiles are untouched. */
+    private val stripProfile7: Boolean = false,
 ) : MatroskaExtractor.DolbyVisionSampleTransformer {
 
     private var lastTransformedLength = 0
@@ -77,6 +79,7 @@ internal class DolbyVisionMatroskaTransformer(
         if (blockAdditionalData == null) return null
         if (stripRpuOnly) return ByteArray(0)
         val profile = resolveProfile(null, dolbyVisionConfigBytes)
+        if (stripsProfile(profile)) return ByteArray(0)
         if (!config.shouldConvert(profile)) return null
         // Single conversion site for BlockAdditional RPUs; transformHevcSample appends as-is.
         return convertRpuNal(blockAdditionalData, config.conversionMode(profile))
@@ -88,8 +91,10 @@ internal class DolbyVisionMatroskaTransformer(
                 (dolbyVisionConfigBytes != null && dolbyVisionConfigBytes.isNotEmpty())
         if (stripRpuOnly) return isDv
         val profile = resolveProfile(codecs, dolbyVisionConfigBytes)
-        return config.shouldConvert(profile)
+        return stripsProfile(profile) || config.shouldConvert(profile)
     }
+
+    private fun stripsProfile(profile: Int?): Boolean = stripProfile7 && profile == 7
 
     override fun onHevcSample(
         sampleSizeBytes: Int,
@@ -113,7 +118,7 @@ internal class DolbyVisionMatroskaTransformer(
 
         lastTransformedLength = sampleLength
 
-        if (stripRpuOnly) {
+        if (stripRpuOnly || stripsProfile(profile)) {
             if (profile == 5) {
                 if (!shouldStripDv5Rpu(sample, sampleLength, nalUnitLengthFieldLength)) {
                     return stripHdr10PlusIfEnabled(sample, sampleLength, nalUnitLengthFieldLength) ?: sample

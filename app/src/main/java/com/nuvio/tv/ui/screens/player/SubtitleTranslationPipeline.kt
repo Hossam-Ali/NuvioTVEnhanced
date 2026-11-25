@@ -22,9 +22,14 @@ import androidx.media3.extractor.SeekMap
 import androidx.media3.extractor.SniffFailure
 import androidx.media3.extractor.TrackOutput
 import androidx.media3.extractor.text.CueDecoder
+import com.nuvio.tv.core.subtitles.SubtitlePictures
 import com.nuvio.tv.core.subtitles.SubtitleTranslationService
 import java.io.EOFException
 import java.util.concurrent.CopyOnWriteArrayList
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlin.math.max
 
 /**
@@ -81,7 +86,21 @@ internal class TranslatingTextOutput(
         if (!shouldTranslateProvider()) return cues
         val translator = SubtitleTranslationService.activeTranslator() ?: return cues
         val missing = mutableListOf<String>()
+        var missingPicture = false
+        val read = mutableListOf<Pair<Cue, String>>()
         val translated = cues.mapNotNull { cue ->
+            cue.bitmap?.let { bitmap ->
+                // A picture of text, as on Blu-ray: read and translated by AI.
+                val key = SubtitlePictures.keyOf(bitmap) ?: return@mapNotNull cue
+                val translation = translator.cached(key)
+                if (translation != null) {
+                    read += cue to translation
+                    return@mapNotNull null
+                }
+                missingPicture = true
+                SubtitleTranslationService.readPicture(bitmap, now = true)
+                return@mapNotNull cue.takeUnless { holdUntranslated }
+            }
             val source = cue.text?.toString()?.takeIf { cue.bitmap == null && it.isNotBlank() } ?: return@mapNotNull cue
             val translation = translator.cached(source)
             if (translation == null) {
@@ -92,15 +111,43 @@ internal class TranslatingTextOutput(
             }
         }
         handler.removeCallbacks(showOriginalWhenLate)
-        if (missing.isNotEmpty() && holdUntranslated) {
+        if ((missing.isNotEmpty() || missingPicture) && holdUntranslated) {
             handler.postDelayed(showOriginalWhenLate, LATE_TRANSLATION_HOLD_MS)
         }
         SubtitleTranslationService.translate(translator, missing)
-        return translated
+        return translated + pictureTranslationCues(read)
     }
 
     private companion object {
         const val LATE_TRANSLATION_HOLD_MS = 1_500L
+    }
+}
+
+/** Pictures whose middle is above this part of the screen are kept at the top. */
+private const val TOP_PICTURE_FRACTION = 0.4f
+
+/**
+ * Text cues for translated pictures. One subtitle can come as several pictures (two speakers'
+ * lines, say): those at the bottom become one cue at the usual place, top to bottom, and those at
+ * the top another.
+ */
+internal fun pictureTranslationCues(read: List<Pair<Cue, String>>): List<Cue> {
+    if (read.isEmpty()) return emptyList()
+    val (top, bottom) = read.sortedBy { (cue, _) -> cue.line }.partition { (cue, _) ->
+        cue.lineType == Cue.LINE_TYPE_FRACTION && cue.line != Cue.DIMEN_UNSET &&
+            cue.line + (cue.bitmapHeight.takeIf { it != Cue.DIMEN_UNSET } ?: 0f) / 2 < TOP_PICTURE_FRACTION
+    }
+    fun text(pictures: List<Pair<Cue, String>>) = pictures.joinToString("\n") { it.second }
+    return buildList {
+        if (top.isNotEmpty()) {
+            add(
+                Cue.Builder().setText(text(top))
+                    .setLine(top.first().first.line, Cue.LINE_TYPE_FRACTION)
+                    .setLineAnchor(Cue.ANCHOR_TYPE_START)
+                    .build()
+            )
+        }
+        if (bottom.isNotEmpty()) add(Cue.Builder().setText(text(bottom)).build())
     }
 }
 
@@ -140,8 +187,13 @@ internal class SubtitleTranslationExtractorsFactory(
 internal object EmbeddedSubtitleTextTap {
     private const val MAX_RECENT_LINES_PER_TRACK = 400
 
+    private const val MAX_RECENT_PICTURES_PER_TRACK = 24
+
     private class Track(var language: String?) {
         val recent = ArrayDeque<String>()
+        /** Picture samples as Media3 wrote them, read only if their track is selected. */
+        val recentPictures = ArrayDeque<ByteArray>()
+        var formatId: String? = null
     }
 
     private val lock = Any()
@@ -160,8 +212,45 @@ internal object EmbeddedSubtitleTextTap {
         if (matchesSelection(normalizedLanguage)) SubtitleTranslationService.prefetch(text)
     }
 
+    /**
+     * A sample of a picture track. Decoding one takes time and a Blu-ray has dozens of these
+     * tracks, so only the selected track's are read; the latest English ones are kept for when
+     * their track is selected.
+     */
+    fun recordPictures(trackId: Int, language: String?, formatId: String?, sample: () -> ByteArray) {
+        val normalizedLanguage = normalizedLanguage(language)
+        if (matchesSelection(normalizedLanguage) && isSelectedSubtitleTrack(formatId, SubtitleTranslationService.selectedTrackId)) {
+            readPictures(sample())
+            return
+        }
+        if (!PlayerSubtitleUtils.matchesLanguageCode(language, "en")) return
+        synchronized(lock) {
+            val track = tracks.getOrPut(trackId) { Track(normalizedLanguage) }
+            track.language = normalizedLanguage
+            track.formatId = formatId
+            track.recentPictures.addLast(sample())
+            if (track.recentPictures.size > MAX_RECENT_PICTURES_PER_TRACK) track.recentPictures.removeFirst()
+        }
+    }
+
+    private val pictureScope = CoroutineScope(SupervisorJob() + Dispatchers.Default.limitedParallelism(1))
+
+    private fun readPictures(sample: ByteArray) {
+        if (SubtitleTranslationService.activeTranslator() == null) return
+        pictureScope.launch {
+            val cues = runCatching { CueDecoder().decode(0L, sample, 0, sample.size).cues }.getOrNull() ?: return@launch
+            cues.forEach { cue -> cue.bitmap?.let { SubtitleTranslationService.readPicture(it, now = false) } }
+        }
+    }
+
     /** Queues lines already buffered for the newly selected track. */
     fun replaySelection() {
+        val pictures = synchronized(lock) {
+            tracks.values.filter { track ->
+                matchesSelection(track.language) && isSelectedSubtitleTrack(track.formatId, SubtitleTranslationService.selectedTrackId)
+            }.flatMap { track -> track.recentPictures.toList().also { track.recentPictures.clear() } }
+        }
+        pictures.forEach(::readPictures)
         val lines = synchronized(lock) {
             tracks.values.filter { matchesSelection(it.language) }.flatMap { it.recent.toList() }
         }
@@ -174,6 +263,17 @@ internal object EmbeddedSubtitleTextTap {
     private fun matchesSelection(trackLanguage: String?): Boolean =
         normalizedLanguage(SubtitleTranslationService.selectedTrackLanguage) == trackLanguage
 }
+
+/** Whether cues come from pictures: Media3 keeps a track's original type in its codecs string. */
+internal fun isPictureSubtitleMime(codecs: String?): Boolean =
+    codecs == MimeTypes.APPLICATION_PGS || codecs == MimeTypes.APPLICATION_VOBSUB || codecs == MimeTypes.APPLICATION_DVBSUBS
+
+/**
+ * Whether the extractor's track [formatId] is the [selectedId] one. Merged sources put their own
+ * number before a track's id ("1:5" for "5"). Unknown ids can't be told apart.
+ */
+internal fun isSelectedSubtitleTrack(formatId: String?, selectedId: String?): Boolean =
+    formatId == null || selectedId == null || selectedId == formatId || selectedId.endsWith(":$formatId")
 
 private class TranslationTapExtractor(private val delegate: Extractor) : RewrappableExtractor {
     override val wrappedExtractor: Extractor get() = delegate
@@ -257,6 +357,12 @@ private class TranslationTapTextTrackOutput(
         if (size <= 0 || currentFormat.sampleMimeType != MimeTypes.APPLICATION_MEDIA3_CUES) return
         val sampleStart = end - offset - size
         if (sampleStart < start || sampleStart + size > end) return
+        if (isPictureSubtitleMime(currentFormat.codecs)) {
+            EmbeddedSubtitleTextTap.recordPictures(trackId, currentFormat.language, currentFormat.id) {
+                buffered.copyOfRange(sampleStart, sampleStart + size)
+            }
+            return
+        }
         val decoded = runCatching { cueDecoder.decode(timeUs, buffered, sampleStart, size) }.getOrNull() ?: return
         // Each cue is shown separately, so each one is its own translation key.
         decoded.cues.forEach { cue ->

@@ -49,6 +49,19 @@ public final class DolbyVisionCompatibility {
     return isHdr10BaseLayerModeActive;
   }
 
+  private static volatile boolean profile7BaseLayerActive;
+
+  /** Profile 7 tracks are exposed as HEVC, for their HDR10 base layer. */
+  public static void setProfile7BaseLayerActive(boolean active) {
+    profile7BaseLayerActive = active;
+  }
+
+  /** Whether a track with these Dolby Vision {@code codecs} is exposed as HEVC. */
+  public static boolean playsBaseLayerOnly(@Nullable String codecs) {
+    return isHdr10BaseLayerModeActive
+        || (profile7BaseLayerActive && isDolbyVisionProfile7(codecs));
+  }
+
   public static void setMapDv7ToHevcEnabled(boolean enabled) {
     mapDv7ToHevcEnabled = enabled;
   }

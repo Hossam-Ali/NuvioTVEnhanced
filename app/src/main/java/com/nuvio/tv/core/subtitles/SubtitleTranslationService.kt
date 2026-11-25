@@ -1,6 +1,7 @@
 package com.nuvio.tv.core.subtitles
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.os.SystemClock
 import com.nuvio.tv.ui.screens.player.PlayerSubtitleUtils
 import kotlinx.coroutines.CoroutineScope
@@ -81,6 +82,8 @@ internal object SubtitleTranslationService {
     private const val QUEUE_FLUSH_DELAY_MS = 2_500L
     private const val QUEUE_IDLE_MS = 20_000L
     private const val QUEUE_FLUSH_SIZE = 20
+    /** Pictures take longer to come back, so they are gathered for less time. */
+    private const val PICTURE_FLUSH_DELAY_MS = 500L
     private const val MAX_AUTOMATIC_RETRIES = 3
     private const val DISK_CACHE_DIRECTORY = "subtitle-translations"
     private const val DISK_CACHE_SAVE_DELAY_MS = 5_000L
@@ -110,6 +113,24 @@ internal object SubtitleTranslationService {
     /** Language of the subtitle track the player currently shows, or null when unknown. */
     @Volatile
     var selectedTrackLanguage: String? = null
+
+    /** Media3's id of the subtitle track the player currently shows, or null when unknown. */
+    @Volatile
+    var selectedTrackId: String? = null
+
+    /**
+     * Has the subtitle [bitmap] read and translated: [now] when it is already on screen, else
+     * with the other pictures the player is buffering. Returns at once.
+     */
+    fun readPicture(bitmap: Bitmap, now: Boolean) {
+        val active = activeTranslator() ?: return
+        scope.launch(Dispatchers.Default) {
+            val key = SubtitlePictures.keyOf(bitmap) ?: return@launch
+            if (active.cached(key) != null) return@launch
+            SubtitlePictures.offer(key, bitmap)
+            if (now) translate(active, listOf(key)) else prefetch(key)
+        }
+    }
 
     fun attach(context: Context) {
         if (appContext == null) appContext = context.applicationContext
@@ -200,7 +221,13 @@ internal object SubtitleTranslationService {
         }
         val idle = SystemClock.elapsedRealtime() - lastFlushAtMs > QUEUE_IDLE_MS
         scope.launch {
-            delay(if (idle) QUEUE_FIRST_FLUSH_DELAY_MS else QUEUE_FLUSH_DELAY_MS)
+            delay(
+                when {
+                    idle -> QUEUE_FIRST_FLUSH_DELAY_MS
+                    isSubtitlePictureKey(text) -> PICTURE_FLUSH_DELAY_MS
+                    else -> QUEUE_FLUSH_DELAY_MS
+                }
+            )
             synchronized(lock) {
                 flushScheduled = false
                 flushLocked(active)

@@ -1,5 +1,6 @@
 package com.nuvio.tv.ui.screens.player
 
+import android.media.MediaCodecInfo.CodecProfileLevel
 import android.media.MediaCodecList
 import android.os.Build
 import androidx.media3.common.Format
@@ -38,14 +39,92 @@ internal fun hardwareFirstVideoDecoders(format: Format, decoders: List<MediaCode
         runCatching { it.isFormatSupported(format) }.getOrDefault(false)
     }
 
-/** The platform video renderer with [hardwareFirstVideoDecoders] applied to its decoder list. */
-internal class HardwareFirstVideoRenderer(builder: MediaCodecVideoRenderer.Builder) : MediaCodecVideoRenderer(builder) {
+/** Dolby Vision profiles carried in HEVC. The others are H.264 (dvav) and AV1 (dav1). */
+private val HEVC_DOLBY_VISION_PROFILES = setOf(
+    CodecProfileLevel.DolbyVisionProfileDvheDer,
+    CodecProfileLevel.DolbyVisionProfileDvheDen,
+    CodecProfileLevel.DolbyVisionProfileDvheDtr,
+    CodecProfileLevel.DolbyVisionProfileDvheStn,
+    CodecProfileLevel.DolbyVisionProfileDvheDth,
+    CodecProfileLevel.DolbyVisionProfileDvheDtb,
+    CodecProfileLevel.DolbyVisionProfileDvheSt,
+)
+
+internal fun isDolbyVisionProfile7(format: Format): Boolean =
+    format.sampleMimeType == MimeTypes.VIDEO_DOLBY_VISION &&
+        Regex("dv(he|h1)\\.07(\\..*)?").matches(format.codecs.orEmpty())
+
+/** Whether a Dolby Vision decoder with these [profiles] decodes HEVC; one that lists none may. */
+internal fun canDecodeHevcDolbyVision(profiles: Collection<Int>): Boolean =
+    profiles.isEmpty() || profiles.any { it in HEVC_DOLBY_VISION_PROFILES }
+
+/**
+ * Decoders for a Dolby Vision profile 7 video, which no decoder of the Google TV Streamer takes. On
+ * a Dolby Vision TV Media3 then keeps the platform's order, where the Streamer's first one is for
+ * H.264: it starts, never shows a frame and fails. [hevc] decoders play the video's HDR10 base
+ * layer instead, when [playBaseLayer] asks for it or the first decoder can't decode HEVC at all.
+ */
+internal fun <T> dolbyVision7Decoders(
+    decoders: List<T>,
+    hevc: () -> List<T>,
+    playBaseLayer: Boolean,
+    supportsFormat: (T) -> Boolean,
+    canDecodeHevc: (T) -> Boolean,
+): List<T> {
+    if (!playBaseLayer) {
+        if (decoders.any(supportsFormat)) return decoders
+        val first = decoders.firstOrNull()
+        if (first != null && canDecodeHevc(first)) return decoders
+    }
+    return (hevc() + decoders).distinct()
+}
+
+/**
+ * Whether this box's Dolby Vision decoders take profile 7, or may: one lists the profile, or the
+ * first one lists other HEVC profiles only, as some boxes that do decode it do.
+ */
+internal fun canDecodeDolbyVision7(): Boolean = runCatching {
+    canDecodeDolbyVision7(
+        MediaCodecSelector.DEFAULT.getDecoderInfos(MimeTypes.VIDEO_DOLBY_VISION, false, false)
+            .map { info -> info.profileLevels.map { it.profile } }
+    )
+}.getOrDefault(true)
+
+/** [decoders]: the profiles each Dolby Vision decoder lists, in the platform's order. */
+internal fun canDecodeDolbyVision7(decoders: List<List<Int>>): Boolean =
+    decoders.any { CodecProfileLevel.DolbyVisionProfileDvheDtb in it } ||
+        decoders.firstOrNull()?.let(::canDecodeHevcDolbyVision) == true
+
+/**
+ * The platform video renderer with [hardwareFirstVideoDecoders] and [dolbyVision7Decoders] applied
+ * to its decoder list. [mapDv7ToHevc] is repeated here because the platform's own setting has no
+ * effect on a Dolby Vision TV.
+ */
+internal class HardwareFirstVideoRenderer(
+    builder: MediaCodecVideoRenderer.Builder,
+    private val mapDv7ToHevc: Boolean = false,
+) : MediaCodecVideoRenderer(builder) {
     override fun getDecoderInfos(
         mediaCodecSelector: MediaCodecSelector,
         format: Format,
         requiresSecureDecoder: Boolean,
-    ): List<MediaCodecInfo> =
-        hardwareFirstVideoDecoders(format, super.getDecoderInfos(mediaCodecSelector, format, requiresSecureDecoder))
+    ): List<MediaCodecInfo> {
+        val decoders = hardwareFirstVideoDecoders(format, super.getDecoderInfos(mediaCodecSelector, format, requiresSecureDecoder))
+        if (!isDolbyVisionProfile7(format)) return decoders
+        return dolbyVision7Decoders(
+            decoders = decoders,
+            hevc = {
+                val all = mediaCodecSelector.getDecoderInfos(MimeTypes.VIDEO_H265, requiresSecureDecoder, false)
+                all.filterNot(::isSoftwareDecoder).ifEmpty { all }
+            },
+            playBaseLayer = mapDv7ToHevc,
+            supportsFormat = { runCatching { it.isFormatSupported(format) }.getOrDefault(false) },
+            canDecodeHevc = { info ->
+                info.codecMimeType != MimeTypes.VIDEO_DOLBY_VISION ||
+                    canDecodeHevcDolbyVision(info.profileLevels.map { it.profile })
+            },
+        )
+    }
 }
 
 internal fun isSoftwareDecoder(info: MediaCodecInfo): Boolean =

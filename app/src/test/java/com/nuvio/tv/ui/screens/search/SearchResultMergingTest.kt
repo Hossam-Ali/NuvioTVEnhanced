@@ -72,4 +72,84 @@ class SearchResultMergingTest {
         assertTrue(shouldShowTopResults(rowsWithResults = 1, extraResults = 3))
         assertTrue(shouldShowTopResults(rowsWithResults = 2, extraResults = 0))
     }
+
+    private fun looked(vararg ids: Pair<String, String?>) = ids.associate { (id, tmdbId) -> topResultKey(id, "movie") to tmdbId }
+
+    @Test
+    fun `a film under its IMDb id and its TMDB id appears once, whatever each calls it`() {
+        val top = buildTopResults(
+            "هيبتا",
+            listOf(row("aradeb", item("tt5240732", "Hepta: The Last Lecture", "2016"))),
+            extra = listOf(item("tmdb:395815", "هيبتا: المحاضرة الأخيرة", "2016")),
+            ids = SearchTitleIds(looked = looked("tt5240732" to "395815")),
+        )
+        assertEquals(listOf("tt5240732"), top.items.map { it.id })
+        assertEquals("aradeb", top.sources[topResultKey("tt5240732", "movie")])
+        assertEquals(setOf("tt5240732|movie", "tmdb:395815|movie"), top.copies)
+    }
+
+    @Test
+    fun `the copy TMDB recognises is opened rather than an add-on's unknown IMDb id`() {
+        // elCinema lists Hepta 2 under an id no source knows.
+        val elCinema = row("elcinema", item("tt37272026", "هيبتا ٢: المناظرة الأخيرة", "2025"))
+        val aradeb = row("aradeb", item("tt38628047", "Hepta 2: The Last Debate", "2025"))
+        val tmdb = listOf(item("tmdb:1330337", "هيبتا ٢: المناظرة الأخيرة", "2025"))
+        val ids = SearchTitleIds(looked = looked("tt37272026" to null, "tt38628047" to "1330337"))
+        listOf(listOf(elCinema, aradeb), listOf(aradeb, elCinema)).forEach { rows ->
+            val top = buildTopResults("هيبتا", rows, tmdb, ids = ids)
+            assertEquals(listOf("tt38628047"), top.items.map { it.id })
+            assertEquals("aradeb", top.sources[topResultKey("tt38628047", "movie")])
+            assertEquals(3, top.copies.size)
+        }
+    }
+
+    @Test
+    fun `without another add-on, TMDB's copy is opened when it has an IMDb id`() {
+        val rows = listOf(row("elcinema", item("tt37272026", "هيبتا ٢: المناظرة الأخيرة", "2025")))
+        val tmdb = listOf(item("tmdb:1330337", "هيبتا ٢: المناظرة الأخيرة", "2025"))
+        val unknown = looked("tt37272026" to null)
+        assertEquals("tt37272026", buildTopResults("هيبتا", rows, tmdb, ids = SearchTitleIds(unknown)).items.single().id)
+        val ids = SearchTitleIds(unknown, withImdbId = setOf(topResultKey("tmdb:1330337", "movie")))
+        assertEquals("tmdb:1330337", buildTopResults("هيبتا", rows, tmdb, ids = ids).items.single().id)
+    }
+
+    @Test
+    fun `two films TMDB tells apart stay separate with the same name and year`() {
+        val top = buildTopResults(
+            "hero",
+            listOf(row("a", item("tt1", "Hero", "2019")), row("b", item("tt2", "Hero", "2019"))),
+            extra = emptyList(),
+            ids = SearchTitleIds(looked = looked("tt1" to "10", "tt2" to "20")),
+        )
+        assertEquals(listOf("tt1", "tt2"), top.items.map { it.id })
+    }
+
+    @Test
+    fun `an add-on copy further down a row wins over TMDB's first result`() {
+        val top = buildTopResults(
+            "dune",
+            listOf(row("a", item("tt2", "Dune: Part Two", "2024"), item("tt1", "Dune", "2021"))),
+            extra = listOf(item("tmdb:438631", "Dune", "2021")),
+        )
+        assertEquals(listOf("tt1", "tt2"), top.items.map { it.id })
+    }
+
+    @Test
+    fun `a merged title ranks by its best matching name`() {
+        val top = buildTopResults(
+            "هيبتا",
+            listOf(row("a", item("tt9", "Something Else", "2016"), item("tt1", "Hepta", "2016"))),
+            extra = listOf(item("tmdb:1", "هيبتا", "2016")),
+            ids = SearchTitleIds(looked = looked("tt1" to "1")),
+        )
+        assertEquals(listOf("tt1", "tt9"), top.items.map { it.id })
+    }
+
+    @Test
+    fun `TMDB ids are read from ids written as such only`() {
+        assertEquals("395815", tmdbIdIn("tmdb:395815"))
+        assertEquals("90", tmdbIdIn("tmdb:series:90"))
+        assertEquals(null, tmdbIdIn("395815"))
+        assertEquals(null, tmdbIdIn("tt5240732"))
+    }
 }

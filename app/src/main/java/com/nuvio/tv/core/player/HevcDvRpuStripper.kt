@@ -19,7 +19,8 @@ internal object HevcDvRpuStripper {
 
     /**
      * Rewrites a length-delimited (MP4/fMP4) sample directly into a reusable
-     * ExposedByteArrayOutputStream, removing any NAL unit whose type is 62 (DV RPU).
+     * ExposedByteArrayOutputStream, removing any NAL unit of type 62 (DV RPU) or 63 (the
+     * enhancement layer of a single-track Profile 7 video, which sits in layer 0).
      * Returns true if anything was stripped, false otherwise.
      */
     fun stripRpuLengthDelimited(
@@ -50,7 +51,7 @@ internal object HevcDvRpuStripper {
                 }
             val isRpu = nalType == NAL_TYPE_DV_RPU
             val isEnhancementLayer =
-                layerId > 0
+                layerId > 0 || nalType == NAL_TYPE_DV_EL
             val shouldDrop = isRpu || isEnhancementLayer
             if (shouldDrop) {
                 changed = true

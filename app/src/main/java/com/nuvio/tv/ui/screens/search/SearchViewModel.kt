@@ -29,7 +29,11 @@ import com.nuvio.tv.domain.model.MetaPreview
 import com.nuvio.tv.domain.model.PosterShape
 import com.nuvio.tv.domain.model.enabledAddons
 import com.nuvio.tv.domain.model.PLACEHOLDER_IMAGE_URL
+import com.nuvio.tv.core.tmdb.OriginalTitle
 import com.nuvio.tv.domain.repository.CatalogRepository
+import com.nuvio.tv.ui.screens.home.needsOriginalTitleLookup
+import com.nuvio.tv.ui.screens.home.originalCatalogName
+import kotlinx.coroutines.sync.withPermit
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
@@ -522,12 +526,18 @@ class SearchViewModel @Inject constructor(
     // Catalogs that failed for the current search, so their placeholder rows are dropped.
     private val failedCatalogKeys = mutableSetOf<String>()
     private var tmdbResults = TmdbSearchResults.EMPTY
+    private var titleIds = SearchTitleIds()
+
+    /** Lookups of results' TMDB ids and titles, for the current search; cancelled with it. */
+    private val titleLookupJobs: MutableSet<Job> = java.util.concurrent.ConcurrentHashMap.newKeySet()
+    private val titleLookups = kotlinx.coroutines.sync.Semaphore(MAX_PARALLEL_TITLE_LOOKUPS)
 
     private fun resetCatalogAccumulator() {
         catalogsMap.clear()
         catalogOrder.clear()
         failedCatalogKeys.clear()
         tmdbResults = TmdbSearchResults.EMPTY
+        titleIds = SearchTitleIds()
         hasRenderedFirstCatalog = false
         pendingCatalogResponses = 0
     }
@@ -540,6 +550,8 @@ class SearchViewModel @Inject constructor(
         activeSearchJobs = emptyList()
         activeLoadMoreJobs.forEach { it.cancel() }
         activeLoadMoreJobs.clear()
+        titleLookupJobs.forEach { it.cancel() }
+        titleLookupJobs.clear()
         activeSearchQuery = null
     }
 
@@ -745,6 +757,7 @@ class SearchViewModel @Inject constructor(
                 if (!isCurrentSearch(generation, query)) return@launch
                 tmdbResults = found
                 scheduleCatalogRowsUpdate()
+                findOtherIdsForUnrecognisedTitles(generation, query)
             }
             activeSearchJobs = jobs + tmdbJob
 
@@ -807,7 +820,7 @@ class SearchViewModel @Inject constructor(
                     catalogsMap[key] = result.data
                     pendingCatalogResponses = (pendingCatalogResponses - 1).coerceAtLeast(0)
                     scheduleCatalogRowsUpdate()
-                    nameInOriginalLanguage(key, result.data, generation, query)
+                    identifyTitles(key, result.data.items, generation, query)
                 }
                 is NetworkResult.Error -> {
                     if (!isCurrentSearch(generation, query)) return@collect
@@ -833,36 +846,84 @@ class SearchViewModel @Inject constructor(
     }
 
     /**
-     * Some add-ons name every title in their own language (elCinema calls Interstellar "بين النجوم").
-     * Results named in a non-Latin script take their original title when it is written in another
-     * script (see [renamedToOriginalTitle]), as on the home screen.
+     * Asks TMDB which titles a row's results are, so the same title under another id or name is
+     * shown once (see [buildTopResults]), and names them as the home screen does (see
+     * [originalCatalogName]): elCinema's "بين النجوم" becomes "Interstellar" and, with Arabic
+     * subtitles, Aradeb's "Hepta: The Last Lecture" becomes "هيبتا: المحاضرة الأخيرة".
      */
-    private fun nameInOriginalLanguage(key: String, row: com.nuvio.tv.domain.model.CatalogRow, generation: Long, query: String) {
-        val candidates = row.items.take(MAX_RENAMED_PER_ROW).filter { isNonLatinName(it.name) }
+    private fun identifyTitles(key: String, items: List<MetaPreview>, generation: Long, query: String) {
+        if (com.nuvio.tv.core.tmdb.TmdbApiKey.current().isBlank()) return
+        val candidates = items.take(MAX_IDENTIFIED_PER_PAGE)
+            .filter { tmdbIdIn(it.id) != null || it.id.startsWith("tt") || it.imdbId?.startsWith("tt") == true }
         if (candidates.isEmpty()) return
-        viewModelScope.launch {
-            val settings = tmdbSettingsDataStore.settings.first()
-            if (!settings.enabled) return@launch
-            val slots = kotlinx.coroutines.sync.Semaphore(4)
-            val renamed = kotlinx.coroutines.coroutineScope {
+        launchTitleLookup {
+            val rename = runCatching { tmdbSettingsDataStore.settings.first().enabled }.getOrDefault(false)
+            val found = kotlinx.coroutines.coroutineScope {
                 candidates.map { item ->
                     async(kotlinx.coroutines.Dispatchers.IO) {
-                        slots.acquire()
-                        try {
-                            val tmdbId = runCatching { tmdbService.ensureTmdbId(item.id, item.apiType) }.getOrNull() ?: return@async null
-                            val (_, original) = tmdbMetadataService.fetchOriginalTitle(tmdbId, item.type) ?: return@async null
-                            renamedToOriginalTitle(item.name, original)?.let { item.id to it }
-                        } finally {
-                            slots.release()
+                        titleLookups.withPermit {
+                            val tmdbId = tmdbIdIn(item.id)
+                                ?: lookUp { tmdbService.ensureTmdbId(item.id, item.apiType, item.imdbId) }?.takeIf { it.isNotBlank() }
+                            val name = if (rename && tmdbId != null && needsOriginalTitleLookup(item.name)) {
+                                lookUp { tmdbMetadataService.fetchOriginalTitle(tmdbId, item.type) }
+                                    ?.let { (language, title) -> originalCatalogName(item.name, OriginalTitle(language, title)) }
+                            } else {
+                                null
+                            }
+                            Triple(item, tmdbId, name)
                         }
                     }
-                }.mapNotNull { it.await() }.toMap()
+                }.map { it.await() }
             }
-            if (renamed.isEmpty() || !isCurrentSearch(generation, query)) return@launch
-            val current = catalogsMap[key] ?: return@launch
-            catalogsMap[key] = current.copy(items = current.items.map { item -> renamed[item.id]?.let { item.copy(name = it) } ?: item })
+            if (!isCurrentSearch(generation, query)) return@launchTitleLookup
+            titleIds = titleIds.copy(looked = titleIds.looked + found.map { (item, tmdbId, _) -> topResultKey(item.id, item.rawType) to tmdbId })
+            val renamed = found.mapNotNull { (item, _, name) -> name?.let { item.id to it } }.toMap()
+            val current = catalogsMap[key]
+            if (current != null && renamed.isNotEmpty()) {
+                catalogsMap[key] = current.copy(items = current.items.map { item -> renamed[item.id]?.let { item.copy(name = it) } ?: item })
+            }
+            scheduleCatalogRowsUpdate()
+            findOtherIdsForUnrecognisedTitles(generation, query)
+        }
+    }
+
+    /**
+     * An add-on can give a title an IMDb id that TMDB doesn't know, under which no source is
+     * listed. When TMDB found a title of the same name and year, this checks that it has an IMDb
+     * id of its own, so the top row can open that one instead.
+     */
+    private fun findOtherIdsForUnrecognisedTitles(generation: Long, query: String) {
+        val unrecognised = catalogsMap.values.flatMap { it.items }
+            .filter(titleIds::isUnrecognised)
+            .mapTo(HashSet()) { it.sameTitleKey() }
+        val toCheck = tmdbResults.titles.filter {
+            it.sameTitleKey() in unrecognised && topResultKey(it.id, it.rawType) !in titleIds.withImdbId
+        }
+        if (toCheck.isEmpty()) return
+        launchTitleLookup {
+            val withImdbId = toCheck.filter { title ->
+                val tmdbId = tmdbIdIn(title.id)?.toIntOrNull() ?: return@filter false
+                !lookUp { tmdbService.tmdbToImdb(tmdbId, title.apiType) }.isNullOrBlank()
+            }.map { topResultKey(it.id, it.rawType) }
+            if (withImdbId.isEmpty() || !isCurrentSearch(generation, query)) return@launchTitleLookup
+            titleIds = titleIds.copy(withImdbId = titleIds.withImdbId + withImdbId)
             scheduleCatalogRowsUpdate()
         }
+    }
+
+    private fun launchTitleLookup(block: suspend () -> Unit) {
+        val job = viewModelScope.launch { block() }
+        titleLookupJobs.add(job)
+        job.invokeOnCompletion { titleLookupJobs.remove(job) }
+    }
+
+    /** [request]'s answer, or null when it failed. */
+    private suspend fun <T> lookUp(request: suspend () -> T?): T? = try {
+        request()
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        null
     }
 
     private fun isCurrentSearch(generation: Long, query: String): Boolean =
@@ -919,6 +980,7 @@ class SearchViewModel @Inject constructor(
                         val latestRow = catalogsMap[key] ?: return@collect
                         catalogsMap[key] = latestRow.mergeCatalogPage(result.data)
                         scheduleCatalogRowsUpdate()
+                        identifyTitles(key, result.data.items, generation, query)
                     }
                     is NetworkResult.Error -> {
                         clearRowLoading(key, generation, query)
@@ -991,14 +1053,18 @@ class SearchViewModel @Inject constructor(
             val resultRows = activeRows.filterNot(isPlaceholder)
             val tmdb = tmdbResults
             val top = if (tmdb.titles.isNotEmpty() || resultRows.size >= 2) {
-                buildTopResults(state.submittedQuery.trim(), resultRows, tmdb.titles)
+                buildTopResults(state.submittedQuery.trim(), resultRows, tmdb.titles, ids = titleIds)
             } else {
                 null
             }
             // "Hide duplicate titles": a title in Top results isn't repeated in the add-on rows
             // below it, nor in a second add-on row; rows left with nothing new are dropped.
             val shownResultRows = if (com.nuvio.tv.core.poster.HideDuplicateTitlesPreference.enabled.value) {
-                com.nuvio.tv.ui.screens.home.withoutDuplicateTitles(resultRows, top?.items.orEmpty())
+                val inTopRow = top?.copies.orEmpty()
+                val otherRows = resultRows.map { row ->
+                    row.copy(items = row.items.filterNot { topResultKey(it.id, it.rawType) in inTopRow })
+                }
+                com.nuvio.tv.ui.screens.home.withoutDuplicateTitles(otherRows, top?.items.orEmpty())
                     .filter { it.items.isNotEmpty() }
             } else {
                 resultRows
@@ -1347,7 +1413,8 @@ internal fun resolveDiscoverCatalog(
         ?: catalogs.firstOrNull { it.key == currentKey }
         ?: catalogs.firstOrNull()
 
-private const val MAX_RENAMED_PER_ROW = 20
+private const val MAX_IDENTIFIED_PER_PAGE = 20
+private const val MAX_PARALLEL_TITLE_LOOKUPS = 6
 
 /** How long the field has to stay empty before a clear counts, see [SearchViewModel.onQueryChanged]. */
 private const val CLEARED_QUERY_SETTLE_MS = 500L

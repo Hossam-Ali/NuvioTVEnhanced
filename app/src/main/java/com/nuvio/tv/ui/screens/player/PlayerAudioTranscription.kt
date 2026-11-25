@@ -4,6 +4,7 @@ package com.nuvio.tv.ui.screens.player
 
 import android.util.Log
 import android.widget.Toast
+import androidx.media3.common.Player
 import androidx.media3.common.text.Cue
 import androidx.media3.extractor.text.CuesWithTiming
 import com.nuvio.tv.R
@@ -22,6 +23,7 @@ import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.security.MessageDigest
+import java.util.concurrent.atomic.AtomicBoolean
 
 private const val TRANSCRIPTION_KEY_PREFIX = "transcription:"
 /**
@@ -39,6 +41,9 @@ private const val LEAD_MS = 150_000L
 private const val PARALLEL_REQUESTS = 3
 private const val MAX_FAILURES_IN_A_ROW = 4
 private const val RENDER_INTERVAL_MS = 100L
+/** The video's buffer below which reading the audio waits, and the one at which it goes on. */
+private const val WAIT_BELOW_AHEAD_MS = 8_000L
+private const val READ_FROM_AHEAD_MS = 12_000L
 private const val DISK_CACHE_DIRECTORY = "subtitle-transcriptions"
 private const val CACHE_VERSION = 2
 
@@ -160,6 +165,18 @@ private val PlayerRuntimeController.transcriptionVideoKey: String
     get() = listOfNotNull(subtitleChoiceVideoKey, currentFilename ?: currentStreamUrl?.substringBefore('?'))
         .joinToString("|")
 
+/**
+ * Whether the audio may be read now. Reading takes as much of the connection as the video does, so
+ * it waits while the video is buffering or has little buffered ([wasReading] keeps it from
+ * switching back and forth). A video that isn't loading has all it wants and leaves it free.
+ */
+internal fun mayReadTranscriptionAudio(ready: Boolean, loading: Boolean, aheadMs: Long, wasReading: Boolean): Boolean = when {
+    !ready -> false
+    !loading -> true
+    wasReading -> aheadMs >= WAIT_BELOW_AHEAD_MS
+    else -> aheadMs >= READ_FROM_AHEAD_MS
+}
+
 /** True when subtitles can be made from this video's audio. */
 internal fun PlayerRuntimeController.canTranscribeAudio(): Boolean {
     SubtitleTranslationService.transcriptionSetup() ?: return false
@@ -193,8 +210,22 @@ internal fun PlayerRuntimeController.startAudioTranscription(targetLanguage: Str
     val headers = currentHeaders
     fun isCurrent() = activeSidecarSubtitleKey == key && activeSidecarGeneration == generation
 
+    val mayRead = AtomicBoolean(false)
+    fun updateMayRead() {
+        val player = _exoPlayer
+        mayRead.set(
+            isUsingMpvEngine() || player != null && mayReadTranscriptionAudio(
+                ready = player.playbackState == Player.STATE_READY || player.playbackState == Player.STATE_ENDED,
+                loading = player.isLoading,
+                aheadMs = player.bufferedPosition - player.currentPosition,
+                wasReading = mayRead.get(),
+            )
+        )
+    }
+    updateMayRead()
     audioTranscriptionRenderJob = scope.launch {
         while (isActive && isCurrent()) {
+            updateMayRead()
             if (isUsingMpvEngine()) {
                 val line = transcribedLineAt(session.lines(), currentPlaybackPositionMs() ?: 0L)
                 if (line != _uiState.value.mpvTranslatedSubtitle) _uiState.update { it.copy(mpvTranslatedSubtitle = line) }
@@ -205,9 +236,10 @@ internal fun PlayerRuntimeController.startAudioTranscription(targetLanguage: Str
     audioTranscriptionJob = scope.launch(Dispatchers.IO) {
         val client = AudioTranscriptionClient(setup)
         val slots = Semaphore(PARALLEL_REQUESTS)
-        val reader = AudioClipReader(context, url, headers, audioLanguage, audioPosition)
+        val reader = AudioClipReader(context, url, headers, audioLanguage, audioPosition, mayRead::get)
         val failures = java.util.concurrent.atomic.AtomicInteger(0)
         try {
+            reader.awaitTurn()
             if (!reader.open()) {
                 audioTranscriptionUnsupportedUrl = url
                 withContext(Dispatchers.Main) {
@@ -227,6 +259,8 @@ internal fun PlayerRuntimeController.startAudioTranscription(targetLanguage: Str
                 val near = from - positionMs < NEAR_WINDOW_MS
                 // A decoder or network failure ends transcription for this stream, never the app.
                 val clip = try {
+                    reader.awaitTurn()
+                    reader.takeWaited()
                     if (readPositionMs != from) reader.seekTo(from)
                     reader.nextClip(
                         if (near) NEAR_CLIP_MS else CLIP_MS,
@@ -237,7 +271,8 @@ internal fun PlayerRuntimeController.startAudioTranscription(targetLanguage: Str
                 } catch (error: Exception) {
                     Log.w(PlayerRuntimeController.TAG, "Reading audio for transcription failed: ${error.message}")
                     readPositionMs = -1L
-                    failures.incrementAndGet()
+                    // A connection the server closed while reading waited isn't a failure: it is opened again.
+                    if (!reader.takeWaited()) failures.incrementAndGet()
                     delay(2_000)
                     continue
                 } ?: break

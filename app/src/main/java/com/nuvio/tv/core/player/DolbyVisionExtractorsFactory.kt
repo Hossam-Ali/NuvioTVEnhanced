@@ -47,7 +47,9 @@ internal class DolbyVisionExtractorsFactory(
     private val delegate: ExtractorsFactory,
     private val config: DolbyVisionConversionConfig,
     private val stripDvRpu: Boolean = false,
-    private val stripHdr10PlusSei: Boolean = false
+    private val stripHdr10PlusSei: Boolean = false,
+    /** Matroska only: plays a Profile 7 video as its HDR10 base layer. */
+    private val stripProfile7: Boolean = false
 ) : ExtractorsFactory {
 
     override fun createExtractors(): Array<Extractor> =
@@ -73,6 +75,7 @@ internal class DolbyVisionExtractorsFactory(
                     config = if (config.active) config else DolbyVisionConversionConfig(active = false),
                     stripRpuOnly = stripDvRpu && !config.active,
                     stripHdr10PlusSei = stripHdr10PlusSei,
+                    stripProfile7 = stripProfile7 && !config.active,
                 )
             )
         }

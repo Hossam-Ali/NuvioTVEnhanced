@@ -71,12 +71,17 @@ internal fun PlayerRuntimeController.subtitleTranslationExtractorsFactory(delega
 /** Tracks the language of the subtitle being shown, so only that track is translated. */
 internal fun PlayerRuntimeController.onSubtitleTranslationTracksChanged(tracks: Tracks) {
     if (!SubtitleTranslationService.isConfigured()) return
-    val selectedLanguage = tracks.groups
+    val selected = tracks.groups
         .firstOrNull { it.type == C.TRACK_TYPE_TEXT && it.isSelected }
-        ?.let { group -> (0 until group.length).firstOrNull(group::isTrackSelected)?.let { group.getTrackFormat(it).language } }
+        ?.let { group -> (0 until group.length).firstOrNull(group::isTrackSelected)?.let { group.getTrackFormat(it) } }
     SubtitleTranslationService.preferredSubtitleLanguage = subtitleLanguageTargets().firstOrNull()
-    if (SubtitleTranslationService.selectedTrackLanguage == selectedLanguage) return
-    SubtitleTranslationService.selectedTrackLanguage = selectedLanguage
+    if (SubtitleTranslationService.selectedTrackLanguage == selected?.language &&
+        SubtitleTranslationService.selectedTrackId == selected?.id
+    ) {
+        return
+    }
+    SubtitleTranslationService.selectedTrackLanguage = selected?.language
+    SubtitleTranslationService.selectedTrackId = selected?.id
     EmbeddedSubtitleTextTap.replaySelection()
     subtitleTranslationBridge.refresh()
 }
@@ -88,6 +93,14 @@ internal fun TrackInfo.isTranslatableTextSubtitle(): Boolean {
     val codec = codec.orEmpty().lowercase()
     return bitmapSubtitleCodecHints.none { codec.contains(it) }
 }
+
+/** Whether the video's picture subtitles (PGS on Blu-ray) can be read: by AI, with ExoPlayer. */
+internal fun PlayerRuntimeController.canReadPictureSubtitles(): Boolean =
+    !isUsingMpvEngine() && SubtitleTranslationService.isConfigured()
+
+/** Tracks AI translation can use: text, and pictures when [canReadPictures]. */
+internal fun TrackInfo.isTranslatableSubtitle(canReadPictures: Boolean): Boolean =
+    canReadPictures || isTranslatableTextSubtitle()
 
 /**
  * Picks the subtitle to translate from [candidates]: English first, since that is what models
@@ -102,17 +115,19 @@ private fun <T> pickTranslationSource(candidates: List<T>, audioLanguage: String
 
 /**
  * The one embedded track that "always translate with AI" shows in [targetLanguage]: a full
- * (non-forced) text track in another language, English first (see [pickTranslationSource]).
+ * (non-forced) track in another language, English first (see [pickTranslationSource]). Within a
+ * language, text comes before pictures, which are used only when [canReadPictures].
  */
 internal fun embeddedSubtitleForTranslation(
     subtitleTracks: List<TrackInfo>,
     targetLanguage: String,
     audioLanguage: String? = null,
+    canReadPictures: Boolean = false,
 ): TrackInfo? = pickTranslationSource(
     subtitleTracks.filter { track ->
-        track.isTranslatableTextSubtitle() && !track.isForced &&
+        track.isTranslatableSubtitle(canReadPictures) && !track.isForced &&
             !PlayerSubtitleUtils.matchesLanguageCode(track.language, targetLanguage)
-    },
+    }.sortedBy { if (it.isTranslatableTextSubtitle()) 0 else 1 },
     audioLanguage,
 ) { it.language }
 
@@ -153,14 +168,20 @@ internal fun addonEnglishSubtitle(
     addonSubtitleForTranslation(subtitles, targetLanguage)
         ?.takeIf { PlayerSubtitleUtils.matchesLanguageCode(it.lang, "en") }
 
-/** The video's track to translate gives way to an English add-on subtitle unless it is English. */
+/**
+ * The video's text track to translate gives way to an English add-on subtitle unless it is English.
+ * Picture tracks never do.
+ */
 private fun englishAddonInsteadOf(
     track: TrackInfo,
     addonSubtitles: List<com.nuvio.tv.domain.model.Subtitle>,
     targetLanguage: String,
 ): com.nuvio.tv.domain.model.Subtitle? =
-    if (PlayerSubtitleUtils.matchesLanguageCode(track.language, "en")) null
+    if (!givesWayToEnglishAddon(track)) null
     else addonEnglishSubtitle(addonSubtitles, targetLanguage)
+
+private fun givesWayToEnglishAddon(track: TrackInfo): Boolean =
+    track.isTranslatableTextSubtitle() && !PlayerSubtitleUtils.matchesLanguageCode(track.language, "en")
 
 /**
  * The subtitle to translate: the video's own English track, which is always in sync, then an
@@ -172,8 +193,9 @@ internal fun subtitleSourceForTranslation(
     addonSubtitles: List<com.nuvio.tv.domain.model.Subtitle>,
     targetLanguage: String,
     audioLanguage: String? = null,
+    canReadPictures: Boolean = false,
 ): TranslationSource? {
-    val track = embeddedSubtitleForTranslation(subtitleTracks, targetLanguage, audioLanguage)
+    val track = embeddedSubtitleForTranslation(subtitleTracks, targetLanguage, audioLanguage, canReadPictures)
         ?: return addonSubtitleForTranslation(addonSubtitles, targetLanguage, audioLanguage)?.let(TranslationSource::Addon)
     return englishAddonInsteadOf(track, addonSubtitles, targetLanguage)?.let(TranslationSource::Addon)
         ?: TranslationSource.Embedded(track)
@@ -207,20 +229,23 @@ internal fun autoSubtitleChoiceNeedsAddons(
     subtitleTracks: List<TrackInfo>,
     targetLanguage: String,
     canTranscribe: Boolean = true,
+    canReadPictures: Boolean = false,
 ): Boolean {
     if (embeddedSubtitleInTarget(subtitleTracks, targetLanguage) != null) return false
-    val track = embeddedSubtitleForTranslation(subtitleTracks, targetLanguage) ?: return !canTranscribe
-    return !PlayerSubtitleUtils.matchesLanguageCode(track.language, "en")
+    val track = embeddedSubtitleForTranslation(subtitleTracks, targetLanguage, canReadPictures = canReadPictures)
+        ?: return !canTranscribe
+    return givesWayToEnglishAddon(track)
 }
 
 /**
  * The order "always translate with AI" follows:
  * 1. Audio already in the target language: no subtitles at all.
  * 2. The video's own subtitle in the target language, shown as it is.
- * 3. The video's English subtitle, translated (AI translates English best).
- * 4. The video only has subtitles in other languages: an add-on's English subtitle, translated.
+ * 3. The video's English subtitle, translated (AI translates English best). Pictures of text are
+ *    read by AI when [canReadPictures].
+ * 4. The video only has text subtitles in other languages: an add-on's English subtitle, translated.
  * 5. The video's subtitle in any other language, translated.
- * 6. No subtitle in the video: subtitles made from the audio, when [canTranscribe].
+ * 6. No usable subtitle in the video: subtitles made from the audio, when [canTranscribe].
  * Other add-on subtitles are used only when the audio can't be read (live or adaptive streams).
  */
 internal fun autoSubtitleChoice(
@@ -230,10 +255,11 @@ internal fun autoSubtitleChoice(
     audioLanguage: String? = null,
     canTranscribe: Boolean = true,
     audioInTargetLanguage: Boolean = false,
+    canReadPictures: Boolean = false,
 ): AutoSubtitleChoice? {
     if (audioInTargetLanguage) return null
     embeddedSubtitleInTarget(subtitleTracks, targetLanguage)?.let { return AutoSubtitleChoice.Embedded(it) }
-    embeddedSubtitleForTranslation(subtitleTracks, targetLanguage, audioLanguage)?.let { track ->
+    embeddedSubtitleForTranslation(subtitleTracks, targetLanguage, audioLanguage, canReadPictures)?.let { track ->
         return englishAddonInsteadOf(track, addonSubtitles, targetLanguage)?.let(AutoSubtitleChoice::Addon)
             ?: AutoSubtitleChoice.Embedded(track)
     }
@@ -301,12 +327,14 @@ internal fun PlayerRuntimeController.rememberedSubtitleDecision(
     // Audio in the viewer's language plays without subtitles, whatever was used before.
     if (isAudioInTargetLanguage(target)) return RememberedSubtitleDecision.Replace
     val state = _uiState.value
-    if (state.isLoadingAddonSubtitles && autoSubtitleChoiceNeedsAddons(subtitleTracks, target, canTranscribeAudio())) {
+    if (state.isLoadingAddonSubtitles &&
+        autoSubtitleChoiceNeedsAddons(subtitleTracks, target, canTranscribeAudio(), canReadPictureSubtitles())
+    ) {
         return RememberedSubtitleDecision.Wait
     }
     val choice = autoSubtitleChoice(
         subtitleTracks, state.addonSubtitles, target, currentAudioLanguageForTranslation(),
-        canTranscribe = canTranscribeAudio()
+        canTranscribe = canTranscribeAudio(), canReadPictures = canReadPictureSubtitles()
     )
     return if (rememberedSubtitleMatchesChoice(remembered, choice)) RememberedSubtitleDecision.Keep else RememberedSubtitleDecision.Replace
 }
@@ -336,11 +364,15 @@ internal fun PlayerRuntimeController.tryAutoSelectEmbeddedSubtitleForTranslation
         }
         return true
     }
-    if (state.isLoadingAddonSubtitles && autoSubtitleChoiceNeedsAddons(subtitleTracks, targetLanguage, canTranscribeAudio())) return true
+    if (state.isLoadingAddonSubtitles &&
+        autoSubtitleChoiceNeedsAddons(subtitleTracks, targetLanguage, canTranscribeAudio(), canReadPictureSubtitles())
+    ) {
+        return true
+    }
     val firstNotice = subtitleTranslationNoSourceNoticeStreamUrl != currentStreamUrl
     val choice = autoSubtitleChoice(
         subtitleTracks, state.addonSubtitles, targetLanguage, currentAudioLanguageForTranslation(),
-        canTranscribe = canTranscribeAudio()
+        canTranscribe = canTranscribeAudio(), canReadPictures = canReadPictureSubtitles()
     )
     if (choice !is AutoSubtitleChoice.Transcribe) stopAudioTranscription()
     when (choice) {
@@ -352,6 +384,9 @@ internal fun PlayerRuntimeController.tryAutoSelectEmbeddedSubtitleForTranslation
             return false
         }
         AutoSubtitleChoice.Transcribe -> {
+            // While the video is still opening, "no subtitles" is not certain: decided once it is ready.
+            val ready = isUsingMpvEngine() || _exoPlayer?.playbackState == androidx.media3.common.Player.STATE_READY
+            if (!ready && !isAudioTranscriptionActive()) return true
             autoSubtitleSelected = true
             if (!isAudioTranscriptionActive()) {
                 Log.d(PlayerRuntimeController.TAG, "AUTO_SUB no subtitles: transcribing the audio into $targetLanguage")

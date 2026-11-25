@@ -2159,6 +2159,8 @@ fun PlayerScreen(
             isUsingMpv = uiState.internalPlayerEngine == InternalPlayerEngine.MVP_PLAYER,
             aiTranslationTarget = com.nuvio.tv.core.subtitles.SubtitleTranslationService.translationTargetLanguage(),
             aiTranslationAudioLanguage = uiState.audioTracks.getOrNull(uiState.selectedAudioTrackIndex)?.language,
+            aiReadsPictures = uiState.serverSubtitleTracks.isEmpty() &&
+                uiState.internalPlayerEngine != InternalPlayerEngine.MVP_PLAYER,
             aiTranscriptionAvailable = com.nuvio.tv.core.subtitles.SubtitleTranslationService.transcriptionSetup() != null,
             aiTranscribing = uiState.isAiTranscribing,
             onTranscribeAudio = { viewModel.onEvent(PlayerEvent.OnTranscribeAudio) },

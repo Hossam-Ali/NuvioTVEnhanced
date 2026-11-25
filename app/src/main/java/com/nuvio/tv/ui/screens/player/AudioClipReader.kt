@@ -14,6 +14,9 @@ import com.nuvio.tv.core.subtitles.MonoDownsampler
 import com.nuvio.tv.core.subtitles.ShortSink
 import com.nuvio.tv.core.subtitles.TRANSCRIPTION_SAMPLE_RATE
 import com.nuvio.tv.core.subtitles.quietestCutSample
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import java.io.Closeable
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -35,7 +38,11 @@ internal class AudioClipReader(
     private val preferredLanguage: String?,
     /** The playing track's place among the audio tracks, used when languages don't tell them apart. */
     private val preferredPosition: Int = -1,
+    /** False while the video needs the connection; reading then waits. */
+    private val mayRead: () -> Boolean = { true },
 ) : Closeable {
+    private var waited = false
+
     private var extractor: MediaExtractorCompat? = null
     private var codec: MediaCodec? = null
     private var downsampler: MonoDownsampler? = null
@@ -96,9 +103,10 @@ internal class AudioClipReader(
      * The next clip of about [maxMs], ending at the quietest moment of its last [searchMs] so
      * words are not cut. The rest stays buffered for the next clip. Null at the end of the stream.
      */
-    fun nextClip(maxMs: Long, searchMs: Long): AudioClip? {
+    suspend fun nextClip(maxMs: Long, searchMs: Long): AudioClip? {
         val wanted = (maxMs * TRANSCRIPTION_SAMPLE_RATE / 1000).toInt()
         while (buffered.size < wanted && !outputDone) {
+            awaitTurn()
             if (!pump()) break
         }
         if (buffered.size == 0) return null
@@ -112,6 +120,21 @@ internal class AudioClipReader(
         bufferedStartMs = clip.endMs
         return clip
     }
+
+    /**
+     * Waits until the video can spare the connection, and ends at once when the job was cancelled:
+     * the Google TV Streamer's codec service crashes on AC-3 audio sent after the player closed.
+     */
+    suspend fun awaitTurn() {
+        currentCoroutineContext().ensureActive()
+        while (!mayRead()) {
+            waited = true
+            delay(WAIT_STEP_MS)
+        }
+    }
+
+    /** Whether reading has waited since this was last asked: servers may drop a connection left idle. */
+    fun takeWaited(): Boolean = waited.also { waited = false }
 
     /** Feeds the decoder and collects its output once; false when nothing more can come. */
     private fun pump(): Boolean {
@@ -190,5 +213,6 @@ internal class AudioClipReader(
 
     private companion object {
         const val TAG = "AudioClipReader"
+        const val WAIT_STEP_MS = 200L
     }
 }
