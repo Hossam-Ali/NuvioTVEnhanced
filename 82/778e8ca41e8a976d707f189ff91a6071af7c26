@@ -1,0 +1,73 @@
+README.md
+  s_c7f847fc05dfc2::t_290fc92322a073 10,34-41,43-44,130-132,135-136,165-167,183-186
+app/src/main/java/com/nuvio/tv/core/player/DolbyVisionExtractorsFactory.kt
+  s_c7f847fc05dfc2::t_bdd9fde6a09bc7 50-52,78
+app/src/main/java/com/nuvio/tv/core/player/DolbyVisionMatroskaTransformer.kt
+  s_c7f847fc05dfc2::t_66f09a2375108f 33-34,82,94,97-98,121
+app/src/main/java/com/nuvio/tv/core/player/HevcDvRpuStripper.kt
+  s_c7f847fc05dfc2::t_f2046b039d3cd9 22-23,54
+app/src/main/java/com/nuvio/tv/core/player/dvmkv/DolbyVisionCompatibility.java
+  s_c7f847fc05dfc2::t_9aff2c95dc3a1e 52-64
+app/src/main/java/com/nuvio/tv/core/player/dvmkv/MatroskaExtractor.java
+  s_c7f847fc05dfc2::t_257a72ecc3225b 3481
+app/src/main/java/com/nuvio/tv/core/subtitles/SubtitlePictures.kt
+  s_c7f847fc05dfc2::t_edeaa6591da7f1 1-145
+app/src/main/java/com/nuvio/tv/core/subtitles/SubtitleTranslationService.kt
+  s_c7f847fc05dfc2::t_b68d7268918a67 4,85-86,117-134,224-230
+app/src/main/java/com/nuvio/tv/core/subtitles/SubtitleTranslator.kt
+  s_c7f847fc05dfc2::t_68289fadbc69f3 13,66,68-69,212,265-266,323-353,378,381-382,384-385
+app/src/main/java/com/nuvio/tv/ui/screens/player/AudioClipReader.kt
+  s_c7f847fc05dfc2::t_20305b17bc91e9 17-19,41-42,44-45,106,109,124-138,216
+app/src/main/java/com/nuvio/tv/ui/screens/player/HardwareVideoDecoderSelector.kt
+  s_c7f847fc05dfc2::t_d9661a4570dcd2 3,42-106,111-127
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerAudioTranscription.kt
+  s_c7f847fc05dfc2::t_0c390c2de22e3a 7,26,44-46,168-179,213-225,228,239,242,262-263,274-275
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerInitialization.kt
+  s_c7f847fc05dfc2::t_b8d90bfc088e2b 905-914,1040-1041,1337-1338,2350
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerSubtitleTranslation.kt
+  s_c7f847fc05dfc2::t_2a627876cd3aee 74,76,78-84,97-104,118-119,125,128,130,171-174,180,183-185,196,198,232,235-237,244-246,248,258,262,330-332,337,367-371,375,387-389
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerRuntimeControllerTracks.kt
+  s_c7f847fc05dfc2::t_778af80595a3fb 249-251,258-261,323-328,334,338-340
+app/src/main/java/com/nuvio/tv/ui/screens/player/PlayerScreen.kt
+  s_c7f847fc05dfc2::t_3b019811ef22b7 2162-2163
+app/src/main/java/com/nuvio/tv/ui/screens/player/SubtitleSelectionOverlay.kt
+  s_c7f847fc05dfc2::t_9a37d474e23d77 114-115,155,2085,2095,2100
+app/src/main/java/com/nuvio/tv/ui/screens/player/SubtitleTranslationPipeline.kt
+  s_c7f847fc05dfc2::t_a1f41bfe6e633a 25,29-32,89-90,92-103,114,118,126-153,190-191,194-196,215-245,248-253,267-277,360-365
+app/src/main/java/com/nuvio/tv/ui/screens/search/SearchResultMerging.kt
+  s_c7f847fc05dfc2::t_f0123d8e5ffacd 19-20,23-46,65-73,77-81,88,90,96-134,138-139,144
+app/src/main/java/com/nuvio/tv/ui/screens/search/SearchViewModel.kt
+  s_c7f847fc05dfc2::t_0cd10f58d5e13c 32,34-36,529-533,540,553-554,760,823,849-852,854-857,859-861,864-873,876-883,885-909,914-928,983,1056,1063-1067,1416-1417
+app/src/test/java/com/nuvio/tv/core/player/DolbyVision7BaseLayerTest.kt
+  s_c7f847fc05dfc2::t_c62546dcc386f1 1-69
+app/src/test/java/com/nuvio/tv/core/subtitles/SubtitlePicturesTest.kt
+  s_c7f847fc05dfc2::t_2d792a700b429f 1-114
+app/src/test/java/com/nuvio/tv/ui/screens/player/HardwareVideoDecoderSelectorTest.kt
+  s_c7f847fc05dfc2::t_2f40c43d8db51d 159-227
+app/src/test/java/com/nuvio/tv/ui/screens/player/PictureSubtitleCueTest.kt
+  s_c7f847fc05dfc2::t_cdcf99ee011251 1-58
+app/src/test/java/com/nuvio/tv/ui/screens/player/SubtitleTranslationSourceTest.kt
+  s_c7f847fc05dfc2::t_aa26320059e6dd 95-125
+app/src/test/java/com/nuvio/tv/ui/screens/player/TracksAreKnownTest.kt
+  s_c7f847fc05dfc2::t_b359e2545f76ec 1-24
+app/src/test/java/com/nuvio/tv/ui/screens/player/TranscriptionReadTurnTest.kt
+  s_c7f847fc05dfc2::t_acf1ebd362e1bb 1-30
+app/src/test/java/com/nuvio/tv/ui/screens/search/SearchResultMergingTest.kt
+  s_c7f847fc05dfc2::t_7522f6d8c6d8f4 75-154
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "82778e8ca41e8a976d707f189ff91a6071af7c26",
+  "prompts": {},
+  "sessions": {
+    "s_c7f847fc05dfc2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "666ff6ef-bff7-49b1-894d-8c6f8060c75e",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Hossam Ali <hossamm.ali1993@gmail.com>"
+    }
+  }
+}
