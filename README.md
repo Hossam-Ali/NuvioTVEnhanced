@@ -93,7 +93,8 @@ it listens to the audio and writes them. No searching, no syncing, no wrong-vers
 - **New episode badges.** A show in Continue Watching whose next episode just came out is marked on
   its cards in your rows.
 - **Hide duplicate titles.** Each title shows once, in the first row that has it, on the home
-  screen, in collection folders and in search.
+  screen, in collection folders and in search. Recently added sums up your rows, so its titles
+  stay in their own rows too.
 - **Continue Watching opens the title's page** by default (change it with On Select); the Resume
   button under the hero always plays straight away.
 - **Share your setup.** Scan a QR code to save your whole home setup (layout, rows, collections,

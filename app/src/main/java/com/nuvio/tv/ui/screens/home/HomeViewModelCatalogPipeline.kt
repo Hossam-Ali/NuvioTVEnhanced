@@ -806,9 +806,9 @@ internal suspend fun HomeViewModel.updateCatalogRowsPipeline() {
         emptyList()
     }
 
-    // "Hide duplicate titles": each title only in the first row that has it, "Recently added"
-    // (above the rows on the Modern home) included. A row left with nothing new is dropped
-    // rather than shown as a loading placeholder.
+    // "Hide duplicate titles": each title only in the first row that has it. "Recently added"
+    // doesn't count: it sums up the rows, so its titles stay in their own rows too. A row left
+    // with nothing new is dropped rather than shown as a loading placeholder.
     // Rows set to "newest first" in the home editor are sorted before duplicates are taken out,
     // so a title stays in the row where it is newest.
     val newestFirst = com.nuvio.tv.core.poster.NewestFirstRowsPreferences.rowKeys.value
@@ -819,7 +819,7 @@ internal suspend fun HomeViewModel.updateCatalogRowsPipeline() {
     }
     val hideDuplicates = com.nuvio.tv.core.poster.HideDuplicateTitlesPreference.enabled.value
     val displayRows = if (hideDuplicates) {
-        withContext(Dispatchers.Default) { withoutDuplicateTitles(orderedDisplayRows, recentlyAdded.map { it.item }) }
+        withContext(Dispatchers.Default) { withoutDuplicateTitles(orderedDisplayRows) }
     } else {
         orderedDisplayRows
     }

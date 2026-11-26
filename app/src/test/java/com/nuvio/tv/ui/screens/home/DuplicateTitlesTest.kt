@@ -34,7 +34,7 @@ class DuplicateTitlesTest {
     }
 
     @Test
-    fun `titles in Recently added are taken out of the rows below`() {
+    fun `titles already shown above, such as search's top results, are taken out of the rows below`() {
         val rows = withoutDuplicateTitles(listOf(row("prime", title("tt1"), title("tt2"))), alreadyShown = listOf(title("tt1")))
         assertEquals(listOf("tt2"), rows.single().items.map { it.id })
     }

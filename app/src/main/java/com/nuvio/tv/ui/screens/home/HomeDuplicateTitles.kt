@@ -15,7 +15,7 @@ internal fun MetaPreview.identityKeys(): List<String> = listOfNotNull(
 
 /**
  * [rows] with each title kept only in the first row that has it, top to bottom. Titles in
- * [alreadyShown] (the "Recently added" row above them) count as shown. Placeholders are kept.
+ * [alreadyShown] (search's top results above them) count as shown. Placeholders are kept.
  */
 internal fun withoutDuplicateTitles(rows: List<CatalogRow>, alreadyShown: List<MetaPreview> = emptyList()): List<CatalogRow> {
     val seen = HashSet<String>()
