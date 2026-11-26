@@ -39,6 +39,13 @@ internal fun MetaPreview.releaseSortDate(): LocalDate? {
     return LocalDate.of(year, 1, 1)
 }
 
+/**
+ * Whether the add-on dates the title after [today]. The hour doesn't count: add-ons often give the
+ * TV broadcast time (Aradeb dates a premiere to the evening), while the episode streams earlier.
+ */
+internal fun MetaPreview.isOutAfter(today: LocalDate, zone: java.time.ZoneId = java.time.ZoneId.systemDefault()): Boolean =
+    isUnreleased(today, java.time.Clock.fixed(today.plusDays(1).atStartOfDay(zone).toInstant().minusMillis(1), zone))
+
 /** The title's full release date, when the add-on gives one (a year alone isn't enough). */
 internal fun MetaPreview.exactReleaseDate(): LocalDate? {
     val raw = released?.trim() ?: return null
@@ -81,7 +88,7 @@ internal fun recentlyAddedEntries(
             val date = if (maxAgeDays == null) entry.item.releaseSortDate() else dateOf(entry.item)
             date?.let { entry to it }
         }
-        .filter { (entry, date) -> !date.isAfter(today) && !entry.item.isUnreleased(today) }
+        .filter { (entry, date) -> !date.isAfter(today) && !entry.item.isOutAfter(today) }
         .filter { (_, date) -> maxAgeDays == null || !date.isBefore(today.minusDays(maxAgeDays)) }
         .sortedByDescending { (_, date) -> date }
         .map { (entry, _) -> entry }

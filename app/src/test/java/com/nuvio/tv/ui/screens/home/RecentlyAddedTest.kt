@@ -6,6 +6,7 @@ import com.nuvio.tv.domain.model.MetaPreview
 import com.nuvio.tv.domain.model.PosterShape
 import com.nuvio.tv.domain.model.legacyKey
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -155,5 +156,18 @@ class RecentlyAddedTest {
     fun `an unknown period falls back to a week`() {
         assertEquals(7, com.nuvio.tv.core.poster.RecentlyAddedPreferences.normalizePeriod(5))
         assertEquals(30, com.nuvio.tv.core.poster.RecentlyAddedPreferences.normalizePeriod(30))
+    }
+
+    @Test
+    fun `a title out later today counts, whatever the hour`() {
+        val today = LocalDate.of(2026, 11, 26)
+        val picked = row("arabic", ContentType.SERIES,
+            title("tonight", released = "2026-11-26T18:00:00.000Z", releaseInfo = "2026-", type = ContentType.SERIES),
+            title("tomorrow", released = "2026-11-27T00:00:00.000Z", type = ContentType.SERIES),
+        )
+        val ids = recentlyAddedEntries(listOf(picked), setOf(picked.legacyKey()), today, maxAgeDays = 14).map { it.item.id }
+        assertEquals(listOf("tonight"), ids)
+        assertTrue(title("t", released = "2026-11-27T00:30:00+01:00").isOutAfter(today, java.time.ZoneId.of("Europe/Berlin")))
+        assertFalse(title("t", released = "2026-11-26T23:30:00+01:00").isOutAfter(today, java.time.ZoneId.of("Europe/Berlin")))
     }
 }

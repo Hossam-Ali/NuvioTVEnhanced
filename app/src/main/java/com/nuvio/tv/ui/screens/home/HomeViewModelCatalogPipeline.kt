@@ -798,7 +798,9 @@ internal suspend fun HomeViewModel.updateCatalogRowsPipeline() {
                 LocalDate.now(),
                 maxAgeDays = com.nuvio.tv.core.poster.RecentlyAddedPreferences.periodDays.value.toLong(),
                 dateOf = { item -> releaseDateStore.known(item.id) ?: item.exactReleaseDate() }
-            )
+            ).also { entries ->
+                logRecentlyAddedChoice(fullRowsFiltered + hiddenRows, recentlyAddedKeys, entries)
+            }
         }
     } else {
         emptyList()
@@ -1319,4 +1321,47 @@ internal fun HomeViewModel.refreshVisibleCatalogsPipeline(requestedByUser: Boole
     toRefresh.forEach { (addon, catalog) ->
         loadCatalogPipeline(addon, catalog, generation, isRefresh = true, requestedByUser = requestedByUser, forceReplace = forceReplace)
     }
+}
+
+private var lastRecentlyAddedLog: String? = null
+
+/**
+ * Logs, once per change, the newest titles of each row picked for "Recently added" and why each
+ * was left out, so a missing title can be explained from the log.
+ */
+private fun HomeViewModel.logRecentlyAddedChoice(
+    rows: List<com.nuvio.tv.domain.model.CatalogRow>,
+    pickedKeys: Set<String>,
+    entries: List<RecentlyAddedEntry>,
+) {
+    val today = LocalDate.now()
+    val period = com.nuvio.tv.core.poster.RecentlyAddedPreferences.periodDays.value.toLong()
+    val shown = entries.mapTo(HashSet()) { it.item.id }
+    val text = buildString {
+        append("period=${period}d picked=${pickedKeys.size} shown=${entries.size}")
+        pickedKeys.forEach { key ->
+            val row = rows.firstOrNull { it.legacyKey() == key }
+            append(" | ").append(key.substringAfterLast('_').takeLast(30)).append(": ")
+            if (row == null) {
+                append("not loaded")
+                return@forEach
+            }
+            row.items.filterNot { it.id.startsWith("__placeholder_") }.take(4).joinToString { item ->
+                val tmdbDate = releaseDateStore.known(item.id)
+                val date = tmdbDate ?: item.exactReleaseDate()
+                val reason = when {
+                    item.id in shown -> "shown"
+                    date == null -> "no date"
+                    date.isAfter(today) -> "future"
+                    item.isOutAfter(today) -> "unreleased(released=${item.released}, info=${item.releaseInfo})"
+                    date.isBefore(today.minusDays(period)) -> "too old"
+                    else -> "over limit or duplicate"
+                }
+                "${item.id} ${date ?: "-"}${if (tmdbDate != null) "(tmdb)" else ""} $reason"
+            }.let(::append)
+        }
+    }
+    if (text == lastRecentlyAddedLog) return
+    lastRecentlyAddedLog = text
+    android.util.Log.d(HomeViewModel.TAG, "RECENTLY_ADDED: $text")
 }
